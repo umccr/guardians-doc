@@ -1,21 +1,17 @@
 {
-  "name": "eleventy-libdoc",
-  "version": "0.14.6",
-  "description": "An Eleventy starter project to craft slick and responsive documentation",
-  "main": "index.js",
-  "scripts": {
-    "build-ghpages": "npx @11ty/eleventy",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "extinct-equator",
   "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
   "dependencies": {
-    "@11ty/eleventy": "^3.0.0",
-    "@11ty/eleventy-img": "^6.0.1",
-    "@11ty/eleventy-navigation": "^0.3.5",
-    "@11ty/eleventy-plugin-rss": "^2.0.4",
-    "sharp": "^0.33.5"
+    "@astrojs/starlight": "^0.38.2",
+    "astro": "^6.0.1",
+    "sharp": "^0.34.2"
   }
 }
