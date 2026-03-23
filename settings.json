@@ -1,32 +1,16 @@
 {
-    "siteTitle": "My Project Title",
-    "siteDescription": "This is the description of my project title",
-    "author": "John Doe",
+    "siteTitle": "UMCCR GUARDIANS",
+    "siteDescription": "Documentation/blog posts from the UMCCR GUARDIANS project",
+    "author": "University of Melbourne Centre for Cancer Research",
     "faviconUrl": "/assets/myfavicon.png",
-    "blogTitle": "Blog",
-    "blogDescription": "Here is the description of the blog part",
-    "productionUrl": "https://eleventy-libdoc.netlify.app",
+    "productionUrl": "https://umccr.github.io/guardians-docs/",
     "customLinks": [
-        {
-            "url": "/feed.xml",
-            "text": "Atom feed"
-        },
         {
             "url": "https://github.com/ita-design-system/eleventy-libdoc",
             "text": "GitHub"
-        },
-        {
-            "url": "#",
-            "text": "Bluesky"
-        },
-        {
-            "url": "#",
-            "text": "LinkedIn"
-        },
-        {
-            "url": "#",
-            "text": "CodePen"
         }
     ],
-    "editThisPageRootUrl": "https://github.com/ita-design-system/eleventy-libdoc/blob/main"
+    "tocEnabled": true,
+    "tocHtmlTags": ["h1", "h2", "h3", "h4", "h5", "h6"],
+    "tocMinTags": 1
 }

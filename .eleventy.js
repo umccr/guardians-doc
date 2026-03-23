@@ -16,7 +16,10 @@ export default function(eleventyConfig) {
     eleventyConfig.addPlugin(EleventyHtmlBasePlugin);
     eleventyConfig.addPlugin(InputPathToUrlTransformPlugin);
     eleventyConfig.addPlugin(eleventyNavigationPlugin);
-    eleventyConfig.addPlugin(eleventyImageTransformPlugin, libdocFunctions.pluginsParameters.eleventyImageTransform());
+    eleventyConfig.addPlugin(eleventyImageTransformPlugin, {
+        ...libdocFunctions.pluginsParameters.eleventyImageTransform(),
+        transformOnRequest: false,
+    });
     eleventyConfig.addPlugin(pluginRss);
     // END PLUGINS
 
