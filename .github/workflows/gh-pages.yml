@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-eleventy-fetch-cache
 
       - run: npm ci
-      - run: npx @11ty/eleventy
+      - run: npx @11ty/eleventy --pathprefix=/guardians-docs/
 
       - name: Upload static files as artifact
         id: deployment
