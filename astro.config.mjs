@@ -2,36 +2,36 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+import d2 from 'astro-d2';
+
+import tailwindcss from '@tailwindcss/vite';
+
 // https://astro.build/config
 export default defineConfig({
-	vite: {
-		assetsInclude: ['**/*.drawio.svg'],
-	},
-	site: 'https://umccr.github.io',
-	base: '/guardians-docs',
-	integrations: [
-		starlight({
-			title: 'UMCCR Guardians',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/umccr/starlight' }],
-			customCss: [
-				'./src/styles/custom.css',
-			],
-			tableOfContents: false,
-			sidebar: [
-				{
-					label: 'Genomic Nodes',
-					autogenerate: { directory: 'genomic-nodes',  },
-					//items: [
-						// Each item here is one entry in the navigation menu.
-				//		{ label: 'Example Guide', slug: 'guides/example' },
-			//		],
+  site: 'https://umccr.github.io',
+  base: '/guardians-docs',
 
-				},
-				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
-				},
-			],
-		}),
-	],
+  integrations: [starlight({
+      title: 'UMCCR Guardians',
+      customCss: [
+          './src/styles/global.css',
+          './src/styles/custom.css',
+      ],
+      tableOfContents: false,
+      sidebar: [
+          {
+              label: 'Genomic Nodes',
+              autogenerate: {directory: 'genomic-nodes'}
+          },
+          {
+              label: 'Technology',
+              autogenerate: {directory: 'technology'}
+          }
+
+      ],
+      }), d2()],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

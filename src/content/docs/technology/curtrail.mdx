@@ -1,0 +1,19 @@
+---
+title: Curtrail
+prev: false
+next: false
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { Badge } from '@astrojs/starlight/components';
+import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
+
+<article className="prose dark:prose-invert">
+    <ArchitectureFloat showLayers={["Base", "COST-MONITOR"]} />
+    <Badge text="Proof of Concept" size="large" variant="note" />
+    <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/curtrail" />
+
+    <p>
+        A set of tools for combining log and billing data from AWS.
+    </p>
+</article>

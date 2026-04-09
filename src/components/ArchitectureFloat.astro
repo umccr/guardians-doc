@@ -1,0 +1,15 @@
+---
+import DrawioDiagram from "./DrawioDiagram.astro";
+
+interface Props {
+    showLayers?: string[];
+}
+
+const { showLayers} = Astro.props;
+
+---
+
+<DrawioDiagram src="diagrams/guardians-overall.drawio.svg"
+               class="float-right w-1/2 ml-8 mb-8"
+               showLayers={showLayers}
+/>

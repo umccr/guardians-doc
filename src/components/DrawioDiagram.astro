@@ -1,0 +1,137 @@
+---
+/**
+ * DrawioDiagram.astro
+ *
+ * Renders a draw.io SVG (saved natively with embedded mxfile XML) with
+ * selective layer visibility. Layers are toggled at BUILD TIME — no client-side
+ * JS required.
+ *
+ * Usage:
+ *   <DrawioDiagram src="diagrams/guardians-overall.drawio.svg" />
+ *   <DrawioDiagram src="diagrams/guardians-overall.drawio.svg" showLayers={["Work Items"]} />
+ *   <DrawioDiagram src="diagrams/guardians-overall.drawio.svg" hideLayers={["Work Items"]} />
+ *
+ * Props:
+ *   src         – path relative to /public (e.g. "diagrams/foo.drawio.svg")
+ *   showLayers  – array of layer NAMES (or raw cell IDs) to show; all others hidden
+ *   hideLayers  – array of layer NAMES (or raw cell IDs) to hide; all others shown
+ *                 (showLayers takes precedence over hideLayers)
+ *   caption     – optional caption rendered below the diagram
+ *   class       – CSS class(es) applied to the wrapping <figure>
+ */
+
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+interface Props {
+  src: string;
+  showLayers?: string[];
+  hideLayers?: string[];
+  caption?: string;
+  class?: string;
+}
+
+const { src, showLayers, hideLayers, caption, class: className } = Astro.props;
+
+// ── 1. Read SVG from /public ────────────────────────────────────────────────
+const publicPath = resolve('./public', src.replace(/^\//, ''));
+let svgContent = readFileSync(publicPath, 'utf-8');
+
+// ── 2. Extract layer name → cell ID mapping from embedded mxfile ────────────
+//
+// draw.io stores the full diagram XML as an HTML-encoded string in the SVG's
+// root `content` attribute. Layers are <mxCell> elements with parent="0".
+//
+const contentMatch = svgContent.match(/\bcontent="([^"]+)"/);
+const layerNameToId: Record<string, string> = {};
+const layerIdToName: Record<string, string> = {};
+
+if (contentMatch) {
+  const mxXml = contentMatch[1]
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#10;/g, '\n');
+
+  // Match <mxCell id="..." value="..." ... parent="0" .../>  (any attribute order)
+  const cellRe = /<mxCell\b([^/]*)\/?>/g;
+  let m: RegExpExecArray | null;
+  while ((m = cellRe.exec(mxXml)) !== null) {
+    const attrs = m[1];
+    const idM = attrs.match(/\bid="([^"]+)"/);
+    const valM = attrs.match(/\bvalue="([^"]*)"/);
+    const parentM = attrs.match(/\bparent="([^"]+)"/);
+    if (idM && parentM && parentM[1] === '0') {
+      const id = idM[1];
+      const name = valM ? valM[1] : id;
+      layerNameToId[name] = id;
+      layerIdToName[id] = name;
+    }
+  }
+}
+
+// ── 3. Resolve which layer cell IDs to hide ─────────────────────────────────
+const allLayerIds = Object.values(layerNameToId);
+
+/**
+ * Resolve a user-supplied string (name or raw ID) to a cell ID.
+ * Falls back to the raw string if it doesn't match any known name,
+ * so callers can pass raw IDs when needed.
+ */
+function resolve_id(nameOrId: string): string {
+  return layerNameToId[nameOrId] ?? nameOrId;
+}
+
+let idsToHide: Set<string>;
+
+if (showLayers && showLayers.length > 0) {
+  const showIds = new Set(showLayers.map(resolve_id));
+  idsToHide = new Set(allLayerIds.filter(id => !showIds.has(id)));
+} else if (hideLayers && hideLayers.length > 0) {
+  idsToHide = new Set(hideLayers.map(resolve_id));
+} else {
+  idsToHide = new Set();
+}
+
+// ── 4. Inject visibility on all known layer <g> elements ────────────────────
+//
+// draw.io SVG export can nest later layer groups inside earlier ones (a
+// draw.io rendering quirk), so we cannot rely on display:none on a parent to
+// also hide child layers — and conversely, hiding a parent would inadvertently
+// hide nested child layers that should be visible.
+//
+// Solution: use CSS `visibility` (not `display`) and set it EXPLICITLY on
+// every layer group. Unlike display:none, visibility:visible on a child CAN
+// override visibility:hidden on a parent, so nested visible layers rescue
+// themselves from hidden parent groups.
+//
+// Only apply when there is actually something to hide (avoids touching the SVG
+// when no layer filtering is requested).
+//
+if (idsToHide.size > 0) {
+  for (const id of allLayerIds) {
+    const visValue = idsToHide.has(id) ? 'hidden' : 'visible';
+    const tagRe = new RegExp(`(<g\\b[^>]*\\bdata-cell-id="${escapeRegExp(id)}"[^>]*>)`, 'g');
+    svgContent = svgContent.replace(tagRe, (_match, tag) => {
+      if (/\bstyle="/.test(tag)) {
+        return tag.replace(/\bstyle="([^"]*)"/, (_s: any, existing: any) => {
+          const cleaned = existing.replace(/visibility\s*:[^;]*(;|$)/g, '').replace(/;$/, '');
+          return `style="${cleaned ? cleaned + ';' : ''}visibility:${visValue}"`;
+        });
+      } else {
+        return tag.replace(/>$/, ` style="visibility:${visValue}">`);
+      }
+    });
+  }
+}
+
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+---
+
+<figure class={className}>
+  <Fragment set:html={svgContent} />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

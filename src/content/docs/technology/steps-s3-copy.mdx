@@ -1,0 +1,52 @@
+---
+title: Steps S3 Copy
+prev: false
+next: false
+---
+
+import { Badge, Code, LinkCard, Steps } from '@astrojs/starlight/components';
+import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
+
+
+<article className="prose dark:prose-invert">
+    <ArchitectureFloat showLayers={["Base", "SYNCING", "LIFE-CYCLE", "COST-MONITOR"]} />
+    <Badge text="Production" size="large" variant="success" />
+    <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/steps-s3-copy" />
+
+    <p>
+        An AWS orchestration that coordinates the movement of large volumes of data between
+        S3 stores. The underlying requirements for our Data Copying are found here.
+    </p>
+    <p>
+        The `steps-s3-copy` is our main tool that is used to migrate data from "data owners" to
+        the genomic data node storage system. The tool needs to be flexible such that it can:
+        <ul>
+            <li>source data from any number of S3 buckets</li>
+            <li>subset the data from buckets</li>
+            <li>reorganise the folder structure of data as it copies</li>
+            <li>utilise native checksums to give guarantees on data integrity and avoid
+            unnecessary copying</li>
+        </ul>
+    </p>
+    <p>
+        In addition to the above, the tool can generate cost reports both before and after
+        copies. These reports estimate the true cost of copies including inter-region
+        and external egress charges.
+    </p>
+    <p>
+        The `steps-s3-copy` is a long-running orchestration
+        (using [AWS Step Functions](https://aws.amazon.com/step-functions/)) - and hence can
+        seamlessly pause for days at a time waiting for data to become available. This has been
+        implemented with the ability to trigger the thawing of data in
+        [AWS Glacier](https://aws.amazon.com/s3/storage-classes/glacier/) - waiting
+        for it to become available - and then proceeding with the copy. THe individual
+        thaw status of each object is independent.
+    </p>
+
+    <Steps>
+        1. Import the component into your MDX file.
+
+        2. Wrap `Steps` around your ordered list items.
+    </Steps>
+
+</article>

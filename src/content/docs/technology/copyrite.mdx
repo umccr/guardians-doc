@@ -1,0 +1,19 @@
+---
+title: Copyrite
+prev: false
+next: false
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { Badge } from '@astrojs/starlight/components';
+import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
+
+<article className="prose dark:prose-invert">
+    <ArchitectureFloat showLayers={["Base", "SYNCING"]} />
+    <Badge text="Production" size="large" variant="success" />
+    <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/copyrite" />
+
+    <p>
+
+    </p>
+</article>

@@ -1,0 +1,20 @@
+---
+title: Globus
+prev: false
+next: false
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { Badge } from '@astrojs/starlight/components';
+import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
+
+<article className="prose dark:prose-invert">
+    <ArchitectureFloat showLayers={["Base", "SYNCING"]} />
+    <Badge text="Investigation" size="large" variant="tip" />
+    <LinkCard className="w-1/2" title="GitHub" href="https://github.com/GUARDIANS-infrastructure/globus-api-starter-kit" />
+
+    <p>
+        An investigation of the Globus API to establish how it could be used to synchronise datasets
+        from organisations running Globus.
+    </p>
+</article>

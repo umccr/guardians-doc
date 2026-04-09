@@ -1,0 +1,67 @@
+---
+title: Work Packages
+---
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import DrawioDiagram from '../../../components/DrawioDiagram.astro';
+
+Our project was in part an innovation project - in the spirit of this - we explored
+a variety of technologies that could build our overall vision. Each individual
+technology exploration or project was part of a larger work package - most of which
+have been situated on the architecture diagram below. Some work packages however
+were orthognal to the larger architecture or were pure technology plays - these are
+listed in a section at the bottom of this page.
+
+#### Main Work Packages
+
+<DrawioDiagram src="diagrams/guardians-overall.drawio.svg" />
+
+<CardGrid stagger>
+    <Card title="COST-MONITOR" icon="dollar">
+        Tools and exploration of ways to accurately monitor or report on costs
+        across the architecture. For instance the ability to generate a pre-emptive
+        cost estimate for copying 1 TB of data to a new location - giving the data
+        custodian or researcher a sense of how much various activities might cost
+        _before_ they happen.
+
+        * [steps-s3-copy](../../technology/steps-s3-copy)
+        * [curtrail](../../technology/curtrail)
+    </Card>
+    <Card title="AAI" icon="document">
+        The use of Australian Access Federation (AAF) to provide authentication and
+        authorisation for all user services within our systems.
+
+        * [aaf](../technology/01-aaf.mdx)
+    </Card>
+    <Card title="Add new content" icon="add-document">
+        Add Markdown or MDX files to `src/content/docs` to create new pages.
+    </Card>
+    <Card title="Configure your site" icon="setting">
+        Edit your `sidebar` and other config in `astro.config.mjs`.
+    </Card>
+    <Card title="Read the docs" icon="open-book">
+        Learn more in [the Starlight Docs](https://starlight.astro.build/).
+    </Card>
+</CardGrid>
+
+
+
+##### SEQERA
+
+CC
+
+##### REAL-DATA
+
+##### SYNCING
+
+
+##### TRE
+
+#### Other Work Packages
+
+##### REMS Terraform Provider
+
+##### IPv6 Exploration
+
+##### Event Drive Dataset Creation
+
+

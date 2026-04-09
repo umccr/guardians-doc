@@ -2,6 +2,53 @@
 title: Vision
 ---
 
+A genomic data node is a trusted, third-party infrastructure layer operated
+on behalf of data holders and the broader genomics research
+community.
+
+Genomics data nodes *are not* providing analytics services - they exist
+to provide data migration / caching / staging services at genomics scale with strong
+governance hooks and processes suitable for human genomics data.
+
+They help facilitate a competitive and varied set of analytics
+services running alongside the data - giving confidence to the
+data owners but allowing choices of enivronments for researchers. 
+
+
+```d2 elk
+gdn.elsa -> Analytics Service #1 (e.g. Seqera)
+gdn.elsa -> TRE Service #2 (e.g. Aridhia)
+
+gdn: Genomic Data Node {
+ label.near: outside-right-center
+ 
+ staging: Data Staging {
+  }
+  
+  staging -> elsa: Data Governance Process
+
+ elsa: Data Release {
+   
+  }
+}
+
+gdn.staging <- Data Holder 1
+gdn.staging <- Data Holder 2
+gdn.staging <- Data Holder 3
+```
+
+
+
+
+It sits *alongside* existing vendor or
+open-source environments (such as a TRE) rather than replacing them, providing
+a data staging area and governance control plane suited to human
+genomics data. The node handles secure data ingestion and
+then provisions access to researchers within their nominated
+compatible vendor environment.
+
+
+
 The genomic node concept envisages a trusted third party infrastructure operator
 that can be trusted by data holders to provide a secure and reliable location
 for researchers to perform genomic analysis.
@@ -25,7 +72,7 @@ Our proposal is a middle ground - more than one
 provider of infrastructure, but less than many. A genomic node
 infrastructure provider would be looking to provide competitive offerings - be
 that in terms of security and accreditation, types and scale of
-compute available or pricing models. Genomic nodes could be centred around
+compute available or pricing models. Genomic data nodes could be centred around
 particular cloud offerings or institute compute.
 
 The genomic node provider operates in conjunction with a data holder and
