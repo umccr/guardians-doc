@@ -1,0 +1,669 @@
+---
+title: Dataset Formatting
+---
+
+**v 0.5**
+
+Andrew Patterson, Marko Malenic, William Intan
+
+## Document History
+
+| Version | Date | Who | Change Summary |
+|---------|------|-----|----------------|
+| 0.1 | 2025-05-20 | AP | Initial layout / requirements |
+| 0.2 | 2025-06-10 | MM | Added ro-crates solution proposal |
+| 0.3 | 2025-07-09 | AP | More requirements and pass through Claude |
+| 0.4 | 2025-07-10 | AP | Added diagram and other solution proposals |
+| 0.5 | 2025-07-17 | AP | Feedback from BioCommons BA meeting |
+
+## Overarching User Story
+
+The lifecycle of a dataset—from creation through storage to distribution—requires coordination among various stakeholders.
+
+One underdeveloped aspect of coordination is a standardised way (possibly at best a convention) to define how a collection of individual objects (files) makes up a dataset. We will call this convention or standard the **Dataset Format**.
+
+Our overarching multi-stakeholder story therefore speaks to standardising the process of certain researchers (the **Producer**) creating a dataset that contains a complete set of all relevant information with strong computable definitions of the data, supporting multiple object types (genomic and non-genomic). The full dataset (or subset) can then safely be passed to other researchers (the **Consumers**) with the Producers and Custodians defining and applying all necessary data governance controls. The Consumer can use the information contained in the dataset to understand all parts of the dataset — that is, the dataset is as much as possible self-describing.
+
+In the middle of the process is a **Custodian** that is taking and storing the dataset on behalf of the producer. The dataset format needs to support the activities they need to perform — such as indexing the dataset, and any integrations for ingestion and distribution.
+
+It is recognised in the story that potentially the Producer, Consumer and Custodian might all be internal to a single organisation, or in various combinations spanning organisational boundaries. Custodian might be a role taken on by the Producer rather than being a separate entity.
+
+## Roles
+
+| Role | Description |
+|------|-------------|
+| **Producer** | Owns the process of generating or obtaining sequencing/experimental data and any additional analysis that is considered part of the dataset. |
+| **Consumer** | Wants to use the dataset for new research. |
+| **Custodian** | Holds the data on behalf of the producer with an aim of facilitating controlled access for consumers. |
+
+## Requirements
+
+Requirements have been sourced from the following:
+
+- **[AG-UMCCR]** Experience from UMCCR staff having played the practical role in collaborating with Australian Genomics as GDR custodians
+- **[EGA]** Current practice of European Genome Archive
+- **[AP]** Andrew Patterson
+- **[OH]** Oliver Hofmann
+
+We will refer to all data that can be stored as "objects". This could be large genomic objects such as BAMs or FASTQs, or phenotypic information such as a FHIR JSON Bundle or CSV. The use of the word object could be interchanged with "file" were the dataset to be stored on a regular file system without any loss of meaning to these requirements.
+
+### DFREQ-1 `[AG-UMCCR]`
+
+**The Producer MUST be able to contribute new data to the dataset held by the Custodian as a sequence of batches over time.**
+
+Submitting data often occurs in batches separated by long time periods (even if all the sequencing is done in one sequencing run — the actual submission of data can also be split into submission batches to break the transfers of data into more manageable work items). For a dataset that does not need submission batching — there is no loss of generality in considering this as a single batched sequence.
+
+### DFREQ-2 `[AG-UMCCR]`
+
+**The producer SHOULD be able to contribute corrections to the individual objects in the dataset over time.**
+
+Mistakes in data (mislabelling samples etc) is sometimes not detected till well after the dataset has started to be distributed and hence a new batch may need to be submitted correcting data previously submitted.
+
+### DFREQ-20 `[AG-UMCCR]`
+
+**The consumer MUST be able to detect corrections to individual objects, even if the actual corrected object content is no longer available.**
+
+Whilst mistakes in data may prevent future distribution of a mislabelled sample (for instance) — consumers who have already accessed the dataset must have the ability to be informed of the correction — even if that is just some noting that it has occurred.
+
+### DFREQ-3 `[AG-UMCCR]`
+
+**A participant in a dataset MUST be able to have data objects that span multiple batches.**
+
+A participant may have main sequencing in one batch — and later top-up sequencing that occurs in another batch (this is but one example — there are many ways that an individual occurs across batches).
+
+### DFREQ-4 `[AG-UMCCR]`
+
+**Producers MUST be allowed to provide metadata that references objects that occurred in previous batches.**
+
+An analysis may be submitted in a batch well after the sequencing — but it may make sense for the metadata to indicate which sequencing objects contributed to a later analysis object.
+
+### DFREQ-5 `[AG-UMCCR]`
+
+**The producer SHOULD be able to assert with some mechanism the checksum of the content of objects.**
+
+Large artifact transfers between systems may introduce errors in the content so it is good practice that the content of an object has been asserted as close as possible to production.
+
+### DFREQ-6 `[AG-UMCCR]`
+
+**The consumer SHOULD be able to verify the checksum of the content of any objects they have received against those asserted by the producer.**
+
+As the final user of the objects, it is good practice that the consumer can verify that object content is unchanged.
+
+### DFREQ-7 `[AG-UMCCR]`
+
+**The producer MUST be able to assign a primary persistent identifier to the dataset.**
+
+Datasets must be referred to unambiguously from other computer systems using some form of persistent canonical identifier.
+
+### DFREQ-8 `[AG-UMCCR]`
+
+**The producer SHOULD be able to assign other identifiers to the data.**
+
+Datasets may have multiple identifiers for various purposes (publications, grants).
+
+### DFREQ-9 `[EGA]`
+
+**The producer MAY be able to create datasets that recognise levels of hierarchy grouping the data within the dataset.**
+
+A dataset may consist of multiple studies or cohorts that broadly organise the data according to the needs of the producer. These may all be considered part of some larger dataset though.
+
+### DFREQ-10 `[AG-UMCCR]`
+
+**The producer SHOULD be able to store sets of objects tied to each other such as a pair of fastq objects.**
+
+Sequencing objects are sometimes by convention produced in pairs or sets, and traditionally these are grouped solely by object naming conventions.
+
+### DFREQ-11 `[AG-UMCCR]`
+
+**The producer SHOULD be able to store genomic objects and have them tied/grouped to a participant.**
+
+A participant might have a variety of sequencing objects or analysis or indeed might have multiple sequencing performed over time (in a cancer setting) — and these should all be able to be tied to the participant they were sourced from.
+
+### DFREQ-12 `[AG-UMCCR]`
+
+**The producer MAY be able to store objects that indicate the family/pedigree relationships between participants.**
+
+Rare disease genomics datasets require storing relationships between participants and their data.
+
+### DFREQ-13 `[AP]`
+
+**The consumer MUST be able to computationally consume some objects that leads to an understanding of other objects in the dataset.**
+
+There must be some minimum set of information that is useable by the consumer to understand the objects in the dataset.
+
+### DFREQ-14 `[AP]`
+
+**The consumer MAY be able to computationally consume a well schema'd artifact that leads to a strong understanding of other objects in the dataset.**
+
+Analysis tools for consumers will be able to be written that help process datasets but only if the structure of the dataset is computable.
+
+### DFREQ-15 `[AP]`
+
+**The custodian MAY be able to computationally consume a well schema'd artifact that leads to an understanding of other objects in the dataset.**
+
+The custodian needs to apply security and governance controls over the objects and knowing the nature of all the objects computationally will help automate this process.
+
+### DFREQ-16 `[AP]`
+
+**The producer SHOULD be able to store consent information relating to objects that then play a part in the technical mechanics of the custodian releasing the dataset.**
+
+Unless a dataset is homogenously consented, any object related to a participant may or may not be releasable to Consumers. The consent information that defines this needs to be stored somewhere that is accessible to the Custodian.
+
+### DFREQ-17 `[AG-UMCCR]`
+
+**The producer SHOULD be able to store non-standardised data or objects in the dataset.**
+
+Each dataset may have data items that are unique to the experiment that created them — there needs to be mechanisms by which this information can be passed downstream to the consumer — albeit not in a standardised form.
+
+### DFREQ-18 `[OH]`
+
+**The producer MUST be able to store relationships between objects and participants.**
+
+Most objects in a dataset will be linked directly to a participant and this relationship must be able to be recorded for all objects.
+
+### DFREQ-19 `[AP]`
+
+**The producer SHOULD be able to store a relationship of multiple participants to a single object.**
+
+There are some genomic objects (notably VCF objects) that can contain data from multiple participants in a single object — which may have downstream governance/release concerns for the custodian.
+
+---
+
+## Non-Functional Requirements
+
+| ID | Description | Comment / Rationale |
+|----|-------------|---------------------|
+| DFNF-1 | There SHOULD BE no practical limit on the number of objects in a dataset. | Whilst there might be other constraints on the size of a dataset (cost to store!) — the dataset format should not itself be imposing limits. |
+
+## Existing Solution Scan
+
+An initial scan of existing dataset format standards was performed. None appear to match all our requirements out of the box, so our solution may require a combination of these standards or extensions to some individual standard.
+
+Further work on this project will be to decide on an approach and build some tooling to meet our requirements.
+
+### RO-Crate
+
+"<https://www.researchobject.org/ro-crate/>"
+
+RO-Crate is a method to create datasets and annotate them with metadata so that they are sharable according to FAIR principles. The applications of an RO-Crate include containing a set of files with metadata annotations, linking to other datasets or recording analysis, tools or outputs used for the dataset. In the context of dataset sharing and importing, the RO-Crate standard is well-adopted across disciplines and has characteristics that fit data sharing requirements here, as it enables dataset producers, consumers and custodians to interact with datasets using a common tool.
+
+### DCAT 3.0
+
+"<https://www.w3.org/TR/vocab-dcat-3/>"
+
+DCAT 3.0 (Data Catalog Vocabulary) is a standardized metadata vocabulary designed to facilitate the description and organization of datasets within distributed data environments, analogous to how bibliographic cataloging systems enable systematic resource discovery in libraries.
+
+DCAT 3.0 supports comprehensive description of individual datasets and dataset collections (catalogs), enables specification of inter-dataset relationships, accommodates multiple distribution channels and formats for identical datasets, and incorporates data quality and usage metadata. The standard additionally provides mechanisms for describing access rights, licensing terms, and usage constraints.
+
+### Portable Format for Biomedical Data
+
+"<https://uc-cdis.github.io/pypfb/>"
+
+The Portable Format for Biomedical Data (PFB) is a self-describing serialization format specifically designed for bulk biomedical research data. Built on Apache Avro, PFB encapsulates four critical components in a single file: the data model, data dictionary, the actual data, and pointers to third-party controlled vocabularies. This approach ensures that anyone receiving a PFB file has everything needed to understand and work with the dataset, as the schema and metadata travel with the data itself.
+
+PFB uses an entity-relationship model where data is organized as linked entities with defined relationships (one-to-one, one-to-many, etc.), making it particularly suitable for complex biomedical datasets that involve participants, samples, genomic data, and clinical information.
+
+### Phenopackets
+
+"<https://github.com/phenopackets>"
+
+Phenopackets is a GA4GH-standardised file format designed to facilitate the sharing of phenotypic and clinical information about individual patients or biosamples, particularly in the context of rare disease, cancer, and complex disease genomics. The format is built on Google's Protocol Buffers (protobuf) and can be serialized in JSON, YAML, or binary formats, creating machine-readable representations that associate phenotypic abnormalities with diseases and patients, including details about age, sex, onset, and clinical evidence.
+
+
+## Solution Design
+
+*Naming — @William Intan @Marko Malenic*
+
+### Submission Batch Names vs Dataset Names
+
+We should have two namespaces — names that are relevant _within_ a batch, and a combined namespace that encompasses all batches — where objects with the same name are merged, with later object winning. This will help achieve DFREQ-2, DFREQ-3, DFREQ-4 — by allowing objects already submitted to be replaced/deleted in future batches.
+
+For example:
+
+```
+<batch 001> / me.bam
+            / me.fastq.gz
+
+<batch 002> / you.bam
+            / you.fastq.gz
+            / us.vcf.gz
+
+<batch 003> / me_topup.fastq.gz
+            / me.bam
+            / us.vcf.gz
+```
+
+Each batch has its own namespace view (with a root at `<batch xxx>/`).
+
+The overall dataset namespace as of batch 003 is:
+
+```
+<overall> / me.bam           (from batch 003 — replacing one in batch 001)
+          / me.fastq.gz      (from batch 001)
+          / me_topup.fastq.gz (from batch 003)
+          / you.bam          (from batch 002)
+          / you.fastq.gz     (from batch 002)
+          / us.vcf.gz        (from batch 003 — replacing one in batch 002)
+```
+
+This allows batches to be immutable — but still replace/delete files. This allows objects and references to span multiple batches. However we identify batches — it allows them to be moved between locations (i.e. the folder containing batch 001 can live in S3 or GCS — its location is _not_ part of the definition). Names within a batch and within a dataset are always local and contained.
+
+Batches have an inherent ordering — how best to maintain that? We could insist that the identifiers for each batch are in the form `20240601` (e.g.), or we could leave it up to the submitter and say that the batches will be sorted alphabetically and they can call them A, B, C.
+
+### Output is Not Necessarily Input
+
+> **IMPORTANT NOTE:** The submission batches are an important detail for the submitter and custodian — but probably have no relevance to the consumer. So from the consumer perspective — there may only be a dataset namespace. Because manifests/metadata is generally _small_ compared to the actual BAMs — we can create them on demand or per user. Let's not get stuck in a mindset that everything that is submitted has to be necessarily passed through identically to the consumer, or that we can't (for instance) dynamically create other metadata _for_ the consumer that wasn't in the input (e.g. dynamically create a DCAT file).
+
+Leaning toward RO-Crates as the fundamental standard. Because we are looking at people handing over data for custodianship, the data has to be complete — meaning the data must be Attached RO-Crates (it can't have external references).
+
+### Our Submission Batch Manifest
+
+Think AG `manifest.txt` but better. Is it a `ro-crate-metadata.json` per batch? Is it something in RO-Crates-like format that lives per batch — but which contributes to an output `ro-crate-metadata` customised for the Consumer?
+
+Key rule: **EVERY OBJECT in a batch MUST BE mentioned. And every object mentioned MUST exist.**
+
+Whatever our batch manifest-like thing is — it must be complete for that batch at the point of submission.
+
+On Directories in RO-Crates: preference is for everything that exists in the dataset to be explicitly mentioned and checksummed — rather than `Directory/*`.
+
+### Contextual vs Data Entities
+
+At a batch level we are primarily documenting data entities — but where do the contextual entities come in? Are they themselves data entities of each batch (i.e. an object called `mydatasetinfo.jsonld`) that get raised to contextual entities in the output? If we just enter contextual entities directly, how would we correct them later?
+
+### Checksums
+
+Are checksums _in_ the dataset or external to the dataset? Options:
+- Tie in the `.sums` files that `copyrite` can produce
+- Support whatever checksums the producer wants to make (e.g. `MD5SUMS.txt` or `SHASUMS.txt`)
+- Compute checksums however the producer wants, but require values to go into `ro-crate-metadata`
+
+## Some User Stories
+
+- I am a producer of a dataset and I want to include a primary identifier and description of my dataset along with some BAM objects.
+- I am a producer of a dataset and I want to submit a new batch of data that corrects/clarifies the description of my dataset as well as adds some new BAM objects.
+- I am a producer of a dataset and I want to submit a new batch of data that removes a problematic BAM object from the downstream dataset (I have details of why it has to be removed that I also want to include).
+- I am a producer of a dataset and I want to submit a new batch of data that adds to the list of collaborating scientists who produced the data — specifying their name, ORCID and institute.
+- I am the custodian of a dataset submission process, and I want to validate that a new submitted batch conforms to the rules/profiles for the dataset.
+- I am the producer of a dataset and I want to validate that a proposed new batch of data (still held locally before it is submitted) conforms to the rules/profiles for my dataset.
+- I am a producer or custodian of a dataset and I want to be able to confirm the compliance of the set of batches making up the dataset.
+- I am a producer or custodian of a dataset and I want to be able to extract high level information from the set of batches making up a dataset, such as a list of objects and their corresponding checksums.
+- I am a producer or custodian of a dataset and I want to be able to ask for the "difference" between a dataset that includes or does not include the last "submission batch" — that is, I can roll back in time by asking for it to pretend a batch was not submitted and see what changes/additions/deletions are proposed with the batch.
+- I am a producer of a dataset and I want to be able to express that two fastq objects are a "pair" that are explicitly related to each other.
+- I am a producer of a dataset and I want to be able to specify that a FASTQ pair belongs to a specimen/sample with a provided identifier.
+
+## Status: August 2025
+
+### How do we package a dataset?
+
+**Main point-of-view subjects:**
+
+- **Producer** — Owns the process of generating or obtaining sequencing/experimental data and any additional analysis that is considered part of the dataset.
+- **Consumer** — Wants to use the dataset for new research.
+- **Custodian** — Holds the data on behalf of the producer with an aim of facilitating controlled access for consumers.
+
+**Main flow of the process:**
+
+- *Producer Submission*
+- Submits datasets in batches.
+- Can amend or delete previously submitted datasets at any time.
+- A single participant's data can be spread across multiple batches.
+- *Custodian Oversight*
+- Maintains full visibility over all datasets.
+- Ensures data is accessible to approved consumers.
+- *Consumer Access*
+- Retrieves available datasets.
+- Receives checksums for verification of data integrity.
+
+**Main requirements:**
+
+- Producers can contribute data in batches.
+- Producers can modify previously submitted datasets in the future.
+- A collection of data for one participant may be split across multiple batches.
+- Consumers can retrieve both data and checksums to verify integrity.
+
+### RO-Crates
+
+A standard for bundling data together with its descriptive metadata defined in JSON.
+
+- Bundles related data together (e.g., BAM & BAI, or FASTQ pairs)
+- Lets you describe hierarchical relationships (study → participant → filetype → file)
+- Allows giving context of who/when data was modified
+- Machine readable
+
+**Two-layer RO-Crate structure for each dataset study:**
+
+```
+└── flagship-abc
+    ├── batch-001
+    └── batch-002
+```
+
+**Batch-level RO-Crates:**
+- Ensures all files in a batch are well documented so top-level RO-Crates can reference them
+- Created when a dataset batch is completed
+- Includes only data within that batch
+- Records identifiers, grouping collections (e.g., BAM, VCF) and their indexes
+- Ensures each submission from the producer is fully documented
+
+**Study-level root RO-Crate:**
+- Visibility for the project
+- Exists above all batches
+- Links participants across batches
+- Updates whenever any batch changes, maintaining full history
+
+### Integrity Checking — BagIt Specification
+
+"<https://www.rfc-editor.org/rfc/rfc8493.html>"
+
+Defines rules for how a manifest (checksum) should look. Specifies:
+- How the checksums file will look
+- Which checksum algorithms to use
+- Standard filenames for manifests
+- How to checksum the checksum files themselves
+
+Enables checksum verification before submitting a batch. Does not protect against active attacks — only integrity verification.
+
+### Example Batch Structures
+
+Reference implementation: "<https://github.com/umccr/guardian-dataset-formatter/tree/main/study-a>"
+
+**Batch-001:** Submit BAM and VCF for study A001
+
+```
+Dataset (batch-001)
+ └── Dataset (Sample A001)
+     ├── Collection (BAM files)
+     │   ├── File (A001.bam)
+     │   └── File (A001.bam.bai)
+     └── Collection (VCF files)
+         ├── File (A001.vcf)
+         └── File (A001.vcf.tbi)
+```
+
+**Batch-002:** Submit FASTQ for A001; submit BAM, VCF, and one FASTQ for A002
+
+```
+Dataset (batch-002)
+├── Dataset (Sample A001)
+│   └── Collection (FASTQ files)
+│       ├── File (A001_R1.fastq)
+│       └── File (A001_R2.fastq)
+└── Dataset (Sample A002)
+    ├── Collection (FASTQ files)
+    │   └── File (A002_R1.fastq)
+    ├── Collection (BAM files)
+    │   ├── File (A002.bam)
+    │   └── File (A002.bam.bai)
+    └── Collection (VCF files)
+        ├── File (A002.vcf)
+        └── File (A002.vcf.tbi)
+```
+
+**Batch-003:** Submit missing FASTQ for A002; replace BAM for A002; submit VCF, FASTQ, BAM for A003
+
+```
+Dataset (batch-003)
+├── Dataset (Sample A002)
+│   ├── Collection (FASTQ files)
+│   │   └── File (A002_R2.fastq)
+│   └── Collection (BAM files)
+│       ├── File (A002.bam)
+│       └── File (A002.bam.bai)
+└── Dataset (Sample A003)
+    ├── Collection (FASTQ files)
+    │   ├── File (A003_R1.fastq)
+    │   └── File (A003_R2.fastq)
+    ├── Collection (BAM files)
+    │   ├── File (A003.bam)
+    │   └── File (A003.bam.bai)
+    └── Collection (VCF files)
+        ├── File (A003.vcf)
+        └── File (A003.vcf.tbi)
+```
+
+### Potential CLI Commands
+
+```bash
+# Compute root ro-crate
+tool rocrate-root <batch001location> <batch002location>
+
+# Verify ro-crate + checksum for a batch
+tool verify-batch <batch002location>
+
+# Verify ro-crate + checksum for root
+tool verify-full s3://mystore/batch001 s3://mystaging/new
+
+# Diff files across batches
+tool diff <batch-001> <batch-002>
+```
+
+### Todo / Investigate
+
+- How do we mark any deletion if the producer accidentally uploads data?
+- Investigate if there is a maximum size for ro-crate JSON
+- Investigate how well to verify checksum within the batch — BAM files could get really large and it might take a while to complete checksum verification
+- Create ro-crate profiles/rules for this specification
+
+## Action Items
+
+### Local Tool for Submitter
+
+- Create a profile for the ro-crate for individual batch
+- Checks for the submitted ro-crate against the profile and completeness of all files in the ro-crate and vice versa — all files are in the ro-crate
+- Check for BagIt compliance within the batch
+- Verify checksums against the BagIt specifications
+- A tool to help submitter to create ro-crate for its submission
+
+### Ready for Submitter
+
+- RO-Crate profiles for the root study
+- Compute master ro-crate for the entire study based on batch ro-crate
+- Diff with the existing local batch (which plans to submit) against what is already in the submitted crate
+
+Other metadata that is more into the participant information would explore other options such as DCAT or Phenopackets.
+
+## William's Notes
+
+- We could use the BagIt spec for storing checksums — it's basically like a regular manifest file with a bunch of rules about how it should look, which checksum to use, and checksumming the checksum file (manifest file).
+- "<https://www.rfc-editor.org/rfc/rfc8493.html>"
+- "<https://www.researchobject.org/rocrate/specification/1.2/appendix/implementation-notes.html#adding-ro-crate-to-bagit>"
+- A complete ro-crate per batch makes sense packaged with the BagIt spec
+- Thinking of a root ro-crate for visibility across batches, which also holds the history for the sample if they are submitted from different batches — this should then answer what the changes between a timeframe are
+- Possible limitations:
+- Doesn't fully solve for cases of how to mark removal and give evidence of why it is removed
+- Maximum size of ro-crate JSON
+
+## Marko's Analysis of RO-Crate
+
+An RO-Crate is a collection of files organized and catalogued by a common `ro-crate-metadata.json` JSON-LD file that describes the collection at the root. The collection of files can be an arbitrary number of files. When an RO-Crate is shared, the metadata file travels with the data, which ensures that files are correctly tracked and annotated.
+
+In the context of the requirements, an RO-Crate is a good fit, because it can describe an arbitrary set of files using graph-like descriptors according to JSON-LD (<https://json-ld.org/>). This inherently supports the first 4 requirements, as a graph of the dataset with metadata can be constructed using the flattened `@id` construct in JSON-LD. Contextual entities in the RO-Crate support the idea of metadata tagging, and the data entities handle actually cataloguing the files within the dataset. The RO-Crate specification also supports tracking changes over time through first-class support of `CreateAction` and `UpdateAction` types. There is a `DeleteAction` for removing files at schema.org, however it is not documented in the RO-Crate specification — files can be deleted by using this action and updating the RO-Crate metadata file accordingly as a custom process.
+
+### Example: Basic RO-Crate Metadata
+
+```json
+{
+  "@context": "https://w3id.org/ro/crate/1.2/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "conformsTo": { "@id": "https://w3id.org/ro/crate/1.2" },
+      "about": { "@id": "./" }
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "Example RO-crate dataset",
+      "description": "A dataset containing fastq files",
+      "datePublished": "2025-06-10",
+      "publisher": { "@id": "https://umccr.org/" },
+      "hasPart": [
+        { "@id": "file_one.fastq" },
+        { "@id": "file_two.fastq" },
+        { "@id": "groups_of_files/" }
+      ]
+    },
+    {
+      "@id": "file_one.fastq",
+      "@type": "File",
+      "name": "First fastq file",
+      "identifier": { "@id": "SBJ0001" }
+    },
+    {
+      "@id": "file_two.fastq",
+      "@type": "File",
+      "name": "Second fastq file",
+      "identifier": { "@id": "SBJ0001" }
+    },
+    {
+      "@id": "groups_of_files/",
+      "@type": "Dataset",
+      "name": "This is a group of files that can be annotated as a group.",
+      "description": "Many files",
+      "identifier": { "@id": "SBJ0002" }
+    },
+    {
+      "@id": "SBJ0001",
+      "@type": "Person",
+      "identifier": "SBJ0001"
+    },
+    {
+      "@id": "SBJ0002",
+      "@type": "Person",
+      "identifier": "SBJ0002"
+    },
+    {
+      "@id": "https://umccr.org/",
+      "@type": "Organization",
+      "name": "UMCCR",
+      "description": "Collaborative Centre for Genomic Cancer Medicine",
+      "url": "https://umccr.org/"
+    }
+  ]
+}
+```
+
+### Example: File Addition and Deletion
+
+Deleting files is less standardized in RO-Crate. The approach below converts a deleted file to a contextual entity (prefixed with `#`) to allow removing it from `hasPart`, and uses `temporalCoverage` to represent the deletion date.
+
+```json
+{
+  "@context": "https://w3id.org/ro/crate/1.2/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "conformsTo": { "@id": "https://w3id.org/ro/crate/1.2" },
+      "about": { "@id": "./" }
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "Example RO-crate dataset",
+      "description": "A dataset containing fastq files",
+      "datePublished": "2025-06-10",
+      "publisher": { "@id": "https://umccr.org/" },
+      "hasPart": [
+        { "@id": "file_two.fastq" },
+        { "@id": "groups_of_files/" },
+        { "@id": "report.html" }
+      ]
+    },
+    {
+      "@id": "#file_one.fastq",
+      "@type": "File",
+      "name": "First fastq file",
+      "identifier": { "@id": "SBJ0001" },
+      "temporalCoverage": "..2025-06-11"
+    },
+    {
+      "@id": "file_two.fastq",
+      "@type": "File",
+      "name": "Second fastq file",
+      "identifier": { "@id": "SBJ0001" }
+    },
+    {
+      "@id": "groups_of_files/",
+      "@type": "Dataset",
+      "name": "This is a group of files that can be annotated as a group.",
+      "description": "Many files",
+      "identifier": { "@id": "SBJ0002" }
+    },
+    {
+      "@id": "report.html",
+      "@type": "File",
+      "name": "A report for the dataset",
+      "description": "dataset report"
+    },
+    {
+      "@id": "Create report",
+      "@type": "CreateAction",
+      "agent": { "@id": "researcher" },
+      "result": [ { "@id": "report.html" } ]
+    },
+    {
+      "@id": "Delete file",
+      "@type": "DeleteAction",
+      "agent": { "@id": "researcher" },
+      "result": [ { "@id": "#file_one.fastq" } ]
+    },
+    {
+      "@id": "researcher",
+      "@type": "Person",
+      "name": "researcher"
+    }
+  ]
+}
+```
+
+### RO-Crate Data Sharing Requirements Summary
+
+- An arbitrary number of files should be possible.
+- It should be possible to group files together into describable sub-categories.
+- It should be possible to link files, groups, or datasets and describe the meaning of the links.
+- It should be possible to annotate each file, group, dataset, or link with a set of metadata, which can be arbitrarily defined and different between datasets. Some metadata fields may be common across all datasets.
+- The dataset must be able to be constructed across time, for example, as batches of files get added.
+- Changes to the dataset should be supported either by adding or removing files, and each change should be tracked to preserve the history of the dataset over time.
+
+> The biggest disadvantage of RO-Crate is that it doesn't support deleting files as a well-defined operation. Instead, the process of deleting a file must be defined in a "profile" that constrains the RO-Crate to that domain.
+
+## DataCite
+
+DataCite mandatory properties for any initial metadata submission:
+
+| ID | Property | Obligation |
+|----|----------|------------|
+| 1 | Identifier | M |
+| 2 | Creator | M |
+| 3 | Title | M |
+| 4 | Publisher | M |
+| 5 | PublicationYear | M |
+| 10 | ResourceType | M |
+
+### Citation of Dynamic Datasets
+
+For datasets that are continuously and rapidly updated, there are special challenges in citation and preservation. Four approaches are possible:
+
+**a) Cite a specific slice or subset** — the set of updates made during a particular period of time or to a particular area.
+
+**b) Cite a specific snapshot** — a copy of the entire dataset made at a specific time.
+
+**c) Cite the continuously updated dataset** but add an Access Date and Time to the citation. Note: following the citation does not result in access to the resource as cited, limiting reproducibility.
+
+**d) Cite a query**, time-stamped for re-execution against a versioned database.
+
+> Notes: The "slice", "snapshot" and "query" options require unique identifiers. Access date and time may be combined with options (a), (b), and (d), but must be used with option (c). Option (d) may shift more work onto repositories to store database versions for all queries, so not all repositories will be able to support this alternative.
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| **Dataset** | A collection of objects coinciding with a meaningful grouping. |
+| **File** | See object. An object held on a filesystem is often referred to just as a file. |
+| **Filesystem** | A collection of files/objects, normally stored with "POSIX semantics". |
+| **Object** | An immutable collection of bytes with potentially extra "metadata" key pairs. |
+| **Object store** | A collection of objects stored in an object store — an object store can generally scale larger than a traditional filesystem but has a more limited set of operations ("S3 semantics"). |
+| **POSIX semantics** | *(see above)* |
+| **S3 semantics** | *(see above)* |

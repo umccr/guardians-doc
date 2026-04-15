@@ -26,7 +26,16 @@ export default defineConfig({
           {
               label: 'Technology',
               autogenerate: {directory: 'technology'}
+          },
+          {
+              label: 'Guides',
+              autogenerate: {directory: 'guides'}
+          },
+          {
+              label: 'Requirements',
+              autogenerate: {directory: 'requirements'}
           }
+
 
       ],
       }), d2()],
