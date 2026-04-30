@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Protected Page | AAF OIDC Local Demo</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="protected">
+    <main class="shell">
+      <section class="card wide">
+        <p class="eyebrow">Session protected</p>
+        <h1>Protected Page</h1>
+
+        <div id="protected-status" class="status">Checking your session...</div>
+
+        <section id="authenticated-content" class="hidden">
+          <div class="profile">
+            <h2 id="user-name">Signed in</h2>
+            <p id="user-email" class="muted"></p>
+          </div>
+
+          <h2>User claims</h2>
+          <pre id="claims-output">{}</pre>
+
+          <h2>Protected API response</h2>
+          <pre id="protected-output">{}</pre>
+
+          <div class="actions">
+            <button id="logout-button" class="button primary" type="button">
+              Logout
+            </button>
+          </div>
+        </section>
+
+        <section id="unauthenticated-content" class="hidden">
+          <p>You are not logged in.</p>
+          <a class="button primary" href="index.html">Back to login page</a>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

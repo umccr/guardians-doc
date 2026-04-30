@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AAF OIDC Local Demo</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="index">
+    <main class="shell">
+      <section class="card">
+        <p class="eyebrow">Local proof of concept</p>
+        <h1>AAF OIDC Local Demo</h1>
+        <p class="lead">
+          This tiny app proves a local OpenID Connect login with AAF, then reads
+          your basic user claims through the Flask backend session.
+        </p>
+
+        <div id="error-message" class="alert hidden" role="alert"></div>
+        <div id="login-status" class="status">Checking login status...</div>
+
+        <div class="actions">
+          <button id="login-button" class="button primary" type="button">
+            Login with AAF
+          </button>
+          <a id="protected-link" class="button secondary hidden" href="protected.html">
+            Go to protected page
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
