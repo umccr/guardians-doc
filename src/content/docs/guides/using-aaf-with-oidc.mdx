@@ -2,9 +2,496 @@
 title: Using AAF with OIDC
 ---
 
-Guides lead a user through a specific task they want to accomplish, often with a sequence of steps.
-Writing a good guide requires thinking about what your users are trying to do.
+import { Image } from "astro:assets";
+import aafLocalDemoLogin from "../../../assets/using-aaf-with-oidc/aaf-local-demo-login.png";
+import aafLocalDemoLoginSucceed from "../../../assets/using-aaf-with-oidc/aff-local-demo-login-succeed.png";
+import aafSubscribers from "../../../assets/using-aaf-with-oidc/aff-subscribers.png";
+import connectAService from "../../../assets/using-aaf-with-oidc/connect-a-service.png";
+import organisationSelection from "../../../assets/using-aaf-with-oidc/organisation-selection.png";
+import postRegister from "../../../assets/using-aaf-with-oidc/post-register.png";
+import selectOpenidConnect from "../../../assets/using-aaf-with-oidc/select-openid-connect.png";
+import serviceRegisterFormFilled from "../../../assets/using-aaf-with-oidc/service-register-form-filled.png";
+import viewRegisteredClientId from "../../../assets/using-aaf-with-oidc/view-registed-client-id.png";
+import viewRegisteredService from "../../../assets/using-aaf-with-oidc/view-registed-service.png";
 
-## Further reading
+This guide shows how to register an Australian Access Federation (AAF) OpenID Connect service and connect it to a backend-owned login flow.
 
-- Read [about how-to guides](https://diataxis.fr/how-to-guides/) in the Diátaxis framework
+Use this guide when the frontend should start login, but the backend should hold the AAF client secret, exchange the authorization code, create the application session, and return only local session state to the browser.
+
+## Before You Start
+
+Have these ready:
+
+- AAF login access.
+- Permission to register a service for an AAF subscriber organisation.
+- `uv` installed for the local Python workflow.
+- The URL where users start login.
+- The backend callback URL that AAF redirects to after login.
+
+For the local demo:
+
+```text
+Frontend URL: http://localhost:3000/
+Backend URL: http://localhost:5000
+Redirect URL: http://localhost:5000/auth/callback
+```
+
+## 1. Confirm the IdP Is Available Through AAF
+
+Before registering a service, confirm that the users' organisation is available through AAF.
+
+1. Open the [AAF subscribers page](https://aaf.edu.au/subscribers/).
+2. Search for the organisation users will choose during institution discovery.
+3. Confirm that the organisation appears in the subscriber list.
+
+<figure>
+  <Image
+    src={aafSubscribers}
+    alt="AAF subscribers page showing participating organisations including The University of Melbourne."
+  />
+  <figcaption>
+    Confirm that the target organisation participates in AAF before designing
+    the login flow around it.
+  </figcaption>
+</figure>
+
+If the organisation is not listed, pause production setup and confirm whether access is available through AAF, eduGAIN, or another federation path.
+
+## 2. Start a New OIDC Service in AAF Test
+
+Use the AAF Test Federation first. The test service gives you a client identifier and client secret for local development.
+
+1. Open [AAF Test Federation Manager](https://manager.test.aaf.edu.au/dashboard).
+2. Select **Login with the AAF**.
+3. Select your organisation and continue the login process.
+
+<figure>
+  <Image
+    src={organisationSelection}
+    alt="Federation Manager organisation selection page."
+  />
+  <figcaption>
+    Select the organisation that lets you manage the service registration.
+  </figcaption>
+</figure>
+
+4. On the Federation Manager dashboard, choose **Connect a service**.
+
+<figure>
+  <Image
+    src={connectAService}
+    alt="Federation Manager dashboard with Connect a service highlighted."
+  />
+  <figcaption>
+    The service registration starts from the Connect a service card.
+  </figcaption>
+</figure>
+
+5. Choose **OpenID Connect** as the protocol.
+
+<figure>
+  <Image
+    src={selectOpenidConnect}
+    alt="Federation Manager connect new services page with OpenID Connect highlighted."
+  />
+  <figcaption>
+    Choose OpenID Connect for this backend-owned login flow.
+  </figcaption>
+</figure>
+
+## 3. Register the Local Demo Service
+
+The registered AAF service represents the backend OIDC client. The frontend is still where users start, but the backend is the component that stores the secret and handles the callback.
+
+For the local demo, fill the form with:
+
+```text
+Name: OIDC Demo App
+Description: A minimal local OpenID Connect demo application for testing AAF login with University of Melbourne users.
+URL: http://localhost:3000/
+Authentication methods: Secret
+Redirect URL: http://localhost:5000/auth/callback
+Organisation: The University of Melbourne
+```
+
+Use **Secret** because the Flask backend can store the client secret safely. Do not put the secret in frontend JavaScript.
+
+<figure>
+  <Image
+    src={serviceRegisterFormFilled}
+    alt="Completed AAF service registration form for a localhost OIDC demo app."
+  />
+  <figcaption>
+    The local frontend URL and backend callback URL are different on purpose.
+  </figcaption>
+</figure>
+
+Select **Register Service**.
+
+## 4. Save the Secret and Activate the Service
+
+After registration, AAF shows the client secret once.
+
+1. Copy the secret immediately and store it in your backend `.env` file as `AAF_CLIENT_SECRET`.
+2. Review the service details.
+3. Select **Activate**.
+
+<figure>
+  <Image
+    src={postRegister}
+    alt="Post-registration service page showing copy secret and activate actions."
+  />
+  <figcaption>
+    Copy the secret before leaving the page, then activate the test service.
+  </figcaption>
+</figure>
+
+After activation, open the service details page.
+
+<figure>
+  <Image
+    src={viewRegisteredService}
+    alt="Active registered OIDC service details page."
+  />
+  <figcaption>
+    The service details page lets you review the active client configuration.
+  </figcaption>
+</figure>
+
+Copy the **Identifier** into your backend `.env` file as `AAF_CLIENT_ID`.
+
+<figure>
+  <Image
+    src={viewRegisteredClientId}
+    alt="Registered service details showing the Identifier field used as the client ID."
+  />
+  <figcaption>The Identifier is the OIDC client ID.</figcaption>
+</figure>
+
+AAF says new test services can take up to two hours before they can be used, so wait if the flow fails immediately after registration.
+
+## 5. Confirm the Required Scopes
+
+Open the registered service and check the **Scopes** tab.
+
+For the local demo, allow:
+
+```text
+openid profile email
+```
+
+Those scopes are enough for the backend to receive a stable subject identifier, basic profile claims, and email when the user's home organisation provides those attributes.
+
+## 6. Configure the Local Backend
+
+The Flask backend is the OIDC Relying Party. It starts the AAF redirect, handles the callback, exchanges the authorization code for tokens, reads user claims, and creates the application session cookie.
+
+Dependencies are declared in `backend/pyproject.toml`, so `uv` manages the local Python environment on first run.
+
+```toml
+[project]
+dependencies = [
+    "authlib",
+    "flask",
+    "flask-cors",
+    "python-dotenv",
+    "requests",
+]
+```
+
+Create local configuration:
+
+```bash
+cd example-projects/aai-aaf-python/backend
+cp .env.example .env
+uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+Fill in `backend/.env`:
+
+```text
+FLASK_SECRET_KEY=<generated-secret>
+AAF_CLIENT_ID=<identifier-from-aaf>
+AAF_CLIENT_SECRET=<secret-from-aaf>
+AAF_DISCOVERY_URL=https://central.test.aaf.edu.au/.well-known/openid-configuration
+AAF_REDIRECT_URI=http://localhost:5000/auth/callback
+FRONTEND_URL=http://localhost:3000
+```
+
+The backend loads those values before Flask starts:
+
+```python
+load_dotenv()
+
+REQUIRED_ENV_VARS = [
+    "FLASK_SECRET_KEY",
+    "AAF_CLIENT_ID",
+    "AAF_CLIENT_SECRET",
+    "AAF_DISCOVERY_URL",
+    "AAF_REDIRECT_URI",
+    "FRONTEND_URL",
+]
+```
+
+Register AAF with Authlib using the discovery URL and requested scopes:
+
+```python
+oauth.register(
+    name="aaf",
+    client_id=config["AAF_CLIENT_ID"],
+    client_secret=config["AAF_CLIENT_SECRET"],
+    server_metadata_url=config["AAF_DISCOVERY_URL"],
+    client_kwargs={"scope": "openid profile email"},
+)
+```
+
+Start login by redirecting the browser to AAF:
+
+```python
+@app.get("/auth/login")
+def login():
+    return oauth.aaf.authorize_redirect(config["AAF_REDIRECT_URI"])
+```
+
+Handle the callback by exchanging the code and storing minimal claims in the session:
+
+```python
+@app.get("/auth/callback")
+def auth_callback():
+    token = oauth.aaf.authorize_access_token()
+    userinfo = token.get("userinfo") or oauth.aaf.userinfo(token=token)
+
+    session["user"] = {
+        "sub": userinfo.get("sub"),
+        "name": userinfo.get("name"),
+        "email": userinfo.get("email"),
+        "preferred_username": userinfo.get("preferred_username"),
+    }
+
+    return redirect(f"{config['FRONTEND_URL']}/?view=protected")
+```
+
+Run the backend:
+
+```bash
+uv run app.py
+```
+
+Check that it responds:
+
+```text
+http://localhost:5000/
+```
+
+## 7. Configure the Local Frontend
+
+The frontend is static HTML and JavaScript. It starts login by sending the browser to the backend and reads session state from backend APIs.
+
+Point the frontend at the Flask backend:
+
+```js
+const API_BASE_URL = "http://localhost:5000";
+```
+
+Start login with a browser redirect. This keeps the OAuth flow out of frontend state:
+
+```js
+loginButton.addEventListener("click", () => {
+  window.location.href = `${API_BASE_URL}/auth/login`;
+});
+```
+
+Send cookies on API requests so Flask can read the session:
+
+```js
+async function fetchMe() {
+  const response = await fetch(`${API_BASE_URL}/api/me`, {
+    credentials: "include",
+  });
+
+  return response.json();
+}
+```
+
+Run the static frontend:
+
+```bash
+cd example-projects/aai-aaf-python/frontend
+uv run python -m http.server 3000
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+<figure>
+  <Image
+    src={aafLocalDemoLogin}
+    alt="Local AAF OIDC demo login page with a Login with AAF button."
+  />
+  <figcaption>
+    The static frontend starts the login flow by redirecting the browser to the
+    Flask backend.
+  </figcaption>
+</figure>
+
+## 8. Test the Login Flow
+
+1. Open `http://localhost:3000`.
+2. Select **Login with AAF**.
+3. Confirm that AAF redirects to `http://localhost:5000/auth/callback`.
+4. Confirm that the backend redirects the browser to `http://localhost:3000/?view=protected`.
+5. Confirm that the protected view shows user claims from `/api/me`.
+
+<figure>
+  <Image
+    src={aafLocalDemoLoginSucceed}
+    alt="Local AAF OIDC demo protected view showing a signed-in session and returned user claims."
+  />
+  <figcaption>
+    After the callback succeeds, the frontend reads the Flask session through
+    backend APIs and displays the returned claims.
+  </figcaption>
+</figure>
+
+## 9. Troubleshoot the Local Demo
+
+Check these first if login fails:
+
+- The Redirect URL in AAF exactly matches `AAF_REDIRECT_URI`.
+- The test service has finished provisioning.
+- The backend has the current client identifier and secret.
+- The backend requests only scopes allowed for the service.
+- `FRONTEND_URL` matches the browser origin.
+- Frontend fetch calls use `credentials: "include"`.
+- The Flask session cookie is not blocked by browser settings.
+
+## Discussion: Deploying Beyond the Local Demo
+
+The local setup above should stay small. Treat cloud deployment as a separate design decision because it changes URLs, secrets, cookies, CORS, monitoring, and the AAF registration.
+
+### Production URL Shape
+
+Choose stable HTTPS URLs before registering a production AAF service.
+
+```text
+Frontend URL: https://app.example.org/
+Backend URL: https://api.example.org
+Redirect URL: https://api.example.org/auth/callback
+```
+
+Then update backend configuration:
+
+```text
+AAF_DISCOVERY_URL=https://central.aaf.edu.au/.well-known/openid-configuration
+AAF_REDIRECT_URI=https://api.example.org/auth/callback
+FRONTEND_URL=https://app.example.org
+```
+
+### Backend Deployment Notes
+
+On AWS, a typical backend path is ECS Fargate, App Runner, Elastic Beanstalk, or Lambda behind API Gateway if the Flask app is adapted for Lambda. Put it behind HTTPS using ACM with an Application Load Balancer, CloudFront, or API Gateway.
+
+Store these values outside the image and inject them at deploy time:
+
+```text
+FLASK_SECRET_KEY
+AAF_CLIENT_ID
+AAF_CLIENT_SECRET
+AAF_DISCOVERY_URL
+AAF_REDIRECT_URI
+FRONTEND_URL
+```
+
+Use AWS Secrets Manager or SSM Parameter Store for `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY`. Build from `backend/pyproject.toml`; once dependency versions are final, commit and deploy with `uv.lock`.
+
+For Google Cloud, the equivalent options are Cloud Run, App Engine, or GKE with secrets stored in Secret Manager.
+
+### Frontend Deployment Notes
+
+On AWS, the static frontend can be hosted on S3 with CloudFront, or served from the same web tier as the backend. On Google Cloud, use Cloud Storage with Cloud CDN, Firebase Hosting, Cloud Run, or the same web tier as the backend.
+
+The frontend should still redirect to the backend login route:
+
+```js
+const API_BASE_URL = "https://api.example.org";
+
+loginButton.addEventListener("click", () => {
+  window.location.href = `${API_BASE_URL}/auth/login`;
+});
+```
+
+Protected API calls should still include cookies:
+
+```js
+await fetch(`${API_BASE_URL}/api/me`, {
+  credentials: "include",
+});
+```
+
+Do not store AAF access tokens, ID tokens, or the AAF client secret in browser storage.
+
+### Cookie and CORS Notes
+
+For production HTTPS, update the backend session configuration:
+
+```python
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,
+)
+```
+
+Restrict CORS to the deployed frontend origin:
+
+```python
+CORS(
+    app,
+    origins=["https://app.example.org"],
+    supports_credentials=True,
+)
+```
+
+If frontend and backend are on different parent domains, validate browser cookie behavior carefully. Prefer same-site domains when possible, such as `app.example.org` and `api.example.org`.
+
+### Production AAF Registration
+
+Register production only after the public URLs are stable.
+
+1. Open [AAF Production Federation Manager](https://manager.aaf.edu.au/dashboard).
+2. Register a new OpenID Connect service.
+3. Use the production frontend URL as the service URL.
+4. Use the production backend callback as the Redirect URL.
+
+```text
+URL: https://app.example.org/
+Redirect URL: https://api.example.org/auth/callback
+Authentication Methods: Secret
+Organisation: <your AAF subscriber organisation>
+```
+
+Copy the production Identifier and Secret into the production secret store, allow the required scopes, and wait for organisational or AAF approval before testing production login.
+
+### Operational Notes
+
+Before handing the service to users:
+
+1. Record the AAF service name, owner, redirect URIs, and scopes.
+2. Record where `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY` are stored.
+3. Document who can rotate the AAF secret.
+4. Add a smoke test for `/auth/login`, `/auth/callback`, `/api/me`, protected routes, and logout.
+5. Keep only minimal claims in the local application session.
+
+## Further Reading
+
+- [How-to guides in the Diataxis framework](https://diataxis.fr/how-to-guides/)
+- [AAF OpenID Connect Series overview](https://tutorials.aaf.edu.au/openid-connect-series/01-overview)
+- [AAF Connect an OIDC Service overview](https://tutorials.aaf.edu.au/connect-an-oidc-service/01-overview)
+- [AAF Register service](https://tutorials.aaf.edu.au/connect-an-oidc-service/02-connect-oidc-service)
+- [AAF Scopes and eduGAIN](https://tutorials.aaf.edu.au/connect-an-oidc-service/03-available-scopes-and-edugain)
+- [AAF OpenID configuration](https://tutorials.aaf.edu.au/openid-connect-integration/03-openid-configuration)
+- [AAF Attributes](https://tutorials.aaf.edu.au/openid-connect-integration/04-attributes)
+- [AAF subscribers](https://aaf.edu.au/subscribers/)

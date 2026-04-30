@@ -10,7 +10,7 @@ The browser opens a static frontend at `http://localhost:3000`, starts login thr
 http://localhost:5000/auth/callback
 ```
 
-The backend exchanges the authorization code for tokens, reads user claims, stores minimal claims in a Flask session cookie, then redirects the browser to `protected.html`.
+The backend exchanges the authorization code for tokens, reads user claims, stores minimal claims in a Flask session cookie, then redirects the browser to the protected view in `index.html`.
 
 Roles:
 
@@ -26,61 +26,15 @@ The frontend never stores AAF tokens or the AAF client secret.
 aai-aaf-python/
   backend/
     app.py
-    requirements.txt
+    pyproject.toml
     .env.example
   frontend/
     index.html
-    protected.html
-    app.js
-    styles.css
 ```
 
 ## AAF Service Registration
 
-Use the AAF Test Federation first. The local demo is a server-side OIDC Relying Party, so the Flask backend is the registered client/service and keeps the client secret out of browser code.
-
-Before you start, make sure you have AAF login access and can register a service for an AAF subscriber organisation.
-
-1. Open [AAF Test Federation Manager](https://manager.test.aaf.edu.au/dashboard).
-2. Sign in with your AAF account.
-3. Choose **Connect a New Service**.
-4. Choose **OpenID Connect**.
-5. Complete the new service form:
-
-```text
-Name: AAF OIDC Local Demo
-Description: Local Flask/static frontend demo for AAF OIDC login.
-URL: http://localhost:3000/
-Redirect URL: http://localhost:5000/auth/callback
-Authentication Methods: Secret
-Organisation: <your AAF subscriber organisation>
-```
-
-Field notes:
-
-- `URL` is the primary app URL where users start login. For this demo, that is the static frontend.
-- `Redirect URL` is the backend callback that receives the OIDC authorization response from AAF. It must match `AAF_REDIRECT_URI` exactly.
-- Use `http` for localhost development URLs in the test environment.
-- `Secret` is appropriate for this demo because the Flask backend can safely store the client secret.
-
-6. Click **Register Service**.
-7. Copy the generated **Identifier** and **Secret** immediately:
-
-```text
-Identifier -> AAF_CLIENT_ID
-Secret     -> AAF_CLIENT_SECRET
-```
-
-The secret is only shown once. If it is lost, generate a new one in Federation Manager and update `backend/.env`.
-
-8. Wait for the test federation registration to finish. AAF notes that new test services can take up to two hours before they are usable.
-9. Check scopes for the service. This demo requests:
-
-```text
-openid profile email
-```
-
-Allow at least those scopes if the service page lets you restrict scopes. Extra claims are returned only when the user's home organisation provides the matching attributes. eduGAIN access is production-only and requires AAF support.
+refer [using-aaf-with-oidc](../../src/content/docs/guides/using-aaf-with-oidc.mdx)
 
 ## Local Configuration
 
@@ -90,15 +44,14 @@ Register the AAF client with this exact redirect URI:
 http://localhost:5000/auth/callback
 ```
 
+Install `uv` before running the local Python commands. Backend dependencies are declared in `backend/pyproject.toml`; `uv` creates and manages the local environment on first run.
+
 Create backend local config:
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
 cp .env.example .env
-python -c "import secrets; print(secrets.token_urlsafe(32))"
+uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 Fill in `backend/.env`:
@@ -122,15 +75,14 @@ Terminal 1:
 
 ```bash
 cd backend
-source .venv/bin/activate
-python app.py
+uv run app.py
 ```
 
 Terminal 2:
 
 ```bash
 cd frontend
-python -m http.server 3000
+uv run python -m http.server 3000
 ```
 
 Open:
@@ -163,7 +115,7 @@ sequenceDiagram
     BE->>AAF: Optional GET /oidc/userinfo<br/>Bearer access_token
     AAF-->>BE: User claims<br/>sub, name, email, preferred_username
     BE->>CK: Store minimal claims in Flask session
-    BE-->>FE: Set-Cookie + redirect to /protected.html
+    BE-->>FE: Set-Cookie + redirect to /?view=protected
     FE->>BE: GET /api/me with credentials include
     BE-->>FE: authenticated=true + user claims
 ```

@@ -105,10 +105,10 @@ def auth_callback():
             userinfo = oauth.aaf.userinfo(token=token)
 
         session["user"] = extract_user_claims(userinfo)
-        return redirect(f"{config['FRONTEND_URL']}/protected.html")
+        return redirect(f"{config['FRONTEND_URL']}/?view=protected")
     except Exception:
         app.logger.exception("AAF OIDC callback failed")
-        return redirect(f"{config['FRONTEND_URL']}/index.html?error=login_failed")
+        return redirect(f"{config['FRONTEND_URL']}/?error=login_failed")
 
 
 @app.get("/api/me")
@@ -143,7 +143,7 @@ def logout():
     if request.method == "POST":
         return jsonify({"ok": True})
 
-    return redirect(f"{config['FRONTEND_URL']}/index.html")
+    return redirect(f"{config['FRONTEND_URL']}/")
 
 
 if __name__ == "__main__":
