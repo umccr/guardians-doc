@@ -2,7 +2,7 @@
 
 ## Purpose
 
-AAF OpenID Connect authenticates the user through their institution. The application still needs its own session strategy so backend APIs can recognise future requests from the same browser.
+AAF OpenID Connect authenticates the user through their institution. The application still needs its own session strategy so APIs can recognise future requests from the same browser.
 
 This note separates those two concerns:
 
@@ -20,9 +20,10 @@ For the local demo:
 - Keep the AAF client secret and AAF tokens out of frontend code.
 - Create an application session after the backend callback succeeds.
 - Send the browser an HttpOnly session cookie.
-- Have frontend API calls use `credentials: "include"`.
+- Serve the demo HTML and APIs from the same Flask origin.
+- Have frontend API calls use relative paths with `credentials: "same-origin"`.
 - Treat `/?view=protected` as a UI view hint only, not authentication state.
-- Keep the frontend small: one `index.html`, CDN Bootstrap, and inline JavaScript are fine for the demo.
+- Keep the frontend small: one `templates/index.html`, CDN Bootstrap, and inline JavaScript are fine for the demo.
 
 For production:
 
@@ -33,18 +34,21 @@ For production:
 - Add CSRF protection for state-changing endpoints.
 - Store secrets in a managed secret store.
 - Bundle frontend dependencies or pin CDN assets with integrity controls.
+- If frontend and API are split across origins later, add explicit CORS and switch API calls back to `credentials: "include"`.
 
 ## Local Demo Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FE as Browser / Frontend<br/>localhost:3000
-    participant BE as Backend / RP<br/>localhost:5000
+    participant FE as Browser<br/>localhost:5000
+    participant BE as Flask App / RP<br/>localhost:5000
     participant AAF as AAF OP
     participant IDP as Selected institutional IdP
     participant S as App Session
 
+    FE->>BE: GET /
+    BE-->>FE: templates/index.html
     FE->>BE: GET /auth/login
     BE->>AAF: Redirect to authorize endpoint<br/>client_id, redirect_uri, scope, state, nonce
     AAF-->>FE: Show institution discovery
@@ -58,9 +62,9 @@ sequenceDiagram
     AAF-->>BE: User claims
     BE->>S: Store minimal app session data
     BE-->>FE: Set-Cookie + redirect to /?view=protected
-    FE->>BE: GET /api/me with credentials include
+    FE->>BE: GET /api/me with same-origin credentials
     BE-->>FE: authenticated=true + user profile
-    FE->>BE: GET /api/protected with credentials include
+    FE->>BE: GET /api/protected with same-origin credentials
     BE-->>FE: protected data
 ```
 
@@ -71,7 +75,7 @@ The frontend should stay intentionally simple:
 - show the login button
 - redirect the browser to `/auth/login`
 - switch to the protected view when the URL contains `?view=protected`
-- call `/api/me` and `/api/protected` with `credentials: "include"`
+- call `/api/me` and `/api/protected` with `credentials: "same-origin"`
 - display returned claims for the demo
 - call `/auth/logout` when logging out
 

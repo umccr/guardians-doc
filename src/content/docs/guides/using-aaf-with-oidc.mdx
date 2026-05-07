@@ -185,7 +185,7 @@ Those scopes are enough for the backend to receive a stable subject identifier, 
 
 The Flask backend is the OIDC Relying Party. It starts the AAF redirect, handles the callback, exchanges the authorization code for tokens, reads user claims, and creates the application session cookie.
 
-Dependencies are declared in `backend/pyproject.toml`, so `uv` manages the local Python environment on first run.
+Dependencies are declared in `pyproject.toml`, so `uv` manages the local Python environment on first run.
 
 ```toml
 [project]
@@ -200,12 +200,12 @@ dependencies = [
 Create local configuration:
 
 ```bash
-cd example-projects/aai-aaf-python/backend
+cd example-projects/aai-aaf-python
 cp .env.example .env
 uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-Fill in `backend/.env`:
+Fill in `.env`:
 
 ```text
 FLASK_SECRET_KEY=<generated-secret>
@@ -237,7 +237,10 @@ oauth.register(
     client_id=config["AAF_CLIENT_ID"],
     client_secret=config["AAF_CLIENT_SECRET"],
     server_metadata_url=config["AAF_DISCOVERY_URL"],
-    client_kwargs={"scope": "openid profile email"},
+    client_kwargs={
+        "scope": "openid email profile",
+        "token_endpoint_auth_method": "client_secret_post",
+    },
 )
 ```
 
@@ -281,7 +284,7 @@ http://localhost:5000
 
 ## 7. Configure the Local Frontend
 
-The frontend HTML lives in `backend/templates/index.html` and is served by Flask at `GET /`. Because the browser and the API share the same origin, there is no cross-origin setup required.
+The frontend HTML lives in `templates/index.html` and is served by Flask at `GET /`. Because the browser and the API share the same origin, there is no cross-origin setup required.
 
 Start login with a browser redirect. This keeps the OAuth flow out of frontend state:
 
@@ -382,13 +385,13 @@ AAF_DISCOVERY_URL
 AAF_REDIRECT_URI
 ```
 
-Use AWS Secrets Manager or SSM Parameter Store for `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY`. Build from `backend/pyproject.toml`; once dependency versions are final, commit and deploy with `uv.lock`.
+Use AWS Secrets Manager or SSM Parameter Store for `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY`. Build from `pyproject.toml`; once dependency versions are final, commit and deploy with `uv.lock`.
 
 For Google Cloud, the equivalent options are Cloud Run, App Engine, or GKE with secrets stored in Secret Manager.
 
 ### Frontend Deployment Notes
 
-When Flask serves the frontend (the same-origin approach), the HTML in `backend/templates/index.html` is deployed with the backend container. On AWS that is ECS Fargate, App Runner, Elastic Beanstalk, or Lambda with a web adapter. On Google Cloud that is Cloud Run or App Engine.
+When Flask serves the frontend (the same-origin approach), the HTML in `templates/index.html` is deployed with the backend container. On AWS that is ECS Fargate, App Runner, Elastic Beanstalk, or Lambda with a web adapter. On Google Cloud that is Cloud Run or App Engine.
 
 The frontend uses relative paths, so no URL configuration is needed:
 
