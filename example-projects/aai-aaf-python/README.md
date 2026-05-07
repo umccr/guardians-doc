@@ -24,12 +24,11 @@ The frontend never stores AAF tokens or the AAF client secret.
 
 ```text
 aai-aaf-python/
-  backend/
-    app.py
-    pyproject.toml
-    .env.example
-    templates/
-      index.html
+  app.py
+  pyproject.toml
+  .env.example
+  templates/
+    index.html
 ```
 
 ## AAF Service Registration
@@ -44,17 +43,16 @@ Register the AAF client with this exact redirect URI:
 http://localhost:5000/auth/callback
 ```
 
-Install `uv` before running the local Python commands. Backend dependencies are declared in `backend/pyproject.toml`; `uv` creates and manages the local environment on first run.
+Install `uv` before running the local Python commands. Backend dependencies are declared in `pyproject.toml`; `uv` creates and manages the local environment on first run.
 
 Create backend local config:
 
 ```bash
-cd backend
 cp .env.example .env
 uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-Fill in `backend/.env`:
+Fill in `.env`:
 
 ```env
 FLASK_SECRET_KEY=<generated-secret>
@@ -71,7 +69,6 @@ For production, register the service in production Federation Manager instead of
 ## Run Locally
 
 ```bash
-cd backend
 uv run app.py
 ```
 
