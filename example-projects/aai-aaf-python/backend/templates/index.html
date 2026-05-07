@@ -83,31 +83,29 @@
     </main>
 
     <script>
-      const API_BASE_URL = "http://localhost:5000";
-
       async function fetchMe() {
-        const response = await fetch(`${API_BASE_URL}/api/me`, {
-          credentials: "include",
+        const response = await fetch("/api/me", {
+          credentials: "same-origin",
         });
 
         return response.json();
       }
 
       async function fetchProtectedData() {
-        const response = await fetch(`${API_BASE_URL}/api/protected`, {
-          credentials: "include",
+        const response = await fetch("/api/protected", {
+          credentials: "same-origin",
         });
 
         return response.json();
       }
 
       async function logout() {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
+        await fetch("/auth/logout", {
           method: "POST",
-          credentials: "include",
+          credentials: "same-origin",
         });
 
-        window.location.href = "./";
+        window.location.href = "/";
       }
 
       function show(element) {
@@ -123,7 +121,7 @@
       }
 
       function startLogin() {
-        window.location.href = `${API_BASE_URL}/auth/login`;
+        window.location.href = "/auth/login";
       }
 
       async function loadLoginView() {
