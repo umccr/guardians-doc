@@ -46,8 +46,7 @@ oauth.register(
     server_metadata_url=config["AAF_DISCOVERY_URL"],
     client_kwargs={
             "scope": "openid email profile",
-            "token_endpoint_auth_method": "client_secret_post",
-            "identity_provider": "AAFTest"
+            "token_endpoint_auth_method": "client_secret_post"
         },
 )
 
