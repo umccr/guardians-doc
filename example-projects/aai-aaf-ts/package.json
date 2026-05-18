@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Minimal Express backend for an AAF OIDC local demo.",
+  "packageManager": "bun@1.3.14",
   "engines": {
     "node": ">=20.0.0"
   },

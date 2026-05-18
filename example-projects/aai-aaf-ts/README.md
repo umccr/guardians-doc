@@ -40,6 +40,7 @@ aai-aaf-ts/
   test/
     app.test.ts
   package.json
+  bun.lock
   tsconfig.json
   .env.example
 ```
@@ -52,10 +53,12 @@ Register the AAF client with this exact redirect URI:
 http://localhost:5000/auth/callback
 ```
 
+This project uses Bun `1.3.14` as its package manager. If Bun is not installed yet, follow the official [Bun installation guide](https://bun.com/docs/installation).
+
 Install dependencies:
 
 ```bash
-npm install
+bun install
 ```
 
 Create local config:
@@ -86,7 +89,7 @@ Use the AAF test discovery URL first if the client was created in the test envir
 ## Run Locally
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Open:
@@ -107,9 +110,9 @@ http://localhost:5000
 ## Development Checks
 
 ```bash
-npm run check
-npm test
-npm run build
+bun run check
+bun run test
+bun run build
 ```
 
 ## Security Notes
