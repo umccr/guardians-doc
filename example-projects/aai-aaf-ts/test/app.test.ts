@@ -1,16 +1,18 @@
 import path from "node:path";
+import type { Server } from "node:http";
 
+import { describe, expect, it } from "bun:test";
+import type { Express } from "express";
 import request from "supertest";
-import { describe, expect, it } from "vitest";
 
 import type {
   AafAuthClient,
   AuthorizationRequest,
   OidcSessionState,
-} from "../src/auth/aafClient.js";
-import { createApp } from "../src/app.js";
-import type { AppConfig } from "../src/config.js";
-import type { UserClaims } from "../src/types/user.js";
+} from "../src/auth/aafClient.ts";
+import { createApp } from "../src/app.ts";
+import type { AppConfig } from "../src/config.ts";
+import type { UserClaims } from "../src/types/user.ts";
 
 const testUser: UserClaims = {
   sub: "user-123",
@@ -60,17 +62,24 @@ describe("AAF Express demo", () => {
       config: createTestConfig(),
       authClient: new FakeAafAuthClient(),
     });
+    const server = await startTestServer(app);
 
-    const me = await request(app).get("/api/me").expect(200);
-    expect(me.body).toEqual({
-      authenticated: false,
-      user: null,
-    });
+    try {
+      const me = await request(server.url).get("/api/me").expect(200);
+      expect(me.body).toEqual({
+        authenticated: false,
+        user: null,
+      });
 
-    const protectedResponse = await request(app).get("/api/protected").expect(401);
-    expect(protectedResponse.body).toEqual({
-      error: "Authentication required",
-    });
+      const protectedResponse = await request(server.url)
+        .get("/api/protected")
+        .expect(401);
+      expect(protectedResponse.body).toEqual({
+        error: "Authentication required",
+      });
+    } finally {
+      await closeTestServer(server.httpServer);
+    }
   });
 
   it("stores user claims after callback and clears them on logout", async () => {
@@ -78,39 +87,101 @@ describe("AAF Express demo", () => {
       config: createTestConfig(),
       authClient: new FakeAafAuthClient(),
     });
-    const agent = request.agent(app);
+    const server = await startTestServer(app);
+    const agent = request.agent(server.url);
 
-    await agent
-      .get("/auth/login")
-      .expect(302)
-      .expect("Location", "https://aaf.example.test/authorize?client_id=test");
+    try {
+      await agent
+        .get("/auth/login")
+        .expect(302)
+        .expect("Location", "https://aaf.example.test/authorize?client_id=test");
 
-    await agent
-      .get("/auth/callback?code=abc&state=state-123")
-      .expect(302)
-      .expect("Location", "/?view=protected");
+      await agent
+        .get("/auth/callback?code=abc&state=state-123")
+        .expect(302)
+        .expect("Location", "/?view=protected");
 
-    const me = await agent.get("/api/me").expect(200);
-    expect(me.body).toEqual({
-      authenticated: true,
-      user: testUser,
-    });
+      const me = await agent.get("/api/me").expect(200);
+      expect(me.body).toEqual({
+        authenticated: true,
+        user: testUser,
+      });
 
-    const protectedResponse = await agent.get("/api/protected").expect(200);
-    expect(protectedResponse.body).toEqual({
-      message: "This is protected data from the backend.",
-      user: testUser,
-    });
+      const protectedResponse = await agent.get("/api/protected").expect(200);
+      expect(protectedResponse.body).toEqual({
+        message: "This is protected data from the backend.",
+        user: testUser,
+      });
 
-    await agent.post("/auth/logout").expect(200).expect({ ok: true });
+      await agent.post("/auth/logout").expect(200).expect({ ok: true });
 
-    const afterLogout = await agent.get("/api/me").expect(200);
-    expect(afterLogout.body).toEqual({
-      authenticated: false,
-      user: null,
-    });
+      const afterLogout = await agent.get("/api/me").expect(200);
+      expect(afterLogout.body).toEqual({
+        authenticated: false,
+        user: null,
+      });
+    } finally {
+      await closeTestServer(server.httpServer);
+    }
   });
 });
+
+interface TestServer {
+  httpServer: Server;
+  url: string;
+}
+
+async function startTestServer(app: Express): Promise<TestServer> {
+  const httpServer = await listen(app);
+  const address = httpServer.address();
+
+  if (!address || typeof address === "string") {
+    await closeTestServer(httpServer);
+    throw new Error("Test server did not start on a TCP port.");
+  }
+
+  return {
+    httpServer,
+    url: `http://127.0.0.1:${address.port}`,
+  };
+}
+
+function listen(app: Express): Promise<Server> {
+  return new Promise((resolve, reject) => {
+    const httpServer = app.listen(0, "127.0.0.1");
+
+    function cleanup() {
+      httpServer.off("error", onError);
+      httpServer.off("listening", onListening);
+    }
+
+    function onError(error: Error) {
+      cleanup();
+      reject(error);
+    }
+
+    function onListening() {
+      cleanup();
+      resolve(httpServer);
+    }
+
+    httpServer.once("error", onError);
+    httpServer.once("listening", onListening);
+  });
+}
+
+function closeTestServer(httpServer: Server): Promise<void> {
+  return new Promise((resolve, reject) => {
+    httpServer.close((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
 
 function createTestConfig(): AppConfig {
   return {

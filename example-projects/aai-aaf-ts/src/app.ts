@@ -4,12 +4,12 @@ import session from "express-session";
 import helmet from "helmet";
 import morgan from "morgan";
 
-import type { AafAuthClient } from "./auth/aafClient.js";
-import type { AppConfig } from "./config.js";
-import { errorHandler, notFoundHandler } from "./middleware/errors.js";
-import { createApiRouter } from "./routes/apiRoutes.js";
-import { createAuthRouter } from "./routes/authRoutes.js";
-import { createIndexRouter } from "./routes/indexRoutes.js";
+import type { AafAuthClient } from "./auth/aafClient.ts";
+import type { AppConfig } from "./config.ts";
+import { errorHandler, notFoundHandler } from "./middleware/errors.ts";
+import { createApiRouter } from "./routes/apiRoutes.ts";
+import { createAuthRouter } from "./routes/authRoutes.ts";
+import { createIndexRouter } from "./routes/indexRoutes.ts";
 
 export interface AppDependencies {
   config: AppConfig;

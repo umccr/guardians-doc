@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { Router } from "express";
 
-import type { AppConfig } from "../config.js";
+import type { AppConfig } from "../config.ts";
 
 export function createIndexRouter(config: AppConfig): Router {
   const router = Router();

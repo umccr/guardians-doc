@@ -1,9 +1,8 @@
 import type { Request } from "express";
 import { Router } from "express";
 
-import type { AafAuthClient } from "../auth/aafClient.js";
-import type { AppConfig } from "../config.js";
-import { asyncHandler } from "../middleware/asyncHandler.js";
+import type { AafAuthClient } from "../auth/aafClient.ts";
+import type { AppConfig } from "../config.ts";
 
 export function createAuthRouter(
   authClient: AafAuthClient,
@@ -11,61 +10,49 @@ export function createAuthRouter(
 ): Router {
   const router = Router();
 
-  router.get(
-    "/login",
-    asyncHandler(async (req, res) => {
-      const authRequest = await authClient.createAuthorizationRequest();
+  router.get("/login", async (req, res) => {
+    const authRequest = await authClient.createAuthorizationRequest();
 
-      req.session.oidc = authRequest.sessionState;
-      res.redirect(authRequest.url.href);
-    }),
-  );
+    req.session.oidc = authRequest.sessionState;
+    res.redirect(authRequest.url.href);
+  });
 
-  router.get(
-    "/callback",
-    asyncHandler(async (req, res) => {
-      const sessionState = req.session.oidc;
+  router.get("/callback", async (req, res) => {
+    const sessionState = req.session.oidc;
 
-      if (!sessionState) {
-        res.redirect("/?error=login_failed");
-        return;
-      }
+    if (!sessionState) {
+      res.redirect("/?error=login_failed");
+      return;
+    }
 
-      try {
-        const currentUrl = buildCallbackUrl(req, config.aaf.redirectUri);
-        const user = await authClient.completeAuthorization(
-          currentUrl,
-          sessionState,
-        );
+    try {
+      const currentUrl = buildCallbackUrl(req, config.aaf.redirectUri);
+      const user = await authClient.completeAuthorization(
+        currentUrl,
+        sessionState,
+      );
 
-        await regenerateSession(req);
-        req.session.user = user;
-        res.redirect("/?view=protected");
-      } catch (error) {
-        req.app.get("logger")?.error?.("AAF OIDC callback failed", error);
-        req.session.oidc = undefined;
-        res.redirect("/?error=login_failed");
-      }
-    }),
-  );
+      await regenerateSession(req);
+      req.session.user = user;
+      res.redirect("/?view=protected");
+    } catch (error) {
+      req.app.get("logger")?.error?.("AAF OIDC callback failed", error);
+      req.session.oidc = undefined;
+      res.redirect("/?error=login_failed");
+    }
+  });
 
-  router.get(
-    "/logout",
-    asyncHandler(async (req, res) => {
-      await destroySession(req);
-      res.clearCookie(config.session.name, { path: "/" });
-      res.redirect("/");
-    }),
-  );
+  router.get("/logout", async (req, res) => {
+    await destroySession(req);
+    res.clearCookie(config.session.name, { path: "/" });
+    res.redirect("/");
+  });
 
-  router.post(
-    "/logout",
-    asyncHandler(async (req, res) => {
-      await destroySession(req);
-      res.clearCookie(config.session.name, { path: "/" });
-      res.json({ ok: true });
-    }),
-  );
+  router.post("/logout", async (req, res) => {
+    await destroySession(req);
+    res.clearCookie(config.session.name, { path: "/" });
+    res.json({ ok: true });
+  });
 
   return router;
 }

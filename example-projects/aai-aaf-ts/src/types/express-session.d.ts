@@ -1,5 +1,5 @@
-import type { OidcSessionState } from "../auth/aafClient.js";
-import type { UserClaims } from "./user.js";
+import type { OidcSessionState } from "../auth/aafClient.ts";
+import type { UserClaims } from "./user.ts";
 
 declare module "express-session" {
   interface SessionData {

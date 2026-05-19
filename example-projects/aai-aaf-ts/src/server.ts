@@ -1,8 +1,6 @@
-import "dotenv/config";
-
-import { OpenidAafAuthClient } from "./auth/aafClient.js";
-import { createApp } from "./app.js";
-import { loadConfig } from "./config.js";
+import { OpenidAafAuthClient } from "./auth/aafClient.ts";
+import { createApp } from "./app.ts";
+import { loadConfig } from "./config.ts";
 
 const config = loadConfig();
 const authClient = new OpenidAafAuthClient(config.aaf);

@@ -1,8 +1,8 @@
-# AAF OIDC Local Demo - TypeScript Express
+# AAF OIDC Local Demo - Bun, TypeScript, Express
 
 Minimal local proof of concept for signing in with AAF OpenID Connect and reading basic user claims through an Express session.
 
-This is a TypeScript/Express port of the Flask sample in `../aai-aaf-python`. It keeps the same OIDC flow and route contract, while using Express middleware, typed configuration, typed session data, and one HTML page served by Express.
+This is a Bun/TypeScript/Express port of the Flask sample in `../aai-aaf-python`. It keeps the same OIDC flow and route contract, while using Express middleware, typed configuration, typed session data, Bun's TypeScript runtime, and one HTML page served by Express.
 
 ## What It Shows
 
@@ -53,7 +53,7 @@ Register the AAF client with this exact redirect URI:
 http://localhost:5000/auth/callback
 ```
 
-This project uses Bun `1.3.14` as its package manager. If Bun is not installed yet, follow the official [Bun installation guide](https://bun.com/docs/installation).
+This project uses Bun `1.3.14` as its runtime, package manager, and test runner. If Bun is not installed yet, follow the official [Bun installation guide](https://bun.com/docs/installation).
 
 Install dependencies:
 
@@ -65,7 +65,7 @@ Create local config:
 
 ```bash
 cp .env.example .env
-node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+bun --print "Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url')"
 ```
 
 Fill in `.env`:
@@ -86,11 +86,15 @@ The app accepts the same `AAF_DISCOVERY_URL` shape used by the Python sample and
 
 Use the AAF test discovery URL first if the client was created in the test environment.
 
+You do not need `dotenv`; Bun reads `.env`, environment-specific `.env.*`, and `.env.local` files automatically when running the app.
+
 ## Run Locally
 
 ```bash
 bun run dev
 ```
+
+Bun runs `src/server.ts` directly and restarts it in watch mode when imported files change. There is no `dist/` build step for this demo.
 
 Open:
 
@@ -110,9 +114,8 @@ http://localhost:5000
 ## Development Checks
 
 ```bash
-bun run check
 bun run test
-bun run build
+bun run test:watch
 ```
 
 ## Security Notes

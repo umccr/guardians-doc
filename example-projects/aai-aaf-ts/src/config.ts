@@ -1,5 +1,7 @@
 import path from "node:path";
 
+type Env = Record<string, string | undefined>;
+
 export interface AafConfig {
   clientId: string;
   clientSecret: string;
@@ -29,8 +31,9 @@ export interface AppConfig {
 
 const DEFAULT_SCOPE = "openid email profile";
 const DEFAULT_SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 8;
+const DEFAULT_PUBLIC_DIR = path.resolve(import.meta.dir, "../public");
 
-export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+export function loadConfig(env: Env = Bun.env): AppConfig {
   const nodeEnv = env.NODE_ENV?.trim() || "development";
   const isProduction = nodeEnv === "production";
   const sessionSecret = requireEnv(env, "SESSION_SECRET");
@@ -47,7 +50,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     server: {
       host: env.HOST?.trim() || "localhost",
       port: parseInteger(env.PORT, 5000, "PORT"),
-      publicDir: path.resolve(env.PUBLIC_DIR?.trim() || "public"),
+      publicDir: path.resolve(env.PUBLIC_DIR?.trim() || DEFAULT_PUBLIC_DIR),
       trustProxy: parseBoolean(env.TRUST_PROXY, false),
     },
     session: {
@@ -84,7 +87,7 @@ export function toIssuerUrl(discoveryOrIssuerUrl: string): string {
   return url.toString();
 }
 
-function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
+function requireEnv(env: Env, name: string): string {
   const value = env[name]?.trim();
 
   if (!value) {

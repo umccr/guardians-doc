@@ -1,7 +1,7 @@
 import * as client from "openid-client";
 
-import type { AafConfig } from "../config.js";
-import { extractUserClaims, type UserClaims } from "../types/user.js";
+import type { AafConfig } from "../config.ts";
+import { extractUserClaims, type UserClaims } from "../types/user.ts";
 
 export interface OidcSessionState {
   state: string;
