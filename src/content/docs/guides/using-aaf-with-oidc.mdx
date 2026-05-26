@@ -31,8 +31,7 @@ Have these ready:
 For the local demo:
 
 ```text
-Frontend URL: http://localhost:3000/
-Backend URL: http://localhost:5000
+URL: http://localhost:5000/
 Redirect URL: http://localhost:5000/auth/callback
 ```
 
@@ -108,7 +107,7 @@ For the local demo, fill the form with:
 ```text
 Name: OIDC Demo App
 Description: A minimal local OpenID Connect demo application for testing AAF login with University of Melbourne users.
-URL: http://localhost:3000/
+URL: http://localhost:5000/
 Authentication methods: Secret
 Redirect URL: http://localhost:5000/auth/callback
 Organisation: The University of Melbourne
@@ -122,7 +121,7 @@ Use **Secret** because the Flask backend can store the client secret safely. Do 
     alt="Completed AAF service registration form for a localhost OIDC demo app."
   />
   <figcaption>
-    The local frontend URL and backend callback URL are different on purpose.
+    The Flask backend serves both the frontend HTML and the API on the same port.
   </figcaption>
 </figure>
 
@@ -186,14 +185,13 @@ Those scopes are enough for the backend to receive a stable subject identifier, 
 
 The Flask backend is the OIDC Relying Party. It starts the AAF redirect, handles the callback, exchanges the authorization code for tokens, reads user claims, and creates the application session cookie.
 
-Dependencies are declared in `backend/pyproject.toml`, so `uv` manages the local Python environment on first run.
+Dependencies are declared in `pyproject.toml`, so `uv` manages the local Python environment on first run.
 
 ```toml
 [project]
 dependencies = [
     "authlib",
     "flask",
-    "flask-cors",
     "python-dotenv",
     "requests",
 ]
@@ -202,12 +200,12 @@ dependencies = [
 Create local configuration:
 
 ```bash
-cd example-projects/aai-aaf-python/backend
+cd example-projects/aai-aaf-python
 cp .env.example .env
 uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-Fill in `backend/.env`:
+Fill in `.env`:
 
 ```text
 FLASK_SECRET_KEY=<generated-secret>
@@ -215,7 +213,6 @@ AAF_CLIENT_ID=<identifier-from-aaf>
 AAF_CLIENT_SECRET=<secret-from-aaf>
 AAF_DISCOVERY_URL=https://central.test.aaf.edu.au/.well-known/openid-configuration
 AAF_REDIRECT_URI=http://localhost:5000/auth/callback
-FRONTEND_URL=http://localhost:3000
 ```
 
 The backend loads those values before Flask starts:
@@ -229,7 +226,6 @@ REQUIRED_ENV_VARS = [
     "AAF_CLIENT_SECRET",
     "AAF_DISCOVERY_URL",
     "AAF_REDIRECT_URI",
-    "FRONTEND_URL",
 ]
 ```
 
@@ -241,7 +237,10 @@ oauth.register(
     client_id=config["AAF_CLIENT_ID"],
     client_secret=config["AAF_CLIENT_SECRET"],
     server_metadata_url=config["AAF_DISCOVERY_URL"],
-    client_kwargs={"scope": "openid profile email"},
+    client_kwargs={
+        "scope": "openid email profile",
+        "token_endpoint_auth_method": "client_secret_post",
+    },
 )
 ```
 
@@ -268,7 +267,7 @@ def auth_callback():
         "preferred_username": userinfo.get("preferred_username"),
     }
 
-    return redirect(f"{config['FRONTEND_URL']}/?view=protected")
+    return redirect("/?view=protected")
 ```
 
 Run the backend:
@@ -277,53 +276,34 @@ Run the backend:
 uv run app.py
 ```
 
-Check that it responds:
+Open:
 
 ```text
-http://localhost:5000/
+http://localhost:5000
 ```
 
 ## 7. Configure the Local Frontend
 
-The frontend is static HTML and JavaScript. It starts login by sending the browser to the backend and reads session state from backend APIs.
-
-Point the frontend at the Flask backend:
-
-```js
-const API_BASE_URL = "http://localhost:5000";
-```
+The frontend HTML lives in `templates/index.html` and is served by Flask at `GET /`. Because the browser and the API share the same origin, there is no cross-origin setup required.
 
 Start login with a browser redirect. This keeps the OAuth flow out of frontend state:
 
 ```js
-loginButton.addEventListener("click", () => {
-  window.location.href = `${API_BASE_URL}/auth/login`;
-});
+function startLogin() {
+  window.location.href = "/auth/login";
+}
 ```
 
-Send cookies on API requests so Flask can read the session:
+Use relative paths and `same-origin` credentials for API requests so Flask can read the session:
 
 ```js
 async function fetchMe() {
-  const response = await fetch(`${API_BASE_URL}/api/me`, {
-    credentials: "include",
+  const response = await fetch("/api/me", {
+    credentials: "same-origin",
   });
 
   return response.json();
 }
-```
-
-Run the static frontend:
-
-```bash
-cd example-projects/aai-aaf-python/frontend
-uv run python -m http.server 3000
-```
-
-Open:
-
-```text
-http://localhost:3000
 ```
 
 <figure>
@@ -339,10 +319,10 @@ http://localhost:3000
 
 ## 8. Test the Login Flow
 
-1. Open `http://localhost:3000`.
+1. Open `http://localhost:5000`.
 2. Select **Login with AAF**.
 3. Confirm that AAF redirects to `http://localhost:5000/auth/callback`.
-4. Confirm that the backend redirects the browser to `http://localhost:3000/?view=protected`.
+4. Confirm that the backend redirects the browser to `http://localhost:5000/?view=protected`.
 5. Confirm that the protected view shows user claims from `/api/me`.
 
 <figure>
@@ -364,8 +344,7 @@ Check these first if login fails:
 - The test service has finished provisioning.
 - The backend has the current client identifier and secret.
 - The backend requests only scopes allowed for the service.
-- `FRONTEND_URL` matches the browser origin.
-- Frontend fetch calls use `credentials: "include"`.
+- Frontend fetch calls use `credentials: "same-origin"`.
 - The Flask session cookie is not blocked by browser settings.
 
 ## Discussion: Deploying Beyond the Local Demo
@@ -376,19 +355,21 @@ The local setup above should stay small. Treat cloud deployment as a separate de
 
 Choose stable HTTPS URLs before registering a production AAF service.
 
+The simplest approach keeps frontend and backend on the same domain, the same way the local demo does:
+
 ```text
-Frontend URL: https://app.example.org/
-Backend URL: https://api.example.org
-Redirect URL: https://api.example.org/auth/callback
+URL: https://app.example.org/
+Redirect URL: https://app.example.org/auth/callback
 ```
 
 Then update backend configuration:
 
 ```text
 AAF_DISCOVERY_URL=https://central.aaf.edu.au/.well-known/openid-configuration
-AAF_REDIRECT_URI=https://api.example.org/auth/callback
-FRONTEND_URL=https://app.example.org
+AAF_REDIRECT_URI=https://app.example.org/auth/callback
 ```
+
+If you later separate the frontend to its own CDN origin (for example S3 + CloudFront at `https://app.example.org` with the API at `https://api.example.org`), that becomes a cross-origin deployment. You will need to add `flask-cors` back, configure `CORS(app, origins=["https://app.example.org"], supports_credentials=True)`, and switch fetch calls back to `credentials: "include"`. Register the public frontend URL in AAF as the service URL and update `AAF_REDIRECT_URI` to the API callback.
 
 ### Backend Deployment Notes
 
@@ -402,33 +383,22 @@ AAF_CLIENT_ID
 AAF_CLIENT_SECRET
 AAF_DISCOVERY_URL
 AAF_REDIRECT_URI
-FRONTEND_URL
 ```
 
-Use AWS Secrets Manager or SSM Parameter Store for `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY`. Build from `backend/pyproject.toml`; once dependency versions are final, commit and deploy with `uv.lock`.
+Use AWS Secrets Manager or SSM Parameter Store for `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY`. Build from `pyproject.toml`; once dependency versions are final, commit and deploy with `uv.lock`.
 
 For Google Cloud, the equivalent options are Cloud Run, App Engine, or GKE with secrets stored in Secret Manager.
 
 ### Frontend Deployment Notes
 
-On AWS, the static frontend can be hosted on S3 with CloudFront, or served from the same web tier as the backend. On Google Cloud, use Cloud Storage with Cloud CDN, Firebase Hosting, Cloud Run, or the same web tier as the backend.
+When Flask serves the frontend (the same-origin approach), the HTML in `templates/index.html` is deployed with the backend container. On AWS that is ECS Fargate, App Runner, Elastic Beanstalk, or Lambda with a web adapter. On Google Cloud that is Cloud Run or App Engine.
 
-The frontend should still redirect to the backend login route:
-
-```js
-const API_BASE_URL = "https://api.example.org";
-
-loginButton.addEventListener("click", () => {
-  window.location.href = `${API_BASE_URL}/auth/login`;
-});
-```
-
-Protected API calls should still include cookies:
+The frontend uses relative paths, so no URL configuration is needed:
 
 ```js
-await fetch(`${API_BASE_URL}/api/me`, {
-  credentials: "include",
-});
+window.location.href = "/auth/login";
+
+await fetch("/api/me", { credentials: "same-origin" });
 ```
 
 Do not store AAF access tokens, ID tokens, or the AAF client secret in browser storage.
@@ -445,17 +415,7 @@ app.config.update(
 )
 ```
 
-Restrict CORS to the deployed frontend origin:
-
-```python
-CORS(
-    app,
-    origins=["https://app.example.org"],
-    supports_credentials=True,
-)
-```
-
-If frontend and backend are on different parent domains, validate browser cookie behavior carefully. Prefer same-site domains when possible, such as `app.example.org` and `api.example.org`.
+No CORS configuration is needed when the frontend is served from the same origin as the API. If you later move the frontend to a separate CDN origin, add `flask-cors` and configure CORS as described in the production URL shape note above.
 
 ### Production AAF Registration
 
@@ -463,12 +423,11 @@ Register production only after the public URLs are stable.
 
 1. Open [AAF Production Federation Manager](https://manager.aaf.edu.au/dashboard).
 2. Register a new OpenID Connect service.
-3. Use the production frontend URL as the service URL.
-4. Use the production backend callback as the Redirect URL.
+3. Use the production application URL as the service URL and the callback as the Redirect URL.
 
 ```text
 URL: https://app.example.org/
-Redirect URL: https://api.example.org/auth/callback
+Redirect URL: https://app.example.org/auth/callback
 Authentication Methods: Secret
 Organisation: <your AAF subscriber organisation>
 ```

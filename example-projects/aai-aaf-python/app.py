@@ -3,8 +3,7 @@ import os
 
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, request, session
-from flask_cors import CORS
+from flask import Flask, jsonify, redirect, render_template, request, session
 
 
 load_dotenv()
@@ -15,7 +14,6 @@ REQUIRED_ENV_VARS = [
     "AAF_CLIENT_SECRET",
     "AAF_DISCOVERY_URL",
     "AAF_REDIRECT_URI",
-    "FRONTEND_URL",
 ]
 
 
@@ -40,19 +38,16 @@ app.config.update(
     SESSION_COOKIE_SECURE=False,
 )
 
-CORS(
-    app,
-    origins=[config["FRONTEND_URL"]],
-    supports_credentials=True,
-)
-
 oauth = OAuth(app)
 oauth.register(
     name="aaf",
     client_id=config["AAF_CLIENT_ID"],
     client_secret=config["AAF_CLIENT_SECRET"],
     server_metadata_url=config["AAF_DISCOVERY_URL"],
-    client_kwargs={"scope": "openid profile email"},
+    client_kwargs={
+            "scope": "openid email profile",
+            "token_endpoint_auth_method": "client_secret_post"
+        },
 )
 
 
@@ -82,12 +77,7 @@ def extract_user_claims(userinfo):
 
 @app.get("/")
 def index():
-    return jsonify(
-        {
-            "service": "AAF OIDC Local Demo Backend",
-            "status": "ok",
-        }
-    )
+    return render_template("index.html")
 
 
 @app.get("/auth/login")
@@ -105,10 +95,10 @@ def auth_callback():
             userinfo = oauth.aaf.userinfo(token=token)
 
         session["user"] = extract_user_claims(userinfo)
-        return redirect(f"{config['FRONTEND_URL']}/?view=protected")
+        return redirect("/?view=protected")
     except Exception:
         app.logger.exception("AAF OIDC callback failed")
-        return redirect(f"{config['FRONTEND_URL']}/?error=login_failed")
+        return redirect("/?error=login_failed")
 
 
 @app.get("/api/me")
@@ -143,7 +133,7 @@ def logout():
     if request.method == "POST":
         return jsonify({"ok": True})
 
-    return redirect(f"{config['FRONTEND_URL']}/")
+    return redirect("/")
 
 
 if __name__ == "__main__":
