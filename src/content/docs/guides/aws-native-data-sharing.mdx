@@ -1,0 +1,98 @@
+---
+title: AWS-Native Data Sharing
+---
+import DrawioDiagram from '../../../components/DrawioDiagram.astro';
+
+This page describes the approach CCGCM uses to share genomic data securely with external
+organisations using `htsget` and AWS-native networking. The material is drawn from
+the talk *"Real world htsget for data sharing"* by Marko Malenic and Andrew Patterson.
+
+## htsget as a data sharing interface
+
+Running `htsget` as a service gives us control that raw
+cloud-native object storage cannot provide.
+Because the service sits between the caller and the data, we can enforce our own
+authorisation and authentication rather than being limited to AWS IAM. We can
+present data using meaningful sample identifiers rather than the long, opaque S3
+object keys that often reflect internal naming conventions. And critically, we can apply
+nuanced, role-aware access rules — the same BAM file can be sliced to show a curator
+only the genomic regions their consent permits, while an administrator
+sees the full read set. The service itself is lightweight and inexpensive to run: it returns small
+JSON tickets rather than streaming binary data, which means it scales easily.
+
+S3 is an excellent storage layer, but using it directly as an interface to external
+researchers creates problems that are challenging to solve cleanly. There is no native S3
+concept of per-genomic-region access; achieving it would require generating static
+file copies or writing bespoke tooling. Sharing also forces external users into AWS-native
+authentication, tying them to IAM roles or AWS accounts in ways that may
+not fit the cross-organisation stories we want to enable.
+
+`htsget` sidesteps all of this by acting as a semantic, access-controlled proxy in front of S3.
+
+## The two-phase protocol and why it matters
+
+The `htsget` protocol separates its work into two legs. The first — the *ticket server* — receives the
+initial request (sample ID, genomic region, file type, and auth token) and returns a small
+JSON ticket containing a list of HTTP URLs. The second leg — the *data block server* — is
+where the client fetches those URLs to retrieve the actual binary blocks that make up
+the BAM or VCF. Crucially, these two servers can be completely separated.
+
+When `htsget-rs` runs on AWS, this split is exactly how it operates: the ticket server
+is the lightweight htsget service running in our account, and the data block
+server is S3 itself, accessed via pre-signed URLs that `htsget` embeds
+in the ticket. This architecture is the foundation for cross-organisation sharing because
+it means the two legs can be exposed to external accounts independently and through different mechanisms.
+
+## Sharing across AWS organisations
+
+Extending htsget to an external organisation means solving the exposure problem for each leg separately -
+a "ticket path" and a "data path". See below for a diagram of this protocol.
+
+<DrawioDiagram src="diagrams/aws-htsget-sharing.drawio.svg"/>
+
+### Sharing the ticket server — AWS VPC Lattice
+
+For the ticket server, we use **AWS VPC Lattice**, which lets the `htsget` endpoint running
+in our account appear as a native REST endpoint inside another organisation's AWS account, using
+AWS's underlying private networking infrastructure. The destination organisation connects
+their VPC to the Lattice service; they do not need to run `htsget-rs` themselves, and they
+cannot tamper with or reconfigure it — the most they can do is disconnect their VPC from
+the lattice. VPC Lattice also
+injects an unforgeable VPC identifier into every request, which we use as our access-control
+primitive. We require that all htsget requests arrive from a specific, designated VPC
+in the external account. The external organisation can run whatever internal authentication
+they like on their side; from our perspective, arriving from the right VPC is the trust boundary.
+
+### Sharing the data blocks — S3 bucket resource policies
+
+For the data blocks, S3 bucket resource policies allow cross-account read access to the
+relevant objects. However, a straightforward cross-account policy introduces two
+risks: a user could capture the pre-signed URLs from a ticket and download data from
+an arbitrary machine, or a user with sufficient AWS credentials could bypass `htsget`
+entirely and read the S3 objects directly.
+
+We close both gaps by combining two conditions on the bucket policy. A **VPC condition** ensures
+that `s3:GetObject` requests are only honoured when they originate from the specific
+VPC we designated for htsget access — a pre-signed URL carried outside that VPC is
+simply rejected. Separately, we **pre-sign URLs using our own IAM principal** rather
+than the caller's, which means a partner user's own AWS credentials have no power to
+read the objects directly. The only path to the data is through a URL
+issued by htsget, consumed from within the authorised VPC.
+
+The result is a system where data flows from S3 through a control plane — htsget alongside
+an authorisation service such as Elsa Data — and out to exactly the compute environments
+we have explicitly permitted, with no viable route around the controls.
+
+## In practice
+
+The architecture was demonstrated end-to-end in three scenarios. A Nextflow pipeline running
+in Seqera Platform was configured to pull VCF data via the htsget VPC Lattice endpoint.
+From the pipeline's perspective the endpoint looked like any other HTTPS URL, and data
+arrived without any knowledge of the underlying S3 paths or bucket structure. The same
+endpoint was exercised directly from a Seqera Studio terminal using `curl`: the ticket
+response arrived with pre-signed S3 URLs, and fetching one of those URLs retrieved the
+full 412 MB VCF file at roughly 50 MB/s in about eight seconds. Finally, the same pre-signed
+URL was attempted from a laptop outside the designated VPC, and S3
+returned an `AccessDenied` error — confirming that the VPC condition is enforced
+and data cannot leave the intended compute boundary.
+

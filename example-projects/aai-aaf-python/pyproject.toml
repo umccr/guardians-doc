@@ -1,5 +1,5 @@
 [project]
-name = "aaf-oidc-local-demo-backend"
+name = "aai-aaf-python"
 version = "0.1.0"
 description = "Minimal Flask backend for an AAF OIDC local demo."
 requires-python = ">=3.11"

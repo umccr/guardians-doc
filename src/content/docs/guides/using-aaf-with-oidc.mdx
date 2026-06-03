@@ -14,9 +14,19 @@ import serviceRegisterFormFilled from "../../../assets/using-aaf-with-oidc/servi
 import viewRegisteredClientId from "../../../assets/using-aaf-with-oidc/view-registed-client-id.png";
 import viewRegisteredService from "../../../assets/using-aaf-with-oidc/view-registed-service.png";
 
-This guide shows how to register an Australian Access Federation (AAF) OpenID Connect service and connect it to a backend-owned login flow.
+This guide shows how to register an Australian Access Federation (AAF)
+OpenID Connect service and connect it to a backend-owned login flow.
 
-Use this guide when the frontend should start login, but the backend should hold the AAF client secret, exchange the authorization code, create the application session, and return only local session state to the browser.
+Use this guide when the frontend should initiate login, but the backend is the one
+that holds the AAF client secret, exchanges the authorization code, creates
+the application session, and returns only local session state to the browser.
+
+There are two versions:
+* Python [see Python source](https://github.com/umccr/guardians-doc/tree/main/example-projects/aai-aaf-python)
+* Typescript [see Typescript source](https://github.com/umccr/guardians-doc/tree/main/example-projects/aai-aaf-ts)
+
+The majority of text and screenshots are for the Python version but the Typescript
+version is almost an exact mirror so should be easy to read alongside this guide.
 
 ## Before You Start
 
@@ -24,7 +34,8 @@ Have these ready:
 
 - AAF login access.
 - Permission to register a service for an AAF subscriber organisation.
-- `uv` installed for the local Python workflow.
+- [Python] `uv` installed for the local Python workflow.
+- [Typescript] `bun` installed for the local Typescript workflow.
 - The URL where users start login.
 - The backend callback URL that AAF redirects to after login.
 
