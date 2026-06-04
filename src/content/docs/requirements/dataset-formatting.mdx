@@ -183,13 +183,17 @@ Further work on this project will be to decide on an approach and build some too
 
 ### RO-Crate
 
-"<https://www.researchobject.org/ro-crate/>"
+```
+<https://www.researchobject.org/ro-crate/>
+```
 
 RO-Crate is a method to create datasets and annotate them with metadata so that they are sharable according to FAIR principles. The applications of an RO-Crate include containing a set of files with metadata annotations, linking to other datasets or recording analysis, tools or outputs used for the dataset. In the context of dataset sharing and importing, the RO-Crate standard is well-adopted across disciplines and has characteristics that fit data sharing requirements here, as it enables dataset producers, consumers and custodians to interact with datasets using a common tool.
 
 ### DCAT 3.0
 
-"<https://www.w3.org/TR/vocab-dcat-3/>"
+```
+<https://www.w3.org/TR/vocab-dcat-3/>
+```
 
 DCAT 3.0 (Data Catalog Vocabulary) is a standardized metadata vocabulary designed to facilitate the description and organization of datasets within distributed data environments, analogous to how bibliographic cataloging systems enable systematic resource discovery in libraries.
 
@@ -197,7 +201,9 @@ DCAT 3.0 supports comprehensive description of individual datasets and dataset c
 
 ### Portable Format for Biomedical Data
 
-"<https://uc-cdis.github.io/pypfb/>"
+```
+<https://uc-cdis.github.io/pypfb/>
+```
 
 The Portable Format for Biomedical Data (PFB) is a self-describing serialization format specifically designed for bulk biomedical research data. Built on Apache Avro, PFB encapsulates four critical components in a single file: the data model, data dictionary, the actual data, and pointers to third-party controlled vocabularies. This approach ensures that anyone receiving a PFB file has everything needed to understand and work with the dataset, as the schema and metadata travel with the data itself.
 
@@ -205,7 +211,9 @@ PFB uses an entity-relationship model where data is organized as linked entities
 
 ### Phenopackets
 
-"<https://github.com/phenopackets>"
+```
+<https://github.com/phenopackets>
+```
 
 Phenopackets is a GA4GH-standardised file format designed to facilitate the sharing of phenotypic and clinical information about individual patients or biosamples, particularly in the context of rare disease, cancer, and complex disease genomics. The format is built on Google's Protocol Buffers (protobuf) and can be serialized in JSON, YAML, or binary formats, creating machine-readable representations that associate phenotypic abnormalities with diseases and patients, including details about age, sex, onset, and clinical evidence.
 
@@ -353,7 +361,9 @@ A standard for bundling data together with its descriptive metadata defined in J
 
 ### Integrity Checking — BagIt Specification
 
-"<https://www.rfc-editor.org/rfc/rfc8493.html>"
+```
+<https://www.rfc-editor.org/rfc/rfc8493.html>
+```
 
 Defines rules for how a manifest (checksum) should look. Specifies:
 - How the checksums file will look
@@ -365,7 +375,7 @@ Enables checksum verification before submitting a batch. Does not protect agains
 
 ### Example Batch Structures
 
-Reference implementation: "<https://github.com/umccr/guardian-dataset-formatter/tree/main/study-a>"
+Reference implementation: `<https://github.com/umccr/guardian-dataset-formatter/tree/main/study-a>`
 
 **Batch-001:** Submit BAM and VCF for study A001
 
@@ -465,8 +475,8 @@ Other metadata that is more into the participant information would explore other
 ## William's Notes
 
 - We could use the BagIt spec for storing checksums — it's basically like a regular manifest file with a bunch of rules about how it should look, which checksum to use, and checksumming the checksum file (manifest file).
-- "<https://www.rfc-editor.org/rfc/rfc8493.html>"
-- "<https://www.researchobject.org/rocrate/specification/1.2/appendix/implementation-notes.html#adding-ro-crate-to-bagit>"
+- `https://www.rfc-editor.org/rfc/rfc8493.html`
+- `https://www.researchobject.org/rocrate/specification/1.2/appendix/implementation-notes.html#adding-ro-crate-to-bagit`
 - A complete ro-crate per batch makes sense packaged with the BagIt spec
 - Thinking of a root ro-crate for visibility across batches, which also holds the history for the sample if they are submitted from different batches — this should then answer what the changes between a timeframe are
 - Possible limitations:
@@ -477,7 +487,7 @@ Other metadata that is more into the participant information would explore other
 
 An RO-Crate is a collection of files organized and catalogued by a common `ro-crate-metadata.json` JSON-LD file that describes the collection at the root. The collection of files can be an arbitrary number of files. When an RO-Crate is shared, the metadata file travels with the data, which ensures that files are correctly tracked and annotated.
 
-In the context of the requirements, an RO-Crate is a good fit, because it can describe an arbitrary set of files using graph-like descriptors according to JSON-LD (<https://json-ld.org/>). This inherently supports the first 4 requirements, as a graph of the dataset with metadata can be constructed using the flattened `@id` construct in JSON-LD. Contextual entities in the RO-Crate support the idea of metadata tagging, and the data entities handle actually cataloguing the files within the dataset. The RO-Crate specification also supports tracking changes over time through first-class support of `CreateAction` and `UpdateAction` types. There is a `DeleteAction` for removing files at schema.org, however it is not documented in the RO-Crate specification — files can be deleted by using this action and updating the RO-Crate metadata file accordingly as a custom process.
+In the context of the requirements, an RO-Crate is a good fit, because it can describe an arbitrary set of files using graph-like descriptors according to JSON-LD (`https://json-ld.org/`). This inherently supports the first 4 requirements, as a graph of the dataset with metadata can be constructed using the flattened `@id` construct in JSON-LD. Contextual entities in the RO-Crate support the idea of metadata tagging, and the data entities handle actually cataloguing the files within the dataset. The RO-Crate specification also supports tracking changes over time through first-class support of `CreateAction` and `UpdateAction` types. There is a `DeleteAction` for removing files at schema.org, however it is not documented in the RO-Crate specification — files can be deleted by using this action and updating the RO-Crate metadata file accordingly as a custom process.
 
 ### Example: Basic RO-Crate Metadata
 
