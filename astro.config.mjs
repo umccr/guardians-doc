@@ -12,7 +12,7 @@ export default defineConfig({
     base: '/guardians-doc',
 
     integrations: [starlight({
-        title: 'UMCCR Guardians',
+        title: 'GUARDIANS (CCGCM)',
         customCss: [
             './src/styles/global.css',
             './src/styles/custom.css',
@@ -22,7 +22,7 @@ export default defineConfig({
             {
                 label: 'Genomic Nodes',
                 items: [
-                    "genomic-nodes/vision",
+                    // "genomic-nodes/vision",
                     "genomic-nodes/architecture",
                     "genomic-nodes/work-packages",
                 ]
@@ -31,7 +31,7 @@ export default defineConfig({
                 label: 'Technology',
                 items: [
                     {
-                        label: 'Data Copy',
+                        label: 'Data Copying',
                         items: [
                             "technology/copyrite",
                             "technology/steps-s3-copy",
@@ -51,9 +51,13 @@ export default defineConfig({
                             "technology/htsget-rs",
                         ]
                     },
-                    "technology/aaf",
-                    "technology/rems-terraform",
-                    "technology/seqera-setup",
+                    {
+                        label: "Helper",
+                        items: [
+                            "technology/aaf",
+                            "technology/rems-terraform-provider",
+                        ]
+                    },
                 ]
             },
             {
