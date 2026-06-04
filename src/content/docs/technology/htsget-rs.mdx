@@ -1,5 +1,5 @@
 ---
-title: Htsget (Rust)
+title: htsget-rs
 prev: false
 next: false
 ---
@@ -14,6 +14,39 @@ import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
     <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/htsget-rs" />
 
     <p>
-        AA
+        A server implementation of the [htsget protocol](https://samtools.github.io/hts-specs/htsget.html)
+        for bioinformatics, written in Rust. It lets clients fetch specific regions of large genomics
+        files over HTTP, reads (BAM and CRAM) and variants (VCF and BCF) without having to download the whole
+        file. This directly supports our requirement to make
+        [large controlled datasets](../../requirements/researcher-environments) available to researchers
+        rather than copying terabytes into every research space.
+    </p>
+    <p>
+        It works through the htsget "ticket" mechanism. A client asks for a region of a file, and the
+        server responds with an array of URL tickets that point at byte ranges of the underlying data.
+        The client fetches those tickets and concatenates them to reconstruct the data. `htsget-rs` aims to
+        return byte ranges that are as small as possible.
+    </p>
+    <p>
+        The tool is flexible about how and where it runs:
+        <ul>
+            <li>It can run serverless on [AWS Lambda](https://github.com/umccr/htsget-rs/tree/main/htsget-lambda),
+            which is the deployment that underpins our [AWS-native data sharing](../../guides/aws-native-data-sharing)
+            across accounts and organisations.</li>
+            <li>Storage is interchangeable, data can come from the local filesystem, from
+            [AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html)
+            (returning pre-signed URLs as tickets), or from a remote HTTP server.</li>
+            <li>It is configured with environment variables or a TOML config file, where `locations`
+            map request ids onto `file://`, `s3://` or `https://` sources, with optional prefixes for
+            serving multiple datasets.</li>
+            <li>Because it sits between the caller and the data, it can enforce its own fine-grained,
+            role-aware authorisation, slicing data to the genomic regions a caller's consent permits rather than being
+            limited to AWS IAM.</li>
+        </ul>
+    </p>
+    <p>
+        `htsget-rs` is the cloud-native access layer in front of the S3 caches. Deployed serverlessly, it lets
+        researchers and downstream tools pull only the regions of data they need on demand, such as a single gene or
+        chromosome, instead of transferring the whole file.
     </p>
 </article>
