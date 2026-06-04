@@ -20,11 +20,11 @@ export default defineConfig({
         tableOfContents: false,
         sidebar: [
             {
-                label: 'Genomic Nodes',
+                label: 'Genomic Data Nodes',
                 items: [
-                    // "genomic-nodes/vision",
-                    "genomic-nodes/architecture",
-                    "genomic-nodes/work-packages",
+                    // "genomic-data-nodes/vision",
+                    "genomic-data-nodes/architecture",
+                    "genomic-data-nodes/work-packages",
                 ]
             },
             {
