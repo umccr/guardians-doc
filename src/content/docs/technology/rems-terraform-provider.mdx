@@ -4,16 +4,103 @@ prev: false
 next: false
 ---
 
-import { LinkCard } from '@astrojs/starlight/components';
-import { Badge } from '@astrojs/starlight/components';
-import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
+import { Badge, Code, LinkCard } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import ExampleTestLicense from "../../../assets/rems-terraform-provider/example-test-license.png";
+import ArchitectureFloat from "../../../components/ArchitectureFloat.astro";
+
+export const licenceExample = `resource "remscontent_license" "example_license" {
+  title           = "Test License"
+  organization_id = "Collaborative Centre for Genomic Cancer Medicine"
+  type            = "text"
+  content         = "license test"
+  archived        = false
+  enabled         = true
+}`;
+
+export const providerExample = `terraform {
+  required_providers {
+    remscontent = {
+      source = "registry.terraform.io/umccr/remscontent"
+    }
+  }
+}
+
+provider "remscontent" {
+endpoint = "rems.example.org" # DNS name only, no https://
+api_user = "admin@example.org"
+api_key = "my-secret-api-key"
+language = "en"
+}`;
 
 <article className="prose dark:prose-invert">
     <ArchitectureFloat showLayers={["Base"]} />
     <Badge text="Production" size="large" variant="success" />
-    <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/rems-terraform-provider" />
+    <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/terraform-provider-remscontent" />
 
     <p>
-        AA
+        A Terraform provider for managing the content of <a href="https://github.com/CSCfi/rems">REMS</a> (Resource
+        Entitlement Management System) instances. REMS is an open-source system that
+        manages researcher access requests and entitlements to controlled-access datasets.
     </p>
+    <p>
+        This provider does <strong>not</strong> install REMS itself — it manages the content of an already-running
+        REMS instance. Using it, the entire catalogue of data-access forms, workflows, licences, and resources
+        can be version-controlled and deployed as code, giving reproducible and auditable access configurations
+        across environments.
+    </p>
+    <p>
+        The provider covers all the objects needed to build an end-to-end access-request workflow:
+        <ul>
+            <li><strong>Forms</strong> — the questionnaires researchers fill in when applying for access, including
+            conditional field visibility</li>
+            <li><strong>Workflows</strong> — the approval chains that route applications to the right handlers</li>
+            <li><strong>Licences</strong> — data-use agreements attached to catalogue items (inline text or file
+            attachment)</li>
+            <li><strong>Resources</strong> — the dataset identifiers that REMS tracks entitlements against</li>
+            <li><strong>Catalogue items</strong> — the public-facing entries that wire together a resource,
+            workflow, form, and category into a single access request listing</</li>
+            <li><strong>Categories</strong> — groupings used to organise catalogue items in the UI</li>
+            <li><strong>Blacklists</strong> — per-resource user blocklists for flagging users to application handlers</li>
+        </ul>
+    </p>
+    <p>
+        To connect the provider to an existing REMS instance, supply the following configuration — either
+        inline in the provider block or via environment variables so that secrets are kept out of
+        Terraform state files:
+        <ul>
+            <li><code>REMS_ENDPOINT</code> — the DNS name of the REMS instance (no <code>https://</code> prefix)</li>
+            <li><code>REMS_API_USER</code> — the API user, ideally a dedicated service account</li>
+            <li><code>REMS_API_KEY</code> — the API key for that user</li>
+            <li><code>REMS_LANGUAGE</code> — the localisation language key for all string values (e.g. <code>en</code>)</li>
+        </ul>
+    </p>
+
+    <Code code={providerExample} lang="hcl" title="provider.tf" />
+
+    <h2>Example: creating a licence</h2>
+    <p>
+        Rather than clicking through the REMS admin UI to create a license, the equivalent
+        resource can be declared in HCL and applied with <code>terraform apply</code>:
+    </p>
+
+    <Code code={licenceExample} lang="hcl" title="license.tf" />
+
+    <p>
+        Running <code>terraform apply</code> with the above creates the corresponding licence entry in the
+        REMS admin UI:
+    </p>
+
+    <Image src={ExampleTestLicense} alt="REMS admin UI showing the created Test License entry with organization, title, type, licence text, and active status fields" />
+
+    <p>
+        Terraform will create the licence in REMS, track it in state, and update or destroy it as
+        the configuration changes — giving the same licence definition across all environments without
+        manual UI steps.
+    </p>
+    <p>
+        End-to-end runnable examples are included in the repository under <code>examples/usage/</code>,
+        covering a simple form, a licence, and a full catalogue item setup that wires all objects together.
+    </p>
+
 </article>
