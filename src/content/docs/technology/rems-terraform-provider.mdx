@@ -18,21 +18,6 @@ export const licenceExample = `resource "remscontent_license" "example_license" 
   enabled         = true
 }`;
 
-export const providerExample = `terraform {
-  required_providers {
-    remscontent = {
-      source = "registry.terraform.io/umccr/remscontent"
-    }
-  }
-}
-
-provider "remscontent" {
-endpoint = "rems.example.org" # DNS name only, no https://
-api_user = "admin@example.org"
-api_key = "my-secret-api-key"
-language = "en"
-}`;
-
 <article className="prose dark:prose-invert">
     <ArchitectureFloat showLayers={["Base"]} />
     <Badge text="Production" size="large" variant="success" />
@@ -59,24 +44,16 @@ language = "en"
             attachment)</li>
             <li><strong>Resources</strong> — the dataset identifiers that REMS tracks entitlements against</li>
             <li><strong>Catalogue items</strong> — the public-facing entries that wire together a resource,
-            workflow, form, and category into a single access request listing</</li>
+            workflow, form, and category into a single access request listing</li>
             <li><strong>Categories</strong> — groupings used to organise catalogue items in the UI</li>
             <li><strong>Blacklists</strong> — per-resource user blocklists for flagging users to application handlers</li>
         </ul>
     </p>
     <p>
-        To connect the provider to an existing REMS instance, supply the following configuration — either
-        inline in the provider block or via environment variables so that secrets are kept out of
-        Terraform state files:
-        <ul>
-            <li><code>REMS_ENDPOINT</code> — the DNS name of the REMS instance (no <code>https://</code> prefix)</li>
-            <li><code>REMS_API_USER</code> — the API user, ideally a dedicated service account</li>
-            <li><code>REMS_API_KEY</code> — the API key for that user</li>
-            <li><code>REMS_LANGUAGE</code> — the localisation language key for all string values (e.g. <code>en</code>)</li>
-        </ul>
+        Connecting to a REMS instance requires an endpoint, an API user, and an API key — all of which
+        can be passed as environment variables to keep secrets out of Terraform state. See the provider documentation for
+        the full configuration reference.
     </p>
-
-    <Code code={providerExample} lang="hcl" title="provider.tf" />
 
     <h2>Example: creating a licence</h2>
     <p>
