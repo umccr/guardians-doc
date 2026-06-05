@@ -7,8 +7,10 @@ next: false
 import { LinkCard } from '@astrojs/starlight/components';
 import { Badge } from '@astrojs/starlight/components';
 import globusStructure from '../../../assets/globus/globus_structure.jpg';
+import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
 
-<article className="prose dark:prose-invert">
+<article className="prose dark:prose-invert">   
+    <ArchitectureFloat showLayers={["Base", "SYNCING"]} />
     <Badge text="Investigation" size="large" variant="tip" />
     <LinkCard
         className="w-1/2"
@@ -17,86 +19,69 @@ import globusStructure from '../../../assets/globus/globus_structure.jpg';
     />
 
     <p>
-        An exploration of how Globus could support controlled data sharing with external collaborators
-        as part of the broader Guardians ecosystem.
+        An exploration of how Globus could support controlled data sharing with external collaborators.
     </p>
 
     <p>
-        This work proposes a Globus-based architecture for collaboration scenarios where data needs to
+        This work explores a Globus-based architecture for collaboration scenarios where data needs to
         be exchanged in a way that is structured, scalable, and easier to govern. The design is based
-        on Globus concepts such as endpoints, storage gateways, mapped collections, and guest
-        collections, and adapts them into a sharing pattern suited to our needs.
+        on Globus concepts and structure, using them to built a sharing pattern suited to our needs.
     </p>
 
     <p>
-        As part of this investigation, we also developed a starter kit for the API-focused exploration.
-        That repository captures a more implementation-oriented outcome of this work, showing how key
-        Globus concepts such as gateways, mapped and guest collections, service credentials, roles, and
-        ACL-based access control can be configured in practice.
+        As part of this investigation, we also developed a starter kit; an API-focused exploration.
+        That repository captures a more implementation-oriented outcome of this work, showing how Globus
+        components such as gateways, mapped collections, and guest collections can be configured using
+        service credentials, roles, and ACL-based access control.
     </p>
-
-    <h2>Proposed sharing model</h2>
+    <h3>Proposed sharing model</h3>
 
     <p>
         The proposed model follows an <strong>always-pull</strong> approach, where data is exposed in
-        a controlled location and pulled by the receiving party. This is intended to support both
+        a controlled staging location and pulled by the external collabs. This is intended to support both
         one-off sharing of a defined dataset and longer-running program sharing where data is exchanged
-        over time within an agreed scope.
+        over time within an agreed scope. In both cases, sharing is expected to be governed by an agreement 
+        defining, among other things, the underlying sharing structure
     </p>
 
-    <p>
-        In both cases, sharing is expected to be mediated by an explicit agreement between the parties.
-        This does not necessarily imply a single formal mechanism, but there should be a clear shared
-        understanding of what is being exchanged, who can access it, and under what conditions.
-    </p>
+
+    <h3>Architecture and naming</h3>
 
     <p>
-        A one-off share suits cases where a specific delivery needs to be made once, while program
-        sharing supports longer collaborations that need a stable and repeatable sharing arrangement.
-    </p>
-
-    <h2>Architecture and naming</h2>
-
-    <p>
-        A key part of the proposal is the use of a structured architecture together with a consistent
-        naming convention. This convention carries the mapping between the proposed sharing model and
-        the Globus structures used to implement it, and is designed to support the model in a way that
-        is easier to manage, understand, and trace across platforms, collaborators, and agreements.
+        A key part of the proposal is the use of a consistent naming convention  that carries the mapping
+        between the proposed sharing model and the Globus structures used to implement it. The convention 
+        is intended to be both logical and human-readable, while supporting easier discovery and traceability
+        of resources across the sharing structure.
     </p>
 
     <p>
         In the proposed model, a Globus endpoint would be deployed on each platform where sharing needs
-        to occur, with endpoint names following the pattern <code>CCGCM-&lt;Platform&gt;</code>. Each
+        to occur (*e.g.*, AWS), with endpoint names following the pattern <code>CCGCM-&lt;Platform&gt;</code>. Each
         endpoint would contain a default mapped collection named
-        <code>CCGCM-&lt;Platform&gt;-DataDock</code>, which would act as the home for one-off sharing.
+        <code>CCGCM-&lt;Platform&gt;-DataDock</code>, which would act as the staging area for one-off sharing.
         Single exchanges would then be exposed through guest collections under that mapped collection,
         with names such as <code>&lt;OrgCode&gt;-AGR&lt;YY&gt;&lt;NNN&gt;-S</code>, linking the share to
-        the collaborating organisation and the agreement that defines it.
+        the collaborating organisation.
     </p>
 
     <p>
-        For longer-running program sharing, the same convention is used to map the collaboration model
-        onto Globus resources more explicitly. Dedicated mapped collections would be created for each
-        program arrangement, with names that capture the platform, gateway context, organisation, and
-        agreement, for example
+        For longer-running program sharing, a similar convention is used. Dedicated mapped collections 
+        would be created for each program arrangement, with names that capture the platform, gateway context, 
+        organisation, andagreement, for example
         <code>CCGCM-&lt;Platform&gt;-&lt;GatewayCode&gt;-&lt;OrgCode&gt;-AGR&lt;YY&gt;&lt;NNN&gt;-P</code>.
         Guest collections and share units within those mapped collections would then follow the
         agreement-defined collaboration structure, commonly aligned to projects or sub-projects.
     </p>
 
     <p>
-        In this way, the naming convention does more than label resources: it expresses how the
-        proposed sharing structure is realised in Globus. Endpoints map to platforms, mapped
-        collections map to the main sharing surfaces, and guest collections map to specific sharing
-        arrangements governed by agreements. While the exact naming details may evolve as the design is
-        refined, consistency and traceability are central to the proposal.
+        As shown below, endpoints provide the platform hosting
+        layer, mapped collections define the managed sharing surfaces, and guest collections
+        are the access points through which permissions are granted in line with the sharing
+        arrangements defined for a specific one-off or program share. This allows sharing to
+        be scoped and controlled at the collection level, while keeping the underlying
+        storage and platform details behind the managed Globus structure.
     </p>
 
     <img src={globusStructure.src} alt="Proposed Globus sharing architecture" />
 
-    <p>
-        Rather than describing a production system already in use, this page captures a proposed
-        pattern for how Globus could support more consistent and governable collaboration with external
-        partners.
-    </p>
 </article>
