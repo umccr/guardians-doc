@@ -1,5 +1,5 @@
 ---
-title: Copyrite
+title: copyrite
 prev: false
 next: false
 ---
@@ -14,6 +14,40 @@ import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
     <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/copyrite" />
 
     <p>
-
+        A command-line tool, written in Rust, for efficient checksum and copy operations across
+        object stores. Where [`steps-s3-copy`](../steps-s3-copy) orchestrates the movement of large
+        datasets at scale, `copyrite` is the engine that does copying on individual objects. It
+        checksums and copies them with verifiable integrity, underpinning our
+        [Data Copying](../../requirements/data-copying) requirements.
+    </p>
+    <p>
+        `copyrite` exposes three commands - `generate`, `check` and `copy` - and is designed to:
+        <ul>
+            <li>Calculate multiple checksums in parallel with a single read pass over the data,
+            supporting MD5, SHA and CRC varieties as well as AWS-style ETags.</li>
+            <li>Copy files concurrently between S3 and local storage with verified integrity,
+            choosing part sizes that are as optimal as possible.</li>
+            <li>Avoid unnecessary work by reusing checksums that already exist natively in the
+            object store, such as S3 ETags and `HeadObject` metadata.</li>
+            <li>Source credentials from environment variables or AWS Secrets Manager, and target
+            S3-compatible stores outside AWS, such as Ceph or GCP.</li>
+        </ul>
+    </p>
+    <p>
+        To avoid recomputing checksums, `copyrite` saves results to a JSON
+        [`.sums` file](https://github.com/umccr/copyrite/blob/main/docs/ARCHITECTURE.md#the-sums-file)
+        alongside the object. New checksums are merged into the existing file, so the results
+        propagate through to future operations on the same data. These are the same `.sums` files
+        we plan to tie into our [dataset formatting](../../requirements/dataset-formatting). A `check`
+        compares two objects and reports the matching checksum that proves they are identical, and
+        can compute only the minimal set of missing checksums needed to do so.
+    </p>
+    <p>
+        When copying, `copyrite` behaves like a sync, it only transfers an object if it is absent
+        or has mismatched checksums, and uses server-side `CopyObject` where possible to avoid
+        downloading and re-uploading. It avoid re-calculating ETags if possible, verifies the destination
+        against the source once. A statistics JSON block is outputted, which we plan to integrate into cost
+        reporting with [`steps-s3-copy`](../steps-s3-copy) and [`curtrail`](../curtrail). This works towards our
+        requirement to keep copy [costs controllable and minimised](../../requirements/data-copying).
     </p>
 </article>
