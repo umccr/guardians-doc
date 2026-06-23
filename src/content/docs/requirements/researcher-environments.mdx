@@ -2,15 +2,16 @@
 title: Researcher Environments
 ---
 
-**v 0.1**
+**v 0.2**
 
-Andrew Patterson, Marko Malenic, .. list other TRE folk
+Andrew Patterson, Marko Malenic, Conrad Leonard, Maxime Hebrard, Anurag Katariya, SATRE authoris
 
 ## Document History
 
-| Version | Date     | Who | Change Summary                    |
-|---------|----------|-----|-----------------------------------|
+| Version | Date     | Who | Change Summary                       |
+|---------|----------|-----|--------------------------------------|
 | initial | Apr 2026 | AP  | First version adding initial content |
+| 0.2     | Jun 2026 | AP  | Integrated content from TRE group    |
 
 ## Overarching User Story
 
@@ -68,140 +69,3 @@ For reference, we repeat the four principles here.
 
 In SATRE 2.0 they are introducing a Federation Pillar.
 
-
-### Roles
-
-All seem fine - albeit we could clarify some of the roles to Australian legal parlance - though
-to be honest our laws are quite behind so aligning with definition from 20 years ago
-may not be a good idea.
-
-### Requirements
-
-1.4.1 Study Onboarding Process
-
-
-
-
-
-
-### Dynamism
-
-I think we can emphasise the dynamic nature of genomics compute. It even took the AWS people
-a while to get across this concept. For genomics we don't just want compute/memory - we
-need to be able to summon 16 CPUS with 1GB of memory for 1 hr - then change to a single
-CPU machine with 128 GiB of memory - then fan that out to 23 machines - with 1 CPU/1GiB. And
-we want to do that once a week - for 100 samples - at random times
-But we don't want to pay for those machines when we aren't using them
-Do you disagree with that as a premise? Any clarifications?
-
-Conrad  [1:13 PM]
-100% agree. It's got to behave like AWS Batch or GCP PAPI v2 (or whatever that's called now)
-If it's HPC-backed, there's got to be something like ABLES that allows ad-hoc use
-In HPC world - how do we deal with this dynamism (me having never logged into a HPC)
-I commented on this above. For HPC, the resources have to be available through a scheme like ABLES, as opposed to a merit allocation scheme (apply 6 mos in advance)
-The institute itself statically decides on the size of the cluster.. but do the researchers get dynamic CPU/mem stuff for a single nextflow pipeline run?
-Or do they allocate out CPUS/mem to research groups (and essentially partition up the cluster)
-
-### Custom compute
-
-Conrad  [1:17 PM]
-Large, fast (SSD) scratch is I think a pretty common ask. Some tools create heaps of temp files that you don't want to be writing to network disk.
-
-Andrew Patterson  [1:18 PM]
-Yep excellent point!
-Access to GPUs, FPGAs, weird scale machines..
-So not saying we are unique - but definitely need compute types that are not standard 2 CPU/8 GIB windows box
-
-
-### Ability to access large datasets
-
-Terabytes of data, preferably not copied into each research space, but made available.
-Data is controlled though - noone is suggesting ingressing a terabyte of random data
-off the internet. The "blah dataset" from EGA can be trusted at a broad level
-without requiring someone to inspect every byte.
-
-
-Say ICGC available from QIMR - but condition of use is that is must be accessed from a secure environment (and QIMR not offering one to researcher X)
-So they go to Keypoint - and do their work - but with it fetching ICGC on demand
-I imagine this more for a world where the TREs are not also data custodians - which may not be how it plays out
-But if you have a neutral TRE (say keypoint) - and keypoint is where some of the data is required to live.. then the ability to also source other large datasets is a requirement
-
-Conrad  [1:31 PM]
-So there is a pre-established trust relationship between the data holder and the TRE?
-
-Andrew Patterson  [1:31 PM]
-yeah I think so
-
-[1:31 PM]
-trust relationships at an infrastructure level.. or infastructure to data holder level (edited)
-
-[1:32 PM]
-I mean that's what some of the non genomics TREs are built around. Keypoint (or SURE) doesn't have any of its own data - users bring the data because they trust the infrastructure (edited)
-[1:33 PM]
-I personally very much want to steer people away from the "I have a dataset and hence you will come and use my TRE"
-[1:33 PM]
-in the long term that just leads to lots of crappy tres
-[1:33 PM]
-but totally accept that that might be the way it goes
-[1:35 PM]
-but even if the data holder is running the TRE - there still needs to be a way to get the large datasets in (unless the dataset is pre-baked into the windows shares or something!) (edited)
-[1:35 PM]
-(which I believe it what the early genomics england tre was like - once in - there was just a big filesystem you were mounted on)
-
-[1:36 PM]
-What would be a better phrasing for the large data ingest from your perspective?
-
-Conrad  [1:43 PM]
-I see where you're coming from now — I think the example of the NiH data threw me. You're talking about the primary source of the data that should be operated on under controlled conditions, not just any old large dataset. "ingest" (to me) is a word I associate with archiving and other systems that create a new home for the data, which I think is the opposite of the model you want to promote.
-
-[1:43 PM]
-"Ingress?"
-[1:44 PM]
-"Staging?"
-Andrew Patterson  [1:44 PM]
-Staging is good..
-Conrad  [1:44 PM]
-I mean you've pointed out that caching would be useful
-Andrew Patterson  [1:44 PM]
-Separates it out from the activity of bringing in excels etc
-[1:44 PM]
-Which even genomics still might need
-
-Conrad  [1:45 PM]
-so it's not like some copy of the data won't be kept around somewhere
-
-Andrew Patterson  [1:46 PM]
-"The ability to stage laaarge controlled genomics datasets near to the TRE compute"
-
-It is possible the large data might be need to be on-demand or cached from the perspective of the workloads (i.e. something in the environment may need to reach out dynamically over the internet rather than keep 1 TB of data at the tre for months at a time) (edited)
-
-### Workflow engines
-
-Conrad  [1:28 PM]
-Absolutely necessary in practice; the question is how much TRE-native support/integration
-one should aim for here. Does it look like  providing managed Nextflow / Cromwell / ... services,
-or just the means to stand those up in the env (e.g the Ronin model)
-Andrew Patterson  [1:28 PM]
-yep agreed
-Genomics jobs are not something that you can do just by running a single binary or script (see 1. DYNAMISM) - the availability of workflow engines that can orchestrate this is important
-I mean I think we share this with many other science fields - but possibly not the science fields that are traditionally in TREs (run excel, draw chart)
-
-### Complex iterative development
-
-Genomics jobs require pipeline stages that traditionally are off the shelf containers
-or pre-packaged source - but even the bespoke workflow that ties them all together
-is not something that you can copy/paste in notepad. Researchers need to ability
-to use some form of best practice source control to work on the jobs,
-and reasonably quick turnarounds on edits.
-
-4 replies
-Conrad  [1:48 PM]
-
-### Cost model
-
-6.COSTING / OPERATING MODEL
-It's not unique to genomics but the scale of the data and compute needed does make it especially pointy. Data custodians in particular need to know who is on the hook for what. (edited)
-noone is getting pinged for the egress fees of an excel - but for us possibly ouch (edited)
-
-[1:50 PM]
-it also ties in with (1).. we can't afford to say 6 months in advance - here are the precise machines we want to use for 1 year - and have the TRE provider go and provision those.

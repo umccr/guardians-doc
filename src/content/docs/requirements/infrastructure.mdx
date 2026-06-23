@@ -1,0 +1,44 @@
+---
+title: Overall
+---
+
+**v 0.1**
+
+Andrew Patterson
+
+## Document History
+
+| Version | Date     | Who | Change Summary                       |
+| ------- | -------- | --- | ------------------------------------ |
+| initial | May 2026 | AP  | First version adding initial content |
+
+## Glossary
+
+| Term            | Definition                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Dataset         | A collection of objects coinciding with a meaningful grouping                                                                                                                                                                                                                                                                                                                                                                                                       |
+| File            | See *object*. An object held on a filesystem is often referred to just as a file                                                                                                                                                                                                                                                                                                                                                                                    |
+| Filesystem      | A collection of files/objects, normally stored with "POSIX semantics"                                                                                                                                                                                                                                                                                                                                                                                               |
+| Object          | An immutable collection of bytes with potentially extra "metadata" key pairs                                                                                                                                                                                                                                                                                                                                                                                        |
+| Object store    | A collection of objects is stored in an object store – an object store can generally scale larger than a traditional filesystem – but has a more limited set of operations ("S3 semantics")                                                                                                                                                                                                                                                                         |
+| POSIX semantics | The behaviour contract of a traditional file system. Data lives in a true directory hierarchy; files are mutable with random-access reads and writes (seek, overwrite a byte range, append, truncate); rename/move is atomic; rich metadata (permission bits, uid/gid, timestamps, links) and file locking are available; strong read-after-write consistency.  |
+| S3 semantics    | The behaviour contract of object storage. A flat key→object map with no real directories (hierarchy is just a prefix convention); objects are immutable and written whole (no in-place or partial writes, no true append); there is no rename — "moving" is copy-then-delete, O(size) and non-atomic; sparse metadata fixed at write time, with access governed by IAM/policies rather than POSIX permissions. |
+
+## Summary
+
+As a genomics infrastructure provider, I want to provide compute and storage
+services that satisfy the needs of researchers and data custodians.
+Specific requirements for parts of the infrastructure are found in
+[Researcher Environments](../researcher-environments),
+[Dataset Formatting](../dataset-formatting)
+and
+[Data Copying](../data-copying),
+
+## Roles
+
+**Technical administrator** — a person who is managing operational details of infrastructure,
+ including data and compute.
+
+**Installer** — the person who has installed the infrastructure.
+
+

@@ -1,5 +1,5 @@
 ---
-title: Setting up Seqera
+title: Seqera AWS workspaces with Terraform
 ---
 
 import { Code } from '@astrojs/starlight/components';
@@ -17,27 +17,98 @@ import seqeraWorkspaceTf from '/example-projects/seqera-aws-terraform/seqera-wor
 import terraformTf from '/example-projects/seqera-aws-terraform/terraform.tf?raw';
 import variablesTf from '/example-projects/seqera-aws-terraform/variables.tf?raw';
 
+## Overview
+
+
+
+
+The main purpose of this Terraform is to unify the construction of an AWS environment
+with a corresponding Seqera workspace.
+
 ## Base Terraform
 
-The basic configuration of Terraform for our setup will require two providers. One
-provider (AWS) will be brought in automatically due to the use of the "s3" backend.
-
-The other provider is the one that drives the Seqera API.
-
-Our first problem is that we need to safely give Terraform permissions in our Seqera account
-to use the API – through the use of a bearer token. There are numerous approaches to
-secret management in Terraform – in our case here we will use a Terraform variable.
+The basic configuration of Terraform for our setup will require three providers.
+One is used for some time operations (e.g. "wait 5 seconds"),
+and the other two allow us to control
+resources from AWS and Seqera.
 
 <Code code={terraformTf} lang="terraform" title="terraform.tf" />
+
+We have not configured any particular backends here – so Terraform state will be
+written into the same folder as the Terraform files. For an example, this is adequate,
+but for production use cases other backends should be introduced.
+
+Our first problem is that we need to safely give Terraform permissions in our Seqera environment
+to use the API – through the use of a bearer token. There are many approaches to
+secret management in Terraform – in our case here we will use a Terraform variable
+and pass the values in via environment variables. This should all be done out-of-band
+(so no checking this into GitHub!)
+
+```bash
+export TF_VAR_seqera_server_url="https://seqera.services.my.org/api"
+export TF_VAR_seqera_bearer_auth="eyJ0aWQ...="
+export TF_VAR_seqera_org_id="123456789"
+```
+
+The variables that we can use to configure all the settings in our examples can
+also be introduced by environment variables – or left at a default (where present).
+
 <Code code={variablesTf} lang="terraform" title="variables.tf" />
+
+At this point we would be able to use Terraform to deploy a workspace. To see
+what would happen now (this will not actually produce resources so
+feel free to execute this!) - we can `init` and `plan`. We imagine
+that `dev` is the AWS profile for the account we want to operate in (adjust to your
+AWS configuration).
+
+```bash
+export AWS_PROFILE="dev"
+terraform init
+terraform plan
+```
+
+We will now talk through various aspects of the Terraform for both AWS and Seqera.
 
 ## Base AWS Setup
 
-In our AWS environment - we need to split the terraforming of IAM users from other
-activity - as our organisation has policies limiting the creation of IAM users to
-a single administrator. In an organisation without this requirement - there would
-be no need for the split. However, given this is how we have done it - we will
-document it this way as it is relatively easy to just join the two sections.
+Our first task in AWS is to set up the network in which AWS activity will take place.
+
+This could obviously be as complex as one might want but for our example we
+create a simple VPC with two public subnets.
+
+We also add in gateways that will mean that access to S3 and Dynamo will
+go direct to AWS rather than via the Internet (this is optional but costs nothing
+and is generally considered best practice).
+
+<Code code={awsVpcTf} lang="terraform" title="aws-vpc.tf" />
+
+We then need to define the security groups that will wrap all our compute. In our
+case we have no need to connect into the workflow compute nodes – so we will set it
+up to allow egress only.
+
+<Code code={awsSecurityGroupTf} lang="terraform" title="aws-security-group.tf" />
+
+The Seqera control plane (and web user interface) is given access to an AWS user
+that helps it perform operations in the target account. This user is responsible
+for creating the actual compute environments ("forging the Batch environments", hence
+the name Batch forge).
+
+This user also performs operations that show the content of buckets in the user
+interface, so we give it specialised permissions to allow it to
+see only designated buckets in the AWS account.
+
+<Code code={awsIamUserTf} lang="terraform" title="aws-iam-user.tf" />
+
+Finally, we need to create an access key – as this is the mechanism that Seqera
+uses to authenticate with AWS. We will use these credentials later to bind
+the Seqera workspace into our AWS permissions.
+
+<Code code={awsIamAccessKeyTf} lang="terraform" title="aws-iam-access-key.tf" />
+
+<Code code={awsWaitTf} lang="terraform" title="aws-wait.tf" />
+
+
+
 
 ## Seqera Itself
 

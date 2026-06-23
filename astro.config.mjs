@@ -1,6 +1,7 @@
 // @ts-check
 import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
+import mdx from '@astrojs/mdx';
 
 import d2 from 'astro-d2';
 
@@ -19,6 +20,15 @@ export default defineConfig({
         ],
         tableOfContents: false,
         sidebar: [
+            {
+                label: 'Requirements',
+                items: [
+                    "requirements/infrastructure",
+                    "requirements/data-copying",
+                    "requirements/dataset-formatting",
+                    "requirements/researcher-environments"
+                ]
+            },
             {
                 label: 'Genomic Data Nodes',
                 items: [
@@ -67,20 +77,14 @@ export default defineConfig({
                     "guides/using-aaf-with-oidc",
                     "guides/aws-native-data-sharing",
                 ]
-            },
-            {
-                label: 'Requirements',
-                items: [
-                    "requirements/data-copying",
-                    "requirements/dataset-formatting",
-                    "requirements/researcher-environments"
-                ]
             }
 
 
         ],
-    }), d2()],
-
+    }), d2(), mdx()],
+    markdown: {
+        gfm: true,
+    },
     vite: {
         plugins: [tailwindcss()],
     },

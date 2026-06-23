@@ -1,0 +1,194 @@
+
+## William's Notes
+
+- We could use the BagIt spec for storing checksums — it's basically like a regular manifest file with a bunch of rules about how it should look, which checksum to use, and checksumming the checksum file (manifest file).
+- `https://www.rfc-editor.org/rfc/rfc8493.html`
+- `https://www.researchobject.org/rocrate/specification/1.2/appendix/implementation-notes.html#adding-ro-crate-to-bagit`
+- A complete ro-crate per batch makes sense packaged with the BagIt spec
+- Thinking of a root ro-crate for visibility across batches, which also holds the history for the sample if they are submitted from different batches — this should then answer what the changes between a timeframe are
+- Possible limitations:
+- Doesn't fully solve for cases of how to mark removal and give evidence of why it is removed
+- Maximum size of ro-crate JSON
+
+## Marko's Analysis of RO-Crate
+
+An RO-Crate is a collection of files organized and catalogued by a common `ro-crate-metadata.json` JSON-LD file that describes the collection at the root. The collection of files can be an arbitrary number of files. When an RO-Crate is shared, the metadata file travels with the data, which ensures that files are correctly tracked and annotated.
+
+In the context of the requirements, an RO-Crate is a good fit, because it can describe an arbitrary set of files using graph-like descriptors according to JSON-LD (`https://json-ld.org/`). This inherently supports the first 4 requirements, as a graph of the dataset with metadata can be constructed using the flattened `@id` construct in JSON-LD. Contextual entities in the RO-Crate support the idea of metadata tagging, and the data entities handle actually cataloguing the files within the dataset. The RO-Crate specification also supports tracking changes over time through first-class support of `CreateAction` and `UpdateAction` types. There is a `DeleteAction` for removing files at schema.org, however it is not documented in the RO-Crate specification — files can be deleted by using this action and updating the RO-Crate metadata file accordingly as a custom process.
+
+### Example: Basic RO-Crate Metadata
+
+```json
+{
+  "@context": "https://w3id.org/ro/crate/1.2/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "conformsTo": { "@id": "https://w3id.org/ro/crate/1.2" },
+      "about": { "@id": "./" }
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "Example RO-crate dataset",
+      "description": "A dataset containing fastq files",
+      "datePublished": "2025-06-10",
+      "publisher": { "@id": "https://umccr.org/" },
+      "hasPart": [
+        { "@id": "file_one.fastq" },
+        { "@id": "file_two.fastq" },
+        { "@id": "groups_of_files/" }
+      ]
+    },
+    {
+      "@id": "file_one.fastq",
+      "@type": "File",
+      "name": "First fastq file",
+      "identifier": { "@id": "SBJ0001" }
+    },
+    {
+      "@id": "file_two.fastq",
+      "@type": "File",
+      "name": "Second fastq file",
+      "identifier": { "@id": "SBJ0001" }
+    },
+    {
+      "@id": "groups_of_files/",
+      "@type": "Dataset",
+      "name": "This is a group of files that can be annotated as a group.",
+      "description": "Many files",
+      "identifier": { "@id": "SBJ0002" }
+    },
+    {
+      "@id": "SBJ0001",
+      "@type": "Person",
+      "identifier": "SBJ0001"
+    },
+    {
+      "@id": "SBJ0002",
+      "@type": "Person",
+      "identifier": "SBJ0002"
+    },
+    {
+      "@id": "https://umccr.org/",
+      "@type": "Organization",
+      "name": "UMCCR",
+      "description": "Collaborative Centre for Genomic Cancer Medicine",
+      "url": "https://umccr.org/"
+    }
+  ]
+}
+```
+
+### Example: File Addition and Deletion
+
+Deleting files is less standardized in RO-Crate. The approach below converts a deleted file to a contextual entity (prefixed with `#`) to allow removing it from `hasPart`, and uses `temporalCoverage` to represent the deletion date.
+
+```json
+{
+  "@context": "https://w3id.org/ro/crate/1.2/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "conformsTo": { "@id": "https://w3id.org/ro/crate/1.2" },
+      "about": { "@id": "./" }
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "Example RO-crate dataset",
+      "description": "A dataset containing fastq files",
+      "datePublished": "2025-06-10",
+      "publisher": { "@id": "https://umccr.org/" },
+      "hasPart": [
+        { "@id": "file_two.fastq" },
+        { "@id": "groups_of_files/" },
+        { "@id": "report.html" }
+      ]
+    },
+    {
+      "@id": "#file_one.fastq",
+      "@type": "File",
+      "name": "First fastq file",
+      "identifier": { "@id": "SBJ0001" },
+      "temporalCoverage": "..2025-06-11"
+    },
+    {
+      "@id": "file_two.fastq",
+      "@type": "File",
+      "name": "Second fastq file",
+      "identifier": { "@id": "SBJ0001" }
+    },
+    {
+      "@id": "groups_of_files/",
+      "@type": "Dataset",
+      "name": "This is a group of files that can be annotated as a group.",
+      "description": "Many files",
+      "identifier": { "@id": "SBJ0002" }
+    },
+    {
+      "@id": "report.html",
+      "@type": "File",
+      "name": "A report for the dataset",
+      "description": "dataset report"
+    },
+    {
+      "@id": "Create report",
+      "@type": "CreateAction",
+      "agent": { "@id": "researcher" },
+      "result": [ { "@id": "report.html" } ]
+    },
+    {
+      "@id": "Delete file",
+      "@type": "DeleteAction",
+      "agent": { "@id": "researcher" },
+      "result": [ { "@id": "#file_one.fastq" } ]
+    },
+    {
+      "@id": "researcher",
+      "@type": "Person",
+      "name": "researcher"
+    }
+  ]
+}
+```
+
+### RO-Crate Data Sharing Requirements Summary
+
+- An arbitrary number of files should be possible.
+- It should be possible to group files together into describable sub-categories.
+- It should be possible to link files, groups, or datasets and describe the meaning of the links.
+- It should be possible to annotate each file, group, dataset, or link with a set of metadata, which can be arbitrarily defined and different between datasets. Some metadata fields may be common across all datasets.
+- The dataset must be able to be constructed across time, for example, as batches of files get added.
+- Changes to the dataset should be supported either by adding or removing files, and each change should be tracked to preserve the history of the dataset over time.
+
+> The biggest disadvantage of RO-Crate is that it doesn't support deleting files as a well-defined operation. Instead, the process of deleting a file must be defined in a "profile" that constrains the RO-Crate to that domain.
+
+## DataCite
+
+DataCite mandatory properties for any initial metadata submission:
+
+| ID | Property | Obligation |
+|----|----------|------------|
+| 1 | Identifier | M |
+| 2 | Creator | M |
+| 3 | Title | M |
+| 4 | Publisher | M |
+| 5 | PublicationYear | M |
+| 10 | ResourceType | M |
+
+### Citation of Dynamic Datasets
+
+For datasets that are continuously and rapidly updated, there are special challenges in citation and preservation. Four approaches are possible:
+
+**a) Cite a specific slice or subset** — the set of updates made during a particular period of time or to a particular area.
+
+**b) Cite a specific snapshot** — a copy of the entire dataset made at a specific time.
+
+**c) Cite the continuously updated dataset** but add an Access Date and Time to the citation. Note: following the citation does not result in access to the resource as cited, limiting reproducibility.
+
+**d) Cite a query**, time-stamped for re-execution against a versioned database.
+
+> Notes: The "slice", "snapshot" and "query" options require unique identifiers. Access date and time may be combined with options (a), (b), and (d), but must be used with option (c). Option (d) may shift more work onto repositories to store database versions for all queries, so not all repositories will be able to support this alternative.

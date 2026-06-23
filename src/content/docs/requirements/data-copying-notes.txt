@@ -1,0 +1,41 @@
+## Costings
+
+
+## Solution Architecture
+
+Firstly, we should note that whilst the requirements for the copy service are somewhat technologically
+agnostic – in practice we will need to write and run the service in a particular cloud
+or on-prem location. Due to egress and speed concerns, a copy service written to run in AWS
+but which can copy objects between Google Cloud buckets – is not the service you would use to copy the Google objects.
+
+To that end, we have documented here *only* a copy service that runs in AWS.
+
+However the cloud-checksum tool used within the service *is* a tool that
+can be run anywhere – and performs a lot of the heavy lifting.
+
+We will need to consider if writing a different copy service for Kubernetes (say), that
+would then be the copy service to use for Google. This would only be done were the need to arise.
+
+
+### Large Data Copy Scenario
+
+| Parameter | Value |
+|-----------|-------|
+| Number of objects | 1,000,000 (1M) |
+| Average object size | 100 KiB |
+
+### Cost of Creating Fake Dataset
+
+| Item | Rate | Cost |
+|------|------|------|
+| PUT pricing (Australia) | $0.0055 per 1,000 | $0.0000055 per object |
+| Storage pricing (Australia) | $0.025 per GiB | |
+| Storage cost per month | number of objects × average object size × storage pricing | ~$2.38 |
+| PUT cost | number of objects × PUT pricing Australia | $5.50 |
+
+### Cost of Copying Fake Dataset
+
+| Item | Rate | Cost |
+|------|------|------|
+| GET pricing (Australia) | $0.00044 per 1,000 | $4.40 |
+| HEAD objects phase | number of objects × GET pricing Australia | $0.44 |
