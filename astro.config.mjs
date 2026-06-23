@@ -52,7 +52,7 @@ export default defineConfig({
                         label: "Cost Monitor",
                         items: [
                             "technology/curtrail",
-                            "technology/steps-s3-copy",
+                            "technology/steps-s3-copy-costing",
                         ]
                     },
                     {
