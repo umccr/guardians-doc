@@ -19,6 +19,10 @@ export default defineConfig({
             './src/styles/custom.css',
         ],
         tableOfContents: false,
+        components: {
+            ThemeSelect: './src/components/ThemeSelect.astro',
+            ThemeProvider: './src/components/ThemeProvider.astro',
+        },
         sidebar: [
             {
                 label: 'Requirements',
@@ -62,7 +66,7 @@ export default defineConfig({
                         ]
                     },
                     {
-                        label: "Helper",
+                        label: "Support",
                         items: [
                             "technology/aaf",
                             "technology/rems-terraform-provider",
