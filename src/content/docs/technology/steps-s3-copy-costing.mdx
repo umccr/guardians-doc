@@ -4,22 +4,91 @@ prev: false
 next: false
 ---
 
-import { Badge, Code, LinkCard, Steps } from '@astrojs/starlight/components';
+import { Badge, LinkCard } from '@astrojs/starlight/components';
 import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
+import costSummary from '../../../assets/steps-s3-copy-costing/cost_summary.png';
+import costPerObject from '../../../assets/steps-s3-copy-costing/cost_per_object.png';
 
 <article className="prose dark:prose-invert">
     <ArchitectureFloat showLayers={["Base", "COST-MONITOR"]} />
     <Badge text="Production" size="large" variant="success" />
     <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/steps-s3-copy" />
 
+    <h2>Cost estimation</h2>
+
     <p>
-        An AWS orchestration that coordinates the movement of large volumes of data between
-        S3 stores. The underlying requirements for our Data Copying are found [here](../../requirements/data-copying).
+        The steps-s3-copy includes a cost estimation feature that calculates the expected costs 
+        of the copy operation. When enabled (`htmlReport: true`), the workflow produces an HTML report 
+        containing cost estimates across three modelled components. Use it for pre-execution planning or 
+        post-run analysis, the report can be saved in the working bucket and destination bucket independently, 
+        making it accessible from both sides of the transfer.
     </p>
+
     <p>
-        The tool can generate cost reports both before and after
-        copies. These reports estimate the true cost of copies including inter-region
-        and external egress charges.
+        Costs are calculated for three components:
+    </p>
+
+    <ul>
+        <li>
+            <strong>Cross-region transfer</strong> — cost applied when source and destination buckets 
+            are in different AWS regions. This component models transfer egress charges and destination 
+            write request fees. In-region copies are modelled with zero transfer cost.
+        </li>
+        <li>
+            <strong>Cold storage retrieval</strong> — charged when an object is in Glacier, Deep Archive, 
+            or Intelligent-Tiering archive classes and must be restored before copying. This component 
+            models retrieval request and data charges, plus temporary restore storage charges during the 
+            restore window. The estimate depends on storage class, object size, retrieval speed (Bulk, 
+            Standard, or Expedited), and restore duration.
+        </li>
+        <li>
+            <strong>Compute</strong> — covers workflow runtime on Lambda or Fargate (selected according to object size) 
+            during the copy step. This component is modelled from object size, assumed throughput, and runtime 
+            overhead to estimate execution duration.
+        </li>
+    </ul>
+
+
+    <p> 
+        Pricing rates are fetched from the AWS Price List API at the start of each workflow run, ensuring cost 
+        estimates reflect current rates. The report records the timestamp when pricing data was fetched, and 
+        displays the rates used. 
+     </p>
+
+    <p>
+        Costs are calculated per object, then aggregated by component and presented in total.
+    </p>
+
+    <p>
+        Per-object costs are broken down in the results table, showing each of the three cost components separately.
+    </p>
+    <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4 my-6">
+        <img src={costPerObject.src} alt="Per-object estimated costs" />
+    </div>
+
+    <p>
+        The cost summary panel shows the total estimated cost for the copy operation, 
+        broken down by component and presented in a pie chart for easy visualisation.
+    </p>
+
+    <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4 my-6">
+        <img src={costSummary.src} alt="Cost summary panel" />
+    </div>
+
+
+    <h3>Cost model</h3>
+
+    <p>
+        The cost estimation logic is isolated in a dedicated module (<code>cost-estimation.ts</code>), 
+        separate from the workflow orchestration. It models the three cost components (cross-region 
+        transfer, cold storage retrieval, and compute) using AWS Pricing API rates and object metadata, 
+        so pricing behaviour can be developed, tested, and updated independently.
+    </p>
+
+    <p>
+        Comprehensive unit tests cover multiple AWS regions, storage classes, and edge cases (including 
+        tiered egress and retrieval-speed variants). This keeps model changes safe: assumptions can be 
+        validated in isolation, and pricing updates or new scenarios can be introduced.
     </p>
 
 </article>
