@@ -1,0 +1,207 @@
+---
+title: Overall
+---
+
+**v 0.2**
+
+Andrew Patterson
+
+## Document History
+
+| Version | Date     | Who | Change Summary                       |
+| ------- | -------- | --- | ------------------------------------ |
+| initial | May 2026 | AP  | First version adding initial content |
+| 0.2     | Jul 2026 | AP  | Added roles from SATRE, added links  |
+
+## Summary
+
+As an omics infrastructure provider, I want to provide omics data
+both as released data (data sent to a collaborator)
+and via analysis services (data retained and analysed in-place) to
+enable research and satisfy the governance requirements of data owners.
+
+## Sub-requirements
+
+These requirements are a work in progress. Those that are complete
+will be marked as such.
+
+We have split them into two broad categories - requirements of the
+"users" of the service, and technical requirements for services
+needed by the "operators" of the service.
+
+<table>
+    <thead>
+    <tr>
+        <th>Requirement</th>
+        <th>Description</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td colSpan={3} bgColor="#ddd">
+            Users
+        </td>
+
+    </tr>
+    <tr>
+        <td>[Researcher Environments (Raw)](../researcher-environments-raw)<br/>
+            [Researcher Environments](../researcher-environments)</td>
+        <td>
+            Requirements for data owners and researchers who need
+            to use a data environment to perform research. The main requirements are
+            still a work in progress so we have also included the raw requirements consisting
+            of responses from stakeholder engagement activities.
+        </td>
+        <td>
+            In progress
+        </td>
+    </tr>
+    <tr>
+        <td>
+            [Dataset Formatting](../dataset-formatting)
+        </td>
+        <td>
+            Requirements for the structuring of raw dataset data.
+        </td>
+        <td>
+            Complete
+        </td>
+    </tr>
+    <tr>
+        <td colSpan={3} bgColor="#ddd">
+            Operators
+        </td>
+    </tr>
+    <tr>
+        <td>
+            [Data Copying](../data-copying)
+        </td>
+        <td>
+            Requirements for a service that moves large volumes of omics data between
+            systems.
+        </td>
+        <td>
+            Complete
+        </td>
+    </tr>
+    <tr>
+        <td>
+            [Data Control](../data-control)
+        </td>
+        <td>
+            Requirements for a data control plane that coordinates data sharing.
+        </td>
+        <td>
+            In progress
+        </td>
+    </tr>
+    <tr>
+        <td>
+            [Data Release](../data-release)
+        </td>
+        <td>
+            Requirements for data release (data sent to a collaborator rather than
+            requiring use of the data in a researcher environment).
+        </td>
+        <td>
+            In progress
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+## Roles
+
+THE FOLLOWING ROLES ARE REPRODUCED *ALMOST* VERBATIM FROM
+THE [SATRE](https://satre-specification.readthedocs.io/en/v2.0.0/roles.html#roles) SPECIFICATION.
+
+We are not in any way attempting to claim any authorship of this material! The hope is by aligning our
+requirements documents to use these role definitions,
+we can easily align our genomics work into the broader SATRE specifications.
+
+We have relaxed some of the role definitions to allow a broader context beyond TREs. For instance - we
+have removed the requirement that the Data Consumer access the data "in a TRE" - instead they are anyone
+who consumes data in the research ecosystem. This allows us to use these roles also for instances
+where data is copied to another insititute. We believe none of this relaxation changes the nature of the roles,
+it just broadens the context in which the role can apply.
+
+We have added the role(s) of:
+
+* Data Producer
+
+as our requirements extend to the entire research ecosystem.
+
+
+Some of these roles may have different names in an Australian context - we hope to note these
+where appropriate.
+
+### Project Roles
+
+Roles for end-users conducting research or analysing data and others involved in managing this research.
+
+| **Role name** | **Role description** |
+| ------------- | -------------------- |
+| Data Consumer | General term for any individuals who will be provided access to data. |
+| Data Analyst  | Specific term for people provided access to data, who intend to carry out analysis or conduct research using the data. These could be programmers and data scientists, but could also be scientists working in fields where deep computing expertise is less common. Analysts working with TREs that meet the SATRE standard should have a broadly similar user experience, at least where the type of analyst is consistent (e.g. data scientists). This includes both the user experience of the platforms themselves, and the associated documentation. |
+| Project Manager | The person in charge of coordinating other roles for the duration of a specific project. |
+| Project Team | Refers to the team of data analysts and project manager(s) working on a specific project. |
+
+
+### Data Management Roles
+
+Roles for people managing data and databases.
+
+| **Role name**           | **Role description**                                                                                                                                                                                                                                                                                                                           |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Data Steward            | People who ensure data within a TRE is maintained and processed in ways useful to analysts, including providing data extracts. May also be known as Data Wranglers, Data Engineers or Data Cleaners.                                                                                                                                           |
+| Database Administrator  | People responsible for managing any databases included in the TRE. Where a database is used by multiple projects, this includes handling segregation of users and databases belonging to different projects.                                                                                                                                   |
+| Information Asset Owner | General term for custodians or owners of a datasets, projects or other information assets within a TRE.                                                                                                                                                                                                                                        |
+| *Data Custodian*        | *see Information Asset Owner.* In an Australia context, the custodian is normally a delegated role, responsible for data but on behalf of a Data Owner.                                                                                                                                                                                        |
+| *Data Holder*           | *see Information Asset Owner.*                                                                                                                                                                                                                                                                                                                 |
+| *Data Owner*            | *see Information Asset Owner.*                                                                                                                                                                                                                                                                                                                 |
+| Output Checker          | People responsible for checking the disclosure risk of project outputs, before egress, as part of the disclosure control process.                                                                                                                                                                                                              |
+| Data Producer           | A laboratory or clinician or research group that produces data - possibly with a primary purpose that is unrelated to use within a TRE. Whilst the producer will often end up playing the role of Information Asset Owner - this is not required, and data production is a specific phase of the data lifecycle that is useful to separate out |
+
+### Infrastructure Management Roles
+
+The IT professionals and software engineers who will be responsible for developing, deploying and managing instances of a TRE conforming to the SATRE specification.
+
+| **Role name** | **Role description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Operator      | People responsible for the management of the TRE’s IT infrastructure and general processes documented throughout the SATRE specification. Examples include carrying out data ingress/egress and managing user access. TRE operators should expect to have access to documentation regarding all processes they are required to carry out, developed by themselves or (in partnership with) the TRE Developers. This documentation should be comprehensive and include troubleshooting steps.                                                                                                                          |
+| Developer     | People responsible for building the software infrastructure that can be used as a TRE. These could be Research Software Engineers, whose job involves applying professional software engineering expertise to challenges in scientific research. Alternatively, these could be developers who are contracted to build a TRE for a given institution or project. TRE developers include people creating bespoke platforms catering to the specific requirements of a project or dataset, as well as developers building generalisable solutions to TRE provision that can be configured based on the research context. |
+| Builder       | People responsible for carrying out the Infrastructure Deployment Process. This role could be taken on by either the TRE Operators or the TRE Developers.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+### Governance Roles
+
+Roles that uphold the governance of TREs. Such governance responsibilities typically involve establishing policies and procedures to ensure the responsible use of data, protecting the privacy and confidentiality of research participants, and promoting transparency and accountability in research activities.
+
+| **Role name**                  | **Role description**                                                                                                                                                                                                                                                                                                                 |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Information Governance Manager | People responsible for writing and/or compiling the correct operating procedures and policies for the TRE.                                                                                                                                                                                                                           |
+| Quality Manager                | People responsible for ensuring the TRE is operating correctly, and all procedures and policies are being followed by other roles and work effectively.                                                                                                                                                                              |
+| Top Management                 | People who lead and control an organisation at the highest level. This definition is taken from _ISO 9000:2015_ and in this context refers to the most senior governance official who own the risks associated with TRE research, can make decisions and allocate resources.                                                         |
+| Data Protection Manager        | People responsible for Data Protection at the organisation hosting the TRE.                                                                                                                                                                                                                                                          |
+| Auditor                        | General IT term for people who evaluate an organisation’s IT systems on whether they meet technology or cybersecurity regulatory requirements. For TREs, this may include requirements around sensitive data handling and information security controls. Auditors can be internal, or external people working for a consulting firm. |
+
+### Public Roles
+
+Roles that concern members of the public with regard to TREs and TRE research.
+
+| **Role name** | **Role description**                                                                                                   |
+|---------------|------------------------------------------------------------------------------------------------------------------------|
+| Lay Panel     | Members of the public charged with oversight of TRE operational decisions on behalf of parties affected by data usage. |
+| Data Subject  | People who are identifiable by data being used for research, e.g. patients in healthcare record data.                  |
+
+## Glossary
+
+| Term            | Definition                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset         | A collection of objects coinciding with a meaningful grouping                                                                                                                                                                                                                                                                                                                                                  |
+| File            | See _object_. An object held on a filesystem is often referred to just as a file                                                                                                                                                                                                                                                                                                                               |
+| Filesystem      | A collection of files/objects, normally stored with "POSIX semantics"                                                                                                                                                                                                                                                                                                                                          |
+| Object          | An immutable collection of bytes with potentially extra "metadata" key pairs                                                                                                                                                                                                                                                                                                                                   |
+| Object store    | A collection of objects is stored in an object store – an object store can generally scale larger than a traditional filesystem – but has a more limited set of operations ("S3 semantics")                                                                                                                                                                                                                    |
+| POSIX semantics | The behaviour contract of a traditional file system. Data lives in a true directory hierarchy; files are mutable with random-access reads and writes (seek, overwrite a byte range, append, truncate); rename/move is atomic; rich metadata (permission bits, uid/gid, timestamps, links) and file locking are available; strong read-after-write consistency.                                                 |
+| S3 semantics    | The behaviour contract of object storage. A flat key→object map with no real directories (hierarchy is just a prefix convention); objects are immutable and written whole (no in-place or partial writes, no true append); there is no rename — "moving" is copy-then-delete, O(size) and non-atomic; sparse metadata fixed at write time, with access governed by IAM/policies rather than POSIX permissions. |

@@ -2,9 +2,9 @@
 title: Researcher Environments
 ---
 
-**v 0.2**
+**v 0.3**
 
-Andrew Patterson, Marko Malenic, Conrad Leonard, Maxime Hebrard, Anurag Katariya, SATRE authoris
+Andrew Patterson, Marko Malenic, Oliver Hofmann
 
 ## Document History
 
@@ -12,6 +12,7 @@ Andrew Patterson, Marko Malenic, Conrad Leonard, Maxime Hebrard, Anurag Katariya
 |---------|----------|-----|--------------------------------------|
 | initial | Apr 2026 | AP  | First version adding initial content |
 | 0.2     | Jun 2026 | AP  | Integrated content from TRE group    |
+| 0.3     | Jul 2026 | AP  | Started on taxonomy section   |
 
 ## Overarching User Story
 
@@ -35,7 +36,7 @@ Rather than reinvent the wheel for the requirements of genomics research environ
 instead to leverage the excellent work of HDR-UK and the SATRE project who have already
 done extensive requirements analysis and solution design for researcher environments in the UK.
 
-[SATRE 1.1.1](https://satre-specification.readthedocs.io/en/v1.1.1/)
+[SATRE 2,0](https://satre-specification.readthedocs.io/en/v2.0.0/)
 
 Our path then is not to invent new requirements in isolation - but instead to use SATRE as a
 point of reference. Do the needs of a genomics researcher *add* substantially
@@ -46,19 +47,19 @@ roles that clarify the way data custodians and researchers behave in the human g
 ### Architectural Principles
 
 SATRE starts with Architectural Principles. We can see no reason why genomics would
-change these principles – all are sound principles that equally apply to genomics research. Nor can we
+change these principles - all are sound principles that equally apply to genomics research. Nor can we
 think of any principles that would need to be added to correctly underpin genomics research.
 
 For reference, we repeat the four principles here.
 
-* Usability – A TRE instance that works for all users minimises barriers to use, and provides
+* Usability - A TRE instance that works for all users minimises barriers to use, and provides
   a productive and accessible analysis environment for research.
-* Retaining public trust – TREs holding public data should build and maintain the trust
+* Retaining public trust - TREs holding public data should build and maintain the trust
   of data subjects and any other impacted individuals, groups, communities and organisations 
   by protecting privacy, keeping data secure and being transparent about their work.
-* Observability – Human initiated and automated processes resulting in change within the
+* Observability - Human initiated and automated processes resulting in change within the
   TRE should be observable.
-* Standardisation – TREs should adhere to standards or well-known patterns wherever possible.
+* Standardisation - TREs should adhere to standards or well-known patterns wherever possible.
 
 ### Pillars
 
@@ -67,5 +68,120 @@ For reference, we repeat the four principles here.
 3. Data Management
 4. Supporting Capabilities
 
-In SATRE 2.0 they are introducing a Federation Pillar.
+Again, there is little reason to think that genomics would fundamentally change these pillars.
 
+### Work In Progress
+
+#### Taxonomy of TRE Type.
+
+| Type | Description | Examples |
+| --- | --- | --- |
+| Virtual Desktop | Use "remote desktop" client to connect to a machine like the researcher is sitting in front of the machine | SURE, Keypoint |
+| Virtual Desktop with Services | As per Virtual Desktop, but provide software as a service endpoints in the TRE that can browsed from the virtual desktop. For instance, this might be a virtual desktop where users can browse to a Seqera Enterprise instance URL running wholly *inside* the TRE | ? |
+| Browser SAAS | Uses a browser to log in to a software as a service that provides genomics analysis services |  |
+| Browser SAAS with Virtual Machine | Uses a browser to log in to a software as a service that provides genomics analysis service, but where some of the services may be interactive analysis in a "virtual machine" accessed from the browser | Seqera, Terra, Verily Pre |
+
+#### Taxonomy of Compute Types provided in TREs.
+
+<table>
+    <tr>
+        <td>Single Machine</td>
+        <td>
+            A single machine is an instance made available within a workspace - coming
+            in a variety of CPU/memory/disk configurations - and potentially with
+            custom machine features like GPUS/AI/FPGA. The important characteristic is that
+            decisions about the type of machine is made ahead of time and out of band
+            of the workspace itself. i.e. activity in the workspace cannot dynamically
+            summon these machines into existence. In some scenarios - the machine may
+            need to be purchased aprior and is exclusively used by a user in the workspace for
+            significant periods of time (weeks to years). Access to the machine would
+            be some sort of interactive process (shell, virtual desktop etc)
+        </td>
+        <td>
+            I am a researcher who want to inspect some VCF files. I ask for a four
+            core, 64 GiB Linux machine to be spun up in the workspace. A day later I receive
+            an email with some instructions and I login via SSH to run
+            some Python that parses VCFs. I have asked for the machine for two weeks,
+            after which it is shutdown.
+        </td>
+    </tr>
+    <tr>
+        <td>Fixed Cluster</td>
+        <td>
+            A fixed cluster is a compute cluster that has been created specifically
+            for a single workspace and exists only for that workspaces use. Whilst it
+            might be easy/quick to create/destroy - it would be at the manual request
+            of the workspace user or administrator - not due to a workflow manager.
+            The cluster may have installed on it some form of workflow management but
+            this is entirely local to the workspace and the particular cluster. (i.e.
+            running Spark on 4 machines that have been allocated to the TRE)
+        </td>
+        <td>
+            I am a researcher who wants to do a joint call on 50000 samples using Hail
+            on Spark. I click a button in my workspace dashboard and ask it to
+            install a "medium" Spark cluster, and ten minutes later I get an email
+            notifying that the cluster is available with four 16 core machines, each
+            with 32 GiB of memory. From my workspace desktop I can run Python that
+            invokes Hail routines over the cluster - using details of the cluster
+            from my notification email. When I am finished and nothing has
+            run on the cluster for an hour it auto shuts down.
+        </td>
+    </tr>
+    <tr>
+        <td>Dynamic Cluster</td>
+        <td>
+            A dynamic cluster is a compute cluster that has a surplus of compute i.e.
+            a large institutional HPC with thousands of cores and the ability to
+            schedule jobs onto it
+        </td>
+        <td>
+            I am a researcher who is wanting to do method development of a
+            pipeline on 100 individual test patients.
+            I am logged in to a virtual desktop in my workspace - but have been
+            given permissions to a "cluster" in which I can submit jobs. I submit
+            a job nominating a pipeline to run and wait for the scheduler to
+            farm the job out to my institute HPC. After 8 hours, the status of
+            the scheduler indicates that the job has been completed on all 100
+            patients.
+        </td>
+    </tr>
+    <tr>
+        <td>Dynamic Compute</td>
+        <td>
+            Dynamic compute is compute resources that have a variety of shapes and
+            sizes and which can be spun up on demand from a larger pool - used
+            temporarily and then returned. The construction/destruction of them would
+            be coordinated by a workflow manager
+        </td>
+        <td>
+            I am a researcher who is reanalysing some raw sequencing data with a
+            new pipeline across 50 patients. My pipeline is complex and written in
+            Nextflow - requiring a variety of machines of various sizes - including
+            one particular short but intense stage that needs to perform a high memory compute
+            task (512 GiB of memory but just 2 CPUs). I submit
+            the job asking for the pipeline to run on all the patients - and I see
+            various compute nodes get created/destroyed dynamically as the pipeline
+            is run in parallel using transient machines appropriate to each stage
+            of the pipeline.
+        </td>
+    </tr>
+</table>
+
+#### Taxonomy of Ingress.
+
+#### Taxonomy of Egress.
+
+#### Taxonomy of Workflow Management.
+
+
+## Requirements
+
+| ID         | Requirement                                                                                                                                                                                         | Comment / Rationale                                                                                                                                                                                                                      |
+|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `REREQ‑1`  |                                                 |                                                                                                                     |
+
+## Non-Functional Requirements
+
+| ID | Description | Comment / Rationale |
+|----|-------------|---------------------|
+| `RENF‑1` | The system supports datasets in the hundreds of terabytes | Large scale genomic cohorts can easily be in this range if inclusive of read data  |

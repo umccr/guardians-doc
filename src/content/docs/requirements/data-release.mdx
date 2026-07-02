@@ -1,0 +1,128 @@
+---
+title: Data Release
+---
+
+**v 0**
+
+
+## Document History
+
+| Version | Date     | Who | Change Summary         |
+|---------|----------|-----|------------------------|
+| 0       | 2026-Jul | AP  | Dump from Slack canvas |
+
+## Overarching User Story
+
+As a **Data Producer** I want to be able to release data out of my organisation
+boundary to other organisations or researchers where that is appropriate for
+the data. For instance, after performing sequencing and analysis of samples sent by
+an external researcher – there could be a contractual obligation to return the raw
+and generated data to them
+as part of the service.
+
+## Roles (specific)
+
+| Role | Details |
+|------|-------------|
+| Data Producer | See Overall roles table |
+
+## User Stories
+
+Note that these stories are specific to CCGCM and the language still needs to be
+generalised.
+
+### User Story #1
+
+I am a bioinformatician working on some methods development at CCGCM. I am a University of
+Melbourne employee. CCGCM has sequenced a patient that has exhibited some edge cases I want
+to test with my software. This is patient data so I would like to do some work in a
+privileged AWS account (i.e. not dev). I just want to be left alone with my AWS account
+and some S3 URLs that I can read from the account - maybe I am spinning up an EC2
+instance, maybe I am using batch - it's none of your business how I do my work. After my work
+is done I promise I will try to remember to let someone know and the access to the data can
+be removed - though it would be good if there were other mechanisms to notice these shares
+as I may forget.
+
+Tech keywords
+Access points, CloudFormation, S3
+
+Solution sketch
+Create some form of mart(?) query to identify the S3 URLs I want to access
+Ask someone to install something in the data control account that enables sharing of the objects to the account I have access to
+
+Parts of the story dealt with elsewhere
+Getting access to an AWS account that is appropriate (one for centre management and policy)
+Lifecycle management (assume the objects are live or been restored through some other mechanism?)
+
+### User Story #2
+
+I am a new PhD researcher working for a research group at CCGCM and am employed by Peter Mac. I
+have lots of bioinformatics experience but very little cloud compute. It has been decided
+I will be given access to a small subset of project data for my initial project work and
+that I will be writing the workflows in nextflow in Seqera. I am only going to be allowed
+to access the variant data from the participants. I want to run pipelines over the data
+in my given Seqera workspace.
+
+Tech keywords
+htsget-rs, VPC Lattice, Seqera, terraform
+
+Solution sketch
+Someone within centre uses a tool to take known identifiers from researcher and constructs VCF list.
+htsget is configured with a config file (?) that authorises this share of variants across into the designated account via htsget vpc lattice
+
+Parts of the story dealt with elsewhere
+Lifecycle management (assume the objects are live or been restored through some other mechanism?)
+
+
+### User Story #3
+
+I am a member of an external research group at WEHI that is using CCGCM to perform some
+sequencing and cloud analysis. I would like to results of the sequencing I have paid for
+to be returned to a bucket of my choosing on a regular basis.
+
+Tech keywords
+S3, ...
+
+Solution sketch
+
+
+### User Story #4
+
+
+I am a researcher at Garvan who wants to perform some research on the CUP cohort. I have
+created a locked down environment in a VPC in AWS in the Garvan organisation. I would like
+to apply for a subset of the CUP cohort as aligned reads and have access to them in my
+VPC. I would like access to the data for one month.
+
+Tech keywords
+htsget-rs, VPC Lattice, REMS
+
+Solution sketch
+application process with REMS?
+htsget / vpc lattice
+instruction guide for consuming lattice
+caching CUP samples into data control
+
+
+### User Story #5
+
+Download presigned URLs story as it currently is.
+
+Tech keywords
+
+Solution sketch
+
+
+## Requirements
+
+| ID         | Requirement                                                                                                                                                                                         | Comment / Rationale                                                                                                                                                                                                                      |
+|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DRREQ‑1`  |                                                    |                                                                                                                       |
+
+## Non-Functional Requirements
+
+| ID | Description | Comment / Rationale |
+|----|-------------|---------------------|
+| `DRNF‑1` |  |
+
+

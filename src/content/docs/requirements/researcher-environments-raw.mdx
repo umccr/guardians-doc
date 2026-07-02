@@ -1,0 +1,243 @@
+---
+title: Researcher Environments (Raw)
+---
+
+**v initial**
+
+Andrew Patterson, Marko Malenic, Conrad Leonard, Maxime Hebrard, Horatio Davis,
+ Anurag Katariya, Kamile Taok, SATRE authors, CSIRO (Anuradha Wickramarachchi, Yatish Jain)
+
+## Document History
+
+| Version | Date     | Who | Change Summary                       |
+| ------- | -------- | --- | ------------------------------------ |
+| initial | Jul 2026 | AP  | Dump of content from various Miro boards and other sources |
+
+## Requirements Gathering
+
+### CL and AP (brainstorming)
+
+#### Dynamism
+
+AP:
+I think we can emphasise the dynamic nature of genomics compute. It even took the AWS people
+a while to get across this concept. For genomics we don't just want compute/memory - we
+need to be able to summon 16 CPUS with 1GB of memory for 1 hr - then change to a single
+CPU machine with 128 GiB of memory - then fan that out to 23 machines - with 1 CPU/1GiB. And
+we want to do that once a week - for 100 samples - at random times
+But we don't want to pay for those machines when we aren't using them
+Do you disagree with that as a premise? Any clarifications?
+
+CL:
+100% agree. It's got to behave like AWS Batch or GCP PAPI v2 (or whatever that's called now)
+If it's HPC-backed, there's got to be something like ABLES that allows ad-hoc use
+In HPC world - how do we deal with this dynamism (me having never logged into a HPC)
+I commented on this above. For HPC, the resources have to be available through a scheme like ABLES, as opposed to a merit allocation scheme (apply 6 mos in advance)
+The institute itself statically decides on the size of the cluster.. but do the researchers get dynamic CPU/mem stuff for a single nextflow pipeline run?
+Or do they allocate out CPUS/mem to research groups (and essentially partition up the cluster)
+
+#### Custom Compute
+
+CL:
+Large, fast (SSD) scratch is I think a pretty common ask. Some tools create heaps of temp files that you don't want to be writing to network disk.
+AP:
+Access to GPUs, FPGAs, weird scale machines..
+So not saying we are unique - but definitely need compute types that are not standard 2 CPU/8 GIB windows box
+
+
+#### Ability to access large datasets
+
+AP:
+Terabytes of data, preferably not copied into each research space, but made available.
+Data is controlled though - noone is suggesting staging a terabyte of random data
+off the internet. The "blah dataset" from EGA can be trusted at a broad level
+without requiring someone to inspect every byte.
+"The ability to stage large controlled genomics datasets near to the TRE compute"
+It is possible the large data might be need to be on-demand or cached from the perspective
+of the workloads (i.e. something in the environment may need to reach out dynamically
+over the internet rather than keep 1 TB of data at the tre for months at a time)
+
+#### Workflow engines
+
+CL:
+Absolutely necessary in practice; the question is how much TRE-native support/integration
+one should aim for here. Does it look like  providing managed Nextflow / Cromwell / ... services,
+or just the means to stand those up in the env (e.g the Ronin model)
+
+AP:
+Genomics jobs are not something that you can do just by running a single binary or script (see 1. DYNAMISM) - the availability of workflow engines that can orchestrate this is important
+I mean I think we share this with many other science fields - but possibly not the science fields that are traditionally in TREs (run excel, draw chart)
+
+#### Complex iterative development
+
+AP:
+Genomics jobs require pipeline stages that traditionally are off the shelf containers
+or pre-packaged source - but even the bespoke workflow that ties them all together
+is not something that you can copy/paste in notepad. Researchers need to ability
+to use some form of best practice source control to work on the jobs,
+and reasonably quick turnarounds on edits.
+
+#### Cost model
+
+CL:
+It's not unique to genomics but the scale of the data and compute needed does
+make it especially pointy. Data custodians in particular need to know who is on the hook for what.
+Noone is getting pinged for the egress fees of an excel - but for us possibly ouch (edited)
+It also ties in with (1).. we can't afford to say 6 months in advance - here are the precise
+machines we want to use for 1 year - and have the TRE provider go and provision those.
+
+
+
+
+### MM (brainstorming)
+
+- “You must understand the risk appetite of your TRE organisation.”   I think this is an interesting point when it comes to the mismatch between users of a TRE, i.e. researchers and the data access and control expectations. The more locked down the data is, the harder it will be to use, which goes against what users may expect or be used to. I’m not sure where this point lands for genomics specifically.
+- “You must audit your TRE organisation against relevant requirements and standards.”   There might be specifics required for genomics labs to get TREs accredited, if that’s even an eventual use-case down the track?
+- “Your TRE should be accessed via a user interface accessible using commonly available applications.”   I think there’s an interesting discussion around how users are able to log in to TREs, which is also related to the usability of them. Do they have to log in to specific networks/VPCs to access, or use specific computers/hardware? Or do we just allow users access via a web portal using regular JWT/auth methods?
+- “You should understand the availability and uptime guarantees of any providers that you rely on.”   For genomics, this would be a different kind of guarantee to other fields. I think genomics might have more infrequently used computing, that should be reliable for the time that it’s running, but is allowed to be off or have long periods of downtime.
+- “You must not allow users to copy data out of your TRE via the system clipboard.”   Possibly this is not as relevant to genomics? Nobody will be copying BAM files, but it might be good to enforce anyway. Although, as a general thought, what kind of data would be in the genomics TRE? I imagine it wouldn’t be directly personally identifiable (e.g. names), as the TRE would be used to run workflows?
+- “You must not give anyone access to datasets without agreement from the Data Controller.”   How would this look in contexts where results get published or get shared more broadly? This point doesn’t conflict with just noting.
+- “Your TRE could offer physical protection measures against data leakage or theft via physical means.”   Not sure how relevant this is for Cloud providers, as they would handle that, but would be important to consider for on premises compute.
+- “You should keep backups of data and research environments, provided that this is permitted by law.”   I think this is important, but I think it should be implemented with consideration for data storage costs involving large genomics files, as there would be requirements for data storage to avoid unnecessary duplication. What kind of data would be backed up, just results, or all input files and runs?
+- “You could create a semi-automated system for checks on common research outputs.”   More generally, I think there should be a discussion on what is allowed and is not inside the TRE. Inputs and outputs would need to be approved, but it’s not clear which parts of this would be automated. I think some things could be semi-automated, e.g. allowed nextflow workflows that are known to be okay, etc.
+- “You must ensure that all projects using your TRE are aware of any associated costs and are able and willing to pay them.”   Costs can be quite large, and sometimes unexpected for certain workflows, especially in cloud environments, so I think this would be important for genomics. Datasets can have large storage costs and compute can have unique constraints for high performance in the moment, followed by long periods of downtime.
+- “Details of TRE operations, data available and projects which have accessed the data should be publicly available (*optional for TREs without personal data).”   Are there any instances in genomics where TRE projects need to be privately run?
+
+
+
+### Miro Sessions (GUARDIANS stakeholders)
+
+#### Do you agree or disagree with any of the SATRE principles? In particularly do you strongly believe \-omics needs to add or remove any foundational principles?
+
+| Author | Response                                                                                                                                                                                                                                                               |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CL     | I agree with all of them\. If I were being picky I would say that \#3 was an implementation detail supporting \#2, but I don't feel that strongly about it\. I might also suggest that \#1 explicitly recognize needs of the data custodian role \(onboarding, costs\) |
+| MH     | The principles are generic, it will hard to keep all of the point in mind while implementing\. It would be good to have a checklist derived from the principles that we can refers to\.                                                                                |
+| OH     | Feels like overall mission statements rather than specific principles but do agree with them overall                                                                                                                                                                   |
+| HD     | Usability, maintaining public trust, observability, standardisation\. \.\.\.it's not just maintaining trust that the public holds in the system \(and the safe use of the data\)\. It's also the practitioner community's and the funding body's and the DAC's         |
+| AK     | Additional: Federated Trust, Consent Aware access, interoperability, long term stewardship\.                                                                                                                                                                           |
+
+#### What aspects of information governance do you think distinguishes \-omics?
+
+| Author | Response                                                                                                                                                                                                                                                      |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CL     | Information Governance \(1\.1\.01\) is a challenge \- need to understand the Australian landscape sufficiently to "gather information governance requirements needed to fulfil any legal, regulatory and ethical standards"                                   |
+| CL     | Risk Management \(1\.3\.05\) "must understand the risk appetite of your TRE organisation\." is a challenge                                                                                                                                                    |
+| CL     | Study Management \(1\.4\.01\) "must have checks in place to ensure a project has the legal, financial and ethical requirements in place for the duration of the project\." is a challenge                                                                     |
+| MH     | Study Management Portal: 1\.4\.5\. You could implement a portal that can provide a workflow engine and database which automates the processes within this capability\. &gt; the point 1\.4\.5 do not capture the study management portal IMO\.                |
+| HD     | Cohorts\. There is the concept of a sequence or other dataset belonging to one patient that is of interest to multiple studies, multiiple institutions, multiple investigators\. And the privacy and ethical boundaries have to be managed specific to this\. |
+
+#### What aspects of computing technology do you think distinguishes \-omics?
+
+| Author | Response                                                                                                                                                                                                                                                        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CL     | Fast access to very large files/objects\. Throughput is more important than latency                                                                                                                                                                             |
+| CL     | Multi\-instance computing backend is a must\. It's very hard to make general statements about node types but for basic align/call/annotate CPU workloads, 10\-20G mem per core\. GPUs are increasingly needed e\.g\. for ONT basecalling\. Fast local scratch\. |
+| CL     | A workflow management engine \(e\.g\. nextflow or cromwell\) is a must\. Ideally native to the environment so that a user doesn't need to spin up a server, monitor a head job, etc\.                                                                           |
+| MH     | Ensuring SPARK clusters capability                                                                                                                                                                                                                              |
+| HD     | Practitioners \- medical doctors, scientists, bioinformaticians \- BYO code much more than some other fields\. A TRE needs to accommodate that in a safe, sandboxed way; or the governance needs to allow for people using not the TRE to get work done         |
+| OH     | An almost endless stream of tools / contasiners / workflow languages to support in parallel                                                                                                                                                                     |
+| OH     | A somewhat unpredictable mix of i/o\. cpu, memory requirements requiring a variety of compute nodes\. Or access to a cluster / batch compute in the first place \(instead of a virtual desktop\)                                                                |
+| MH     | 2\.1\.1 You must not allow users to copy data out of your TRE via the system clipboard\. &gt; Is there a process to inject code into the TRE ? \(I dont want to rewrite my notebook from scratch, without Copy/Paste capabilities\)                             |
+| MH     | 2\.1\.3: \[\.\.\.\] For example, you might use a system where users submit jobs that run over the data and return results without allowing direct data access\. &gt; risk of interpretation here, user can submit jobs, but the results should not exit the TRE |
+| MH     | There is a few different point about which tools could be available in the TRE, github, pip\.\.\. I am curious how to manage tools accessibility within the TRE and ensure security / no egress policies                                                        |
+| CL     | It might be obvious, but support for long\-running non\-interactive jobs\. Lots of TREs I've seen seem to assume you're sitting at a terminal doing data exploration or visualization activities\.                                                              |
+
+#### What aspects of data management do you think distinguishes \-omics?
+
+| Author | Response                                                                                                                                                                                                                                                       |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CL     | 3\.3\.01 \(outputs classification\) looks challenging for omics\. What are the thresholds for what counts as sensitive? I would guess there are even single germline genomic locations that reveal a lot about descent, even when most don't\.                 |
+| HD     | Specifically? GA4GH standards for data management \- crypt4gh for encryption, for example \- exist and are expected by practitioners to be the default and supported option\.                                                                                  |
+| AP     | Unlike even a "big" dataset you might find in a regular TRE \(1 Gib of excel data say\) \- you really really don't want to unnecessarily duplicate 100 TiB of genomics data into each project in your TRE\. Needs efficient object/data sharing within the TRE |
+| OH     | Mix of plain text and binary formats making egress assessments more challenging\.                                                                                                                                                                              |
+
+#### What aspects of supporting capabilties do you think distinguishes genomics?
+
+| Author | Response                                                                                                                                                                                                                                                              |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AP     | Financial management \(4\.4\.01 and 4\.4\.02\) becomes even more important in genomics \- these are not bills that might be $10\.\. genomics people can run up bills that might be $1000s or $10,000s\. I think we will have more requirements here than regular TREs |
+| CL     | \+1 on Patto's answer\. We should probably consider different cost models for who pays, and when, e\.g\. BYO cloud account, pre\-paid with limit, invoicing/cost\-recovery \(including subsidised operations\)                                                        |
+| OH     | Help desk / user support will probably sit here?                                                                                                                                                                                                                      |
+| HD     | If you make the TRE have a special access path \(must log into this VPN, must have an AAF institutional login on the whitelist, must have an EGA account\) then support for that will be needed\.                                                                     |
+
+## Is this a pillar we should be paying attention to? Is \-omics federation analysis on your roadmap?
+
+| Author | Response                                                                                                                                                                                                                                |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CL     | I don't personally know of use\-cases but am probably not close enough to the right research folks\. I imagine that data harmonisation and platform governance are big challenges here, more than the technology\.                      |
+| AP     | I think a federation pillar drives them towards more "workflow engine" like use cases \- which is a good thing for genomics \(even if we don't use the federation bit\)                                                                 |
+| HD     | The newly funded Precision Health Research Program will probably require it\. At present my institution collaborates in analysing specific data sets by shipping entire copies to the partner institution\. This is\.\.\. heavyweight\. |
+
+#### If we had a genomics pillar that dealt with things not otherwise dealt with \- what would you put in there \(consider this the catch\-all\)
+
+| Author | Response                                                                                                                                                                                                                                                          |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HD     | Community \- user community especially\. An asynchronous text forum and a synchronous text chat channel so that users can coordinate efforts and share learnings and trip over serendipities\. This is big enough not to just be one of a Supporting Capability\. |
+
+#### Are the Five Safes an approprite set of principles for human \-omics?
+
+| Author | Response                                                                                                                                                                                                                                                    |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CL     | Not an expert in this\. 5 safes seems widely adopted for genomics projects so they must work in practice ok\. One thing that does seem missing is capturing the variable appetite for risk between different individuals and different contexts\.           |
+| OH     | Better than introducing our new biology specific set of principles                                                                                                                                                                                          |
+| HD     | Not for precision health, where the point is that specific analyses definitely and specifically and identifiably apply to specific patients to get outcomes\. For cohort\-scale research and biostatistics, yes, the five safes are a good starting point\. |
+| HD     | Safe people, safe projects, safe settings, safe data, safe outputs\. Safe is such a fuzzy word\.                                                                                                                                                            |
+| KT     | Is what constitutes "safe" ultimately left to the discretion of each institute, as a sort of guideline? Like Conrad mentioned, are there "acceptable" risks given certain contexts?                                                                         |
+
+#### In GUARDIANS world \- where do we think each Safe is dealt with?
+
+| Author | Response                                                                                                                                                                                                                                          |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AP     | AAF/federated identities feels like the start of "safe people"\. To what extent do we need to do more than that?                                                                                                                                  |
+| CL     | Safe projects \- there's a one\-time gate at the TRE when the data is onboarded \(does the custodian have authority to offer this data in the TRE?\) and then per\-application gates handled by DAC or similar entity\.                           |
+| CL     | Safe people \- I'm not clear where the dividing line of responsibility sits between the IdP/federation to block access to known bad actors \(seems reasonable\), and the DAC to refuse access to those they suspect might be bad actors\.         |
+| CL     | Safe data \- I think that evaluation sits with the data custodian when they onboard the data\.                                                                                                                                                    |
+| CL     | Safe settings \- with the TRE                                                                                                                                                                                                                     |
+| CL     | Safe outputs \- with the custodian or their delegate evaluating the outputs                                                                                                                                                                       |
+| OH     | Pretty much just \#4 \-\- the TRE operator for the most part won't know what data is being managed\. WHich also means assuming all data is identifiable / high risk                                                                               |
+| AK     | Safe Settings \- AAF contributes secure authentication and federation into the environment, but the controls are primarly implemented by the platfrom operators                                                                                   |
+| KT     | To supplement Conrad's "Safe people" response \- there's always the risk of someone promising to do X and then doing Y once they have access, right? Seems like the responsibility lies equally on multiple parties to avoid something like that? |
+
+### CSIRO Summary
+
+CSIRO have created a TRE called [TRECA](https://digitalonehealth.csiro.au/treca/). From their requirements document we have extracted high-level
+requirements for reference across other requirements gathering exercises.
+
+#### Generic
+
+| Requirement                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Encryption at rest                                                                                                                        |
+| Encryption in transit                                                                                                                     |
+| Rate limiting of API surfaces                                                                                                             |
+| Standard web security standard (OWASP etc)                                                                                                |
+| Audit logging                                                                                                                             |
+| Access control                                                                                                                            |
+| Long running actions must show progress in user-interface form, ETAs and cancelability where appropriate                                  |
+| Test QC processes on the overall solution i.e. it must be possible for vendors and clients to confirm the correct operation of the system |
+
+#### Clinical
+
+| Requirement                                                                                     |
+| ----------------------------------------------------------------------------------------------- |
+| Integrate with primary and secondary analyis                                                    |
+| Must provide a variety of gold standard tools to run on variants (e.g. VEP)                     |
+| Must perform tertiary analysis all the way to final clinical report                             |
+| Must allow auditable annotations and comments on artifacts like QC metrics etc                  |
+| Must provide a historical lens over previous tertiary cases                                     |
+| Must link tertiary analysis through to viewing of original aligned read data in cloud           |
+| Must provide customised but static variant analysis pipelines (e.g. PGx report) that can be run |
+| Must perform QC pipelines and reports                                                           |
+
+#### Data Portal
+
+| Requirement                                                                                     |
+| ----------------------------------------------------------------------------------------------- |
+| System must provide multiple types of data across NGS bulk files to health records |
+| System must provide a system to deidentify data (remove PII) as it moves into the data portal |
+| Users must provide an interative compute environment (a virtual environment) |
+| Users must be able to see statistics about the data usage and capacity of their virtual environment |
+| Users can install tools into their virtual environment |
+
+
