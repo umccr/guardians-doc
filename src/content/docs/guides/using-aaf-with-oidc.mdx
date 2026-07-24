@@ -9,20 +9,23 @@ import aafSubscribers from "../../../assets/using-aaf-with-oidc/aff-subscribers.
 import connectAService from "../../../assets/using-aaf-with-oidc/connect-a-service.png";
 import organisationSelection from "../../../assets/using-aaf-with-oidc/organisation-selection.png";
 import postRegister from "../../../assets/using-aaf-with-oidc/post-register.png";
+import refedsMetadataExplorerTool from "../../../assets/using-aaf-with-oidc/refeds-metadata-explorer-tool.png";
 import selectOpenidConnect from "../../../assets/using-aaf-with-oidc/select-openid-connect.png";
 import serviceRegisterFormFilled from "../../../assets/using-aaf-with-oidc/service-register-form-filled.png";
 import viewRegisteredClientId from "../../../assets/using-aaf-with-oidc/view-registed-client-id.png";
+import viewRegisteredScopes from "../../../assets/using-aaf-with-oidc/view-registed-scopes.png";
 import viewRegisteredService from "../../../assets/using-aaf-with-oidc/view-registed-service.png";
 
-**v 1.0**
+**v 1.1**
 
 Ray Liu
 
 ## Document History
 
-| Version | Date | Who | Change Summary |
-|---------|------|-----|----------------|
-| 1.0 | Apr 2026 | RL | Created |
+| Version | Date     | Who | Change Summary                                    |
+| ------- | -------- | --- | ------------------------------------------------- |
+| 1.0     | Apr 2026 | RL  | Created                                           |
+| 1.1     | Jul 2026 | RL  | Scope guidance after feedback from Patrick at AAF |
 
 ## Introduction
 
@@ -33,12 +36,13 @@ Use this guide when the frontend should initiate login, but the backend is the o
 that holds the AAF client secret, exchanges the authorization code, creates
 the application session, and returns only local session state to the browser.
 
-There are two versions:
-* Python [see Python source](https://github.com/umccr/guardians-doc/tree/main/example-projects/aai-aaf-python)
-* Typescript [see Typescript source](https://github.com/umccr/guardians-doc/tree/main/example-projects/aai-aaf-ts)
+This guide uses the [Flask example](https://github.com/umccr/guardians-doc/tree/main/example-projects/aai-aaf-python) using Python, for its code and deployment instructions. A companion
+[Express example](https://github.com/umccr/guardians-doc/tree/main/example-projects/aai-aaf-ts)
+implements the same OIDC flow and route contract using Bun and TypeScript.
 
-The majority of text and screenshots are for the Python version but the Typescript
-version is almost an exact mirror so should be easy to read alongside this guide.
+The AAF registration flow applies to both examples except where step 3 notes a
+different authentication method. Follow the companion example's README for its
+Express-specific installation, configuration, and session guidance.
 
 ## Before You Start
 
@@ -46,8 +50,8 @@ Have these ready:
 
 - AAF login access.
 - Permission to register a service for an AAF subscriber organisation.
-- [Python] `uv` installed for the local Python workflow.
-- [Typescript] `bun` installed for the local Typescript workflow.
+- For the Flask example, Python 3.11 or later and `uv`.
+- For the Express example, Bun 1.3.14 or later.
 - The URL where users start login.
 - The backend callback URL that AAF redirects to after login.
 
@@ -58,13 +62,20 @@ URL: http://localhost:5000/
 Redirect URL: http://localhost:5000/auth/callback
 ```
 
+The screenshots and example registration values use **The University of Melbourne**.
+Substitute the organisation that owns your service and the IdP your users will
+select.
+
 ## 1. Confirm the IdP Is Available Through AAF
 
-Before registering a service, confirm that the users' organisation is available through AAF.
+Before registering a service, confirm that the users' organisation has an active
+Identity Provider (IdP) in AAF. There are two ways to check.
+
+### Option 1: AAF Subscribers Page
 
 1. Open the [AAF subscribers page](https://aaf.edu.au/subscribers/).
 2. Search for the organisation users will choose during institution discovery.
-3. Confirm that the organisation appears in the subscriber list.
+3. Confirm that the expected organisation appears in the public directory.
 
 <figure>
   <Image
@@ -72,12 +83,36 @@ Before registering a service, confirm that the users' organisation is available 
     alt="AAF subscribers page showing participating organisations including The University of Melbourne."
   />
   <figcaption>
-    Confirm that the target organisation participates in AAF before designing
-    the login flow around it.
+    The AAF subscribers page provides a quick public view of participating
+    organisations.
   </figcaption>
 </figure>
 
-If the organisation is not listed, pause production setup and confirm whether access is available through AAF, eduGAIN, or another federation path.
+The subscriber directory may lag behind the active federation metadata, and not
+every active IdP will necessarily appear there. Use the metadata explorer when
+the expected organisation is missing or when you want to confirm another
+organisation.
+
+### Option 2: REFEDS Metadata Explorer
+
+1. Open the [Australian Access Federation in the REFEDS Metadata Explorer](https://met.refeds.org/met/federation/australian-access-federation/?entity_type=IDPSSODescriptor).
+2. Confirm that the **IDP** entity type is selected.
+3. Search or browse the entity list for the organisation's display name or IdP entity ID.
+4. Confirm that the organisation has an active IdP in the Australian Access Federation metadata.
+
+<figure>
+  <Image
+    src={refedsMetadataExplorerTool}
+    alt="REFEDS Metadata Explorer showing Identity Provider entities in the Australian Access Federation."
+  />
+  <figcaption>
+    The REFEDS Metadata Explorer shows IdPs published in the Australian Access
+    Federation metadata and can confirm organisations not shown in the public
+    subscriber directory.
+  </figcaption>
+</figure>
+
+If neither source shows the expected organisation, pause production setup and confirm its federation access with the organisation or AAF Support. It may be available through eduGAIN or another federation path.
 
 ## 2. Start a New OIDC Service in AAF Test
 
@@ -136,7 +171,15 @@ Redirect URL: http://localhost:5000/auth/callback
 Organisation: The University of Melbourne
 ```
 
-Use **Secret** because the Flask backend can store the client secret safely. Do not put the secret in frontend JavaScript.
+For the Flask example used throughout this guide, select **Secret** because the
+backend can store the client secret safely.
+
+The Express example also uses PKCE, so select **Secret** and **PKCE** when
+registering a service for that implementation. If you test both authentication
+methods, use separate AAF client registrations so that each registration
+matches its implementation.
+
+Do not put the client secret in frontend JavaScript.
 
 <figure>
   <Image
@@ -144,7 +187,8 @@ Use **Secret** because the Flask backend can store the client secret safely. Do 
     alt="Completed AAF service registration form for a localhost OIDC demo app."
   />
   <figcaption>
-    The Flask backend serves both the frontend HTML and the API on the same port.
+    The Flask backend serves both the frontend HTML and the API on the same
+    port.
   </figcaption>
 </figure>
 
@@ -192,21 +236,46 @@ Copy the **Identifier** into your backend `.env` file as `AAF_CLIENT_ID`.
 
 AAF says new test services can take up to two hours before they can be used, so wait if the flow fails immediately after registration.
 
-## 5. Confirm the Required Scopes
+## 5. Select Only the Required Scopes
 
-Open the registered service and check the **Scopes** tab.
+Open the registered service and select the **Scopes** tab.
 
-For the local demo, allow:
+If **Selected Scopes** is empty, Federation Manager uses all scopes from the incoming OIDC request. Explicitly selecting the minimum required scopes limits the user information that the AAF Central OIDC Proxy can release to the application.
 
-```text
-openid profile email
-```
+<figure>
+  <Image
+    src={viewRegisteredScopes}
+    alt="Federation Manager Scopes tab showing no selected scopes and a list of available scopes."
+  />
+  <figcaption>
+    This screenshot shows the initial empty state, which uses the default
+    behavior. Add an explicit subset containing only the scopes the application
+    needs.
+  </figcaption>
+</figure>
 
-Those scopes are enough for the backend to receive a stable subject identifier, basic profile claims, and email when the user's home organisation provides those attributes.
+For the local demo, add only:
 
-## 6. Configure the Local Backend
+- `openid` for OIDC authentication and the signed-in user's subject identifier.
+- `profile` for basic profile claims such as the user's name.
+- `email` for email claims when the user's home organisation provides them.
 
-The Flask backend is the OIDC Relying Party. It starts the AAF redirect, handles the callback, exchanges the authorization code for tokens, reads user claims, and creates the application session cookie.
+After adding them, confirm that all three appear under **Selected Scopes**. Scope
+changes may take up to two hours to appear on attribute-release consent pages.
+
+These selections match the scopes requested by the backend in step 6. Do not add
+other scopes, such as the `eduPerson` scopes, unless the application has a
+documented requirement for those attributes.
+
+Requesting a scope does not guarantee that every corresponding claim will be
+returned. The application must handle optional profile and email claims being
+absent when the user's home organisation does not release them.
+
+## 6. Configure the Local Flask Backend
+
+The Flask backend is the OIDC Relying Party for the Flask example. It starts the
+AAF redirect, handles the callback, exchanges the authorization code for tokens,
+reads user claims, and creates the application session cookie.
 
 Dependencies are declared in `pyproject.toml`, so `uv` manages the local Python environment on first run.
 
@@ -293,6 +362,11 @@ def auth_callback():
     return redirect("/?view=protected")
 ```
 
+The runnable Flask and Express examples also expose `raw_claims` so developers
+can inspect the AAF response during local testing. This is development-only
+behavior. Remove `raw_claims` before production and retain only the claims the
+application needs.
+
 Run the backend:
 
 ```bash
@@ -305,7 +379,7 @@ Open:
 http://localhost:5000
 ```
 
-## 7. Configure the Local Frontend
+## 7. Configure the Local Flask Frontend
 
 The frontend HTML lives in `templates/index.html` and is served by Flask at `GET /`. Because the browser and the API share the same origin, there is no cross-origin setup required.
 
@@ -363,16 +437,20 @@ async function fetchMe() {
 
 Check these first if login fails:
 
-- The Redirect URL in AAF exactly matches `AAF_REDIRECT_URI`.
+- The Redirect URL registered in Federation Manager at step 3 must exactly match `AAF_REDIRECT_URI` in the `.env` file.
 - The test service has finished provisioning.
 - The backend has the current client identifier and secret.
 - The backend requests only scopes allowed for the service.
 - Frontend fetch calls use `credentials: "same-origin"`.
-- The Flask session cookie is not blocked by browser settings.
+- The Flask example's session cookie is not blocked by browser settings.
 
-## Discussion: Deploying Beyond the Local Demo
+## Discussion: Deploying the Flask Example Beyond the Local Demo
 
-The local setup above should stay small. Treat cloud deployment as a separate design decision because it changes URLs, secrets, cookies, CORS, monitoring, and the AAF registration.
+This section covers the Flask example. Treat cloud deployment as a separate
+design decision because it changes URLs, secrets, cookies, CORS, monitoring, and
+the AAF registration. For Express-specific configuration and session
+requirements, refer to the
+[Express example README](https://github.com/umccr/guardians-doc/blob/main/example-projects/aai-aaf-ts/README.md).
 
 ### Production URL Shape
 
@@ -457,6 +535,9 @@ Organisation: <your AAF subscriber organisation>
 
 Copy the production Identifier and Secret into the production secret store, allow the required scopes, and wait for organisational or AAF approval before testing production login.
 
+When deploying the Express example instead, register it with **Secret** and
+**PKCE** to match its authorization request.
+
 ### Operational Notes
 
 Before handing the service to users:
@@ -465,7 +546,8 @@ Before handing the service to users:
 2. Record where `AAF_CLIENT_SECRET` and `FLASK_SECRET_KEY` are stored.
 3. Document who can rotate the AAF secret.
 4. Add a smoke test for `/auth/login`, `/auth/callback`, `/api/me`, protected routes, and logout.
-5. Keep only minimal claims in the local application session.
+5. Keep only the claims required by the application in its session.
+6. Remove development-only `raw_claims` storage and display.
 
 ## Further Reading
 
@@ -477,3 +559,4 @@ Before handing the service to users:
 - [AAF OpenID configuration](https://tutorials.aaf.edu.au/openid-connect-integration/03-openid-configuration)
 - [AAF Attributes](https://tutorials.aaf.edu.au/openid-connect-integration/04-attributes)
 - [AAF subscribers](https://aaf.edu.au/subscribers/)
+- [Australian Access Federation in the REFEDS Metadata Explorer](https://met.refeds.org/met/federation/australian-access-federation/?entity_type=IDPSSODescriptor)
