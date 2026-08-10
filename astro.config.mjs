@@ -70,6 +70,12 @@ export default defineConfig({
         },
         sidebar: [
             {
+                label: 'Stories',
+                items: [
+                    "stories/introduction",
+                ]
+            },
+            {
                 label: 'Requirements',
                 items: [
                     "requirements/overall",
@@ -93,6 +99,7 @@ export default defineConfig({
                     // "genomic-data-nodes/vision",
                     "genomic-data-nodes/architecture",
                     "genomic-data-nodes/work-packages",
+                    "genomic-data-nodes/legal-trust-concepts"
                 ]
             },
             {
