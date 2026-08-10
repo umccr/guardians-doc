@@ -1,0 +1,557 @@
+---
+title: Legal and Trust Concepts of Genomic Data Nodes
+---
+
+import DrawioDiagram from '../../../components/DrawioDiagram.astro';
+
+# Legal and Trust Concepts of Genomic Data Nodes
+
+## Overview
+
+_Working document — organising thoughts on the legal and trust frameworks that underpin genomic data nodes._
+
+---
+
+## Current State: How Genomic Data Sharing Works Today
+
+### The standard model
+
+In Australia (and broadly internationally), genomic data sharing typically follows this pattern:
+
+1. A **data custodian** (hospital, biobank, research institute) holds genomic and associated clinical data under ethics approval and participant consent
+2. A **researcher** applies for access, submitting a proposal to a **Data Access Committee (DAC)** or equivalent governance body
+3. The DAC assesses the application against consent scope, scientific merit, and institutional policies
+4. If approved, a **Data Sharing Agreement (DSA)** or **Data Transfer Agreement (DTA)** is executed between the custodian and the researcher (or their institution)
+5. The data is **released** — typically transferred to the researcher's environment (institutional storage, cloud bucket, local compute)
+
+### What a typical Data Sharing Agreement covers
+
+- Purpose limitation — the specific research use approved
+- Publication and attribution requirements
+- Re-identification prohibitions
+- Data destruction or return obligations at project end
+- Security requirements for storage and handling
+- Restrictions on onward sharing or linkage
+- Liability and indemnity clauses
+- Breach notification procedures
+- IP and commercialisation terms (often heavily negotiated)
+
+<DrawioDiagram src="diagrams/legal-dta-current.drawio.svg" caption="Current data sharing model — data is released from custodian to researcher under a data transfer agreement" />
+
+### The "release" problem
+
+The critical weakness of this model is that once data is **released** to the researcher, practical control
+ by the custodian effectively ends. The DSA is a legal instrument — it creates contractual
+ obligations — but it does not provide **technical enforcement**:
+
+- The custodian cannot verify that the data is stored securely at the recipient's end
+- The custodian cannot verify that only authorised personnel access the data
+- The custodian cannot enforce data destruction at project end — they can require it contractually, but cannot confirm it happened
+- The custodian has no visibility into whether the data has been copied, moved to unapproved environments, or linked with other datasets
+- If consent is withdrawn by a participant, the custodian has no mechanism to reach into the researcher's systems and effect deletion
+
+In practice, compliance relies on trust, attestation, and the threat of contractual remedies after the fact. This
+is the legal equivalent of "we asked them nicely and they signed a piece of paper."
+
+### Trusted Research Environments (TREs) — the right idea, the wrong scale
+
+Trusted Research Environments (also called secure data environments, data safe havens, or secure enclaves) offer a potential
+ solution: instead of sending data _to_ the researcher, the researcher comes _to_ the data within a controlled
+  compute environment. The custodian retains technical control — data cannot be extracted, only approved outputs leave the environment.
+
+However, in current Australian practice, TREs have not displaced the release model — and there is a fundamental resourcing problem that explains why.
+
+#### The core problem: TREs are hard and expensive
+
+Running a TRE — particularly one capable of handling genomics-scale data and compute — is a significant operational undertaking. It requires:
+
+- Specialised infrastructure (scalable secure compute, controlled egress, network isolation)
+- Ongoing security operations (patching, monitoring, incident response, penetration testing)
+- Identity and access management integration
+- Workflow tooling that researchers can actually use (notebooks, pipeline engines, visualisation)
+- Support staff who understand both the technology and the research domain
+- Compliance and certification (ISO 27001, or equivalent assurance frameworks)
+- Non-trivial ongoing cost — far exceeding the near-zero marginal cost of copying files to a researcher
+
+The reality is that there are **many more data custodians and research institutes than there are organisations with the capability and resourcing to operate a genomics-scale TRE well**. Most hospitals, biobanks, and smaller research institutes do not have — and will never have — the budget, expertise, or operational maturity to run a secure, researcher-friendly TRE.
+
+#### The proliferation problem
+
+This creates a dilemma:
+
+- **Option A: Continue releasing data** — problematic for all the reasons listed above (loss of control, unenforceable consent withdrawal, re-identification risk)
+- **Option B: Require every custodian to operate their own TRE** — leads to a proliferation of under-resourced, inconsistently secured, poorly maintained environments that are TREs in name only
+
+Option B may actually be _worse_ than Option A from a security standpoint. A well-governed data release to a
+ researcher at a major institution with mature IT security may be safer than a nominally "trusted" environment run on a shoestring by an institute that lacks the operational depth to maintain it. The label "TRE" provides false assurance if the underlying capability is absent.
+
+#### The re-siloisation problem
+
+There is a further issue with per-institution TREs that goes beyond resourcing: they **re-create the data silo problem** that genomic data sharing was supposed to solve.
+
+If Custodian A runs a TRE containing their data and Custodian B runs a separate TRE containing theirs, a researcher who needs to perform joint analysis across both datasets has no straightforward path. The data cannot leave either TRE (that's the point), so the researcher must either:
+
+- Run separate analyses in each silo and attempt to combine results outside — losing statistical power and the ability to perform integrated analyses
+- Resort to federated computation approaches — technically complex, limited in the types of analysis supported, and still immature for many genomics workflows
+- Negotiate bespoke arrangements for one custodian to deposit data into the other's TRE — which reintroduces the "release" problem under a different name
+
+This is the same data fragmentation problem the sector has been trying to solve since before the internet made sharing technically trivial. Per-institution TREs risk solving the access control problem while making the integration problem worse.
+
+A model where multiple custodians can place data into a **shared, neutral infrastructure layer** — each retaining governance authority over their own data, but enabling authorised researchers to perform joint analyses within a single controlled environment — avoids this trap. The infrastructure enables joining without requiring release. The custodians remain in control. The silos dissolve without the data moving to uncontrolled locations.
+
+#### The implication: shared infrastructure
+
+This is precisely why the thin infrastructure operator model matters. Rather than asking every custodian to become a TRE operator, the sector benefits from a **small number of professionally operated, shared infrastructure services** that custodians can choose to use — retaining their governance role (who gets access, for what purpose) while delegating the hard operational problem (running secure, scalable compute) to a dedicated service provider.
+
+The custodian remains the decision-maker. The infrastructure operator provides the environment. The researcher gets access within that environment under the custodian's terms. No data is "released."
+
+This shifts the question from "can each custodian afford to run a TRE?" to "can the sector sustain a small number of well-run shared services?" — which is a much more tractable problem. There does not need to be a single national service — multiple shared infrastructure providers could coexist, potentially serving different communities, jurisdictions, or data types. What matters is that the number is **few rather than many**: a handful of well-resourced, professionally secured services is categorically better than dozens of under-resourced institutional attempts.
+
+Our proposal is to operate one such service — seeking agreement from data custodians to use our infrastructure. Others could operate similar services. The key insight is not monopoly but consolidation: concentrating operational expertise and investment into a small number of providers that can achieve and maintain the security, compliance, and operational maturity that individual institutions cannot.
+
+This is the pattern already proven by organisations like AARNet (networking), NCI (compute), and ARDC (data infrastructure) — none of which are the only provider in their space, but all of which demonstrate that shared, sector-funded infrastructure works better than fragmented institutional provision.
+
+#### Additional barriers to TRE adoption
+
+Beyond cost and capability, other factors keep TREs from being first-class:
+
+- Most DAC processes and DSA templates assume a release model — the forms, approvals, and agreements are structured around "give the data to someone"
+- Ethics committee frameworks don't consistently recognise TRE access as a distinct (and lower-risk) mode of data provision
+- There is no nationally agreed standard for what constitutes a "trusted" environment in Australia (unlike the UK's NHS Digital TRE accreditation framework)
+- Funding models don't account for the cost of providing TRE access
+- Institutional IT and legal teams often lack familiarity with TRE governance models
+
+The result is that even where TREs exist, they sit alongside — rather than replacing — the release model. The legal, governance, and funding frameworks have not caught up with the technical possibility of maintaining custodial control.
+
+### Why this matters for genomic data specifically
+
+Genomic data is particularly poorly served by the release model:
+
+- It is **immutable** — you cannot change someone's genome. Once released, re-identification risk never diminishes over time (unlike, say, location data that becomes stale)
+- It is **familial** — a participant's genomic data reveals information about their biological relatives, who may not have consented
+- It is **high-dimensional** — even "de-identified" genomic data is notoriously re-identifiable through linkage attacks, especially as reference databases grow
+- Consent frameworks are often **broad** but not **perpetual** — participants may consent to "future unspecified research" but retain the right to withdraw, which is unenforceable once data is released
+
+A model that retains technical control over the data — where the custodian can revoke access, enforce boundaries, and audit usage in real time — is not just a nice-to-have. For genomic data, it is arguably the only model that can faithfully honour the consent relationship with participants.
+
+
+## The Thin Infrastructure Operator Model
+
+A key insight is that a genomic data infrastructure service can be operated as a **thin, minimal layer** — but even thinner than "providing TREs." Our proposal separates the stack into distinct layers:
+
+### The layered model
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Researchers                                         │
+│  (interact with TREs, not with the data layer)       │
+├─────────────────────────────────────────────────────┤
+│  TRE Providers                                       │
+│  (compute environments, notebooks, pipelines,        │
+│   help desks, researcher support)                    │
+│  — multiple, competing on quality and capability     │
+├─────────────────────────────────────────────────────┤
+│  Data Layer (the thin operator)                      │
+│  (governance, access control, data plane,            │
+│   audit, identity, catalogue)                        │
+│  — one or few, operating as neutral infrastructure   │
+├─────────────────────────────────────────────────────┤
+│  Data Custodians                                     │
+│  (hospitals, biobanks, research institutes —          │
+│   retain governance authority over their data)       │
+└─────────────────────────────────────────────────────┘
+```
+
+The **data layer** — our thin operator — does not provide TREs. It does not interact with researchers directly. It acts purely as a **data plane with governance and access control**: a layer that data custodians trust to hold and manage access to their data, and that TRE providers connect to in order to serve researchers.
+
+### What the data layer does
+
+- Stores or indexes genomic data on behalf of custodians
+- Enforces access decisions made by custodians / DACs
+- Provides identity and authentication services
+- Maintains audit trails of all data access
+- Exposes APIs that authorised TRE providers can connect to
+- Catalogues available datasets and their access conditions
+
+### What the data layer does NOT do
+
+- Run compute environments for researchers
+- Provide notebooks, pipeline engines, or analysis tools
+- Operate a researcher-facing help desk or support service
+- Make access decisions — it enforces them
+- Interact with researchers directly — TRE providers are the interface
+
+### TRE providers sit on top
+
+TRE providers — which could be universities, cloud-based platforms, national facilities like NCI, or commercial providers — connect to the data layer and offer researchers compute environments with access to the datasets they've been authorised to use. These TRE providers:
+
+- Compete on quality of researcher experience, tool availability, and cost
+- Handle researcher onboarding, support, and training
+- Provide the actual compute (notebooks, workflow engines, visualisation)
+- Are responsible for ensuring their environments meet security standards required by the data layer
+- May specialise (e.g. one optimised for large-scale variant calling, another for clinical interpretation, another for machine learning workloads)
+
+### Why this separation matters
+
+This architecture **thins the middle layer even further** and brings significant advantages:
+
+1. **The data layer's legal and operational surface area is minimal** — it doesn't need a researcher-facing help desk, doesn't need to support diverse analytical workflows, doesn't need to stay current with bioinformatics tooling. Its job is narrow: store data, enforce access, log everything.
+
+2. **TRE provision becomes a competitive market** — rather than a single monolithic service trying to be all things to all researchers, multiple providers can innovate on the researcher experience. Bad TREs lose users. Good ones thrive. The data layer is indifferent.
+
+3. **Data custodians get a single trust relationship** — they trust the data layer to hold and govern their data. They don't need to individually assess and approve every TRE provider; the data layer can maintain a registry of approved TRE environments that meet baseline security requirements.
+
+4. **The re-siloisation problem is solved at the data layer** — because multiple custodians place data into the same governance layer, joint analysis is possible without federation. A TRE provider connecting to the data layer can (with appropriate authorisation) access datasets from multiple custodians within a single environment.
+
+5. **Cost is distributed appropriately** — the data layer (thin, shared, few operators) is funded as infrastructure. TRE provision (expensive, diverse, many possible providers) is funded by researchers, grants, or institutions — the people who directly benefit from the compute.
+
+### The cloud provider analogy
+
+This is structurally similar to how object storage (S3, GCS) relates to compute services in the cloud world. The storage layer holds data with access policies. Many different compute services — EC2 instances, Lambda functions, SageMaker notebooks, third-party SaaS tools — can access that data if authorised. The storage layer doesn't care what compute is used. The compute layer doesn't need to manage the storage. They interact through well-defined APIs with clear security boundaries.
+
+Our proposal is to build the equivalent of that storage/governance layer for Australian genomic data — and let the TRE/compute market develop on top of it.
+
+---
+
+## Critical Assessment: Strengths and Risks
+
+The layered data-plane model is architecturally sound, but it is not without risks. This section attempts an honest assessment of both.
+
+### What's strong
+
+**The abstraction is clean and proven.** Separating the data governance layer from the compute/TRE layer mirrors successful infrastructure patterns: cloud storage vs compute, DNS vs web hosting, AARNet vs the services that run over it. These separations endure because they let each layer evolve independently, reduce coupling, and allow competition where it matters (the researcher-facing layer) while providing stability where it's needed (the data layer).
+
+**The IP disclaimer removes the biggest friction point.** By explicitly taking no position on intellectual property, the data layer avoids becoming a party to the most contentious part of data sharing negotiations. This is the correct posture — and one that would be difficult to maintain if the operator also ran TREs (because the line between "providing infrastructure" and "contributing to the research" blurs when you provide the compute environment).
+
+**The legal surface area is genuinely minimal.** The data layer doesn't interact with researchers, doesn't provide analytical tools, doesn't interpret consent, doesn't make access decisions. Each of these "does not" removes a category of legal risk. The operator's obligations reduce to: store securely, enforce access policies faithfully, log everything, and comply with the Privacy Act as a processor-like entity.
+
+**The separation makes the cost conversation tractable.** Funding a narrow, shared data governance layer is a different (and easier) conversation than funding a full-service TRE. The data layer is infrastructure — analogous to what NCRIS funds. TRE provision is a service — fundable through grants, institutional budgets, or even commercial models. Conflating the two makes both harder to fund.
+
+### Risks and challenges
+
+#### 1. "Thin" is legally thin — operationally it's still substantial
+
+Storing genomics-scale data, maintaining access control across potentially hundreds of datasets with different consent scopes, running identity federation, keeping audit logs, maintaining security certifications — this is a substantial engineering and operational challenge. The legal entity is thin. The actual service is not trivial.
+
+There is a risk of underselling the operational commitment to funders or custodians by emphasising "thin" too heavily. The data layer needs skilled engineers, security operations, incident response capability, and ongoing funding. It just doesn't need bioinformaticians, help desk staff, or researcher support — which is a meaningful reduction, but not a reduction to near-zero.
+
+#### 2. The cold-start / two-sided marketplace problem
+
+The layered model has a classic chicken-and-egg dynamic:
+
+- TRE providers won't build integrations with the data layer unless there's enough data to attract researchers
+- Data custodians won't deposit data unless there are TRE providers offering good researcher experiences
+- Researchers won't use TREs connected to the data layer unless datasets they need are available there
+
+Bootstrapping this requires a deliberate strategy — likely starting with a small number of foundation custodians and one or two TRE providers who commit early, demonstrating the model before expecting broad adoption.
+
+#### 3. Political invisibility
+
+The data layer deliberately does not interact with researchers. This is an operational strength but a political vulnerability. Researchers are the vocal constituency in Australian research funding. They write grants, they lobby, they sit on advisory committees. If they only see the TRE (because that's what they interact with), the data layer becomes invisible to the people who influence funding decisions.
+
+This means the service needs **custodian champions** rather than researcher champions — which is a less common funding narrative. Custodians (hospitals, biobanks) are typically not the ones advocating for infrastructure funding. The case for the data layer needs to be made in terms that resonate with institutional leadership and government funders: risk reduction, compliance, efficiency, and national capability — not researcher convenience.
+
+#### 4. Custodian trust is the whole game
+
+Everything in this document — the legal vehicle, the IP disclaimer, the processor framing, the privacy law analysis — is ultimately in service of one question: **will custodians trust a third-party data layer with their data?**
+
+General arguments about neutrality and governance are necessary but may not be sufficient. Custodians will likely need specific, concrete assurances:
+
+- Independent security audits and certification (ISO 27001, or sector-specific equivalents)
+- Contractual liability caps and indemnities
+- Data sovereignty guarantees (data remains in Australia, on infrastructure the custodian can inspect)
+- Right to withdraw data at any time
+- Transparency about who has accessed what
+- Governance representation — a seat at the table, not just a service agreement
+
+The choice of legal vehicle (CLG with custodian membership) directly addresses this — but the assurances need to be made explicit and concrete, not just structural.
+
+#### 5. "Why not just use a cloud provider?"
+
+A sceptic will ask: if the data layer is analogous to S3 with access policies, why not just use S3 with IAM policies? Every institution already has AWS or Azure accounts.
+
+The answer is that the data layer provides things that raw cloud infrastructure does not:
+
+- **Governance that understands consent** — not just "does this IAM role have access?" but "does this researcher have approval from the relevant DAC for this specific dataset under these conditions?"
+- **Audit trails meaningful to ethics committees** — not CloudTrail logs, but records that map to ethics-committee-level concepts (who accessed what, for what approved purpose, under which consent scope)
+- **A trust framework custodians can engage with in their own language** — hospitals and biobanks do not speak IAM policies. They speak data sharing agreements, ethics approvals, and institutional governance.
+- **Neutrality** — no single institution controls the policies. A shared governance layer is different from one institution's cloud account with other people's data in it.
+- **Cross-custodian integration** — S3 buckets in different accounts don't naturally enable authorised joint analysis. The data layer does.
+
+This distinction needs to be made explicitly when pitching to technically sophisticated stakeholders who might otherwise dismiss the data layer as "just another cloud wrapper."
+
+---
+
+### The "Processor not Controller" Analogy — and Australian Privacy Law
+
+The thin operator model maps naturally to the GDPR's distinction between a **data controller** (the entity that determines the purposes and means of processing personal data) and a **data processor** (the entity that processes data on behalf of and under the instruction of the controller). Under this framing, the infrastructure operator is clearly a processor: it does not decide _why_ or _for what purpose_ genomic data is processed — it simply provides the environment in which custodians and authorised researchers do so.
+
+However, **Australian privacy law does not currently draw this distinction in statute**. The _Privacy Act 1988_ (Cth) and the Australian Privacy Principles (APPs) apply to "APP entities" that _hold_ personal information. There is no formal processor/controller split — if you hold the data, even transiently on infrastructure you operate, you are potentially an APP entity with direct obligations.
+
+#### Current state under the Privacy Act
+
+- The Act applies to organisations that "collect, hold, use or disclose" personal information
+- A service provider that holds data on behalf of another entity may itself be an APP entity
+- The concept of "holding" is broad — it can include having data on servers you control, even if you never look at it
+- There is limited statutory safe harbour for pure infrastructure providers (unlike, say, the "mere conduit" defence in telecommunications)
+
+This means an infrastructure operator cannot simply declare itself a processor and shed all privacy obligations. Under current law, it likely holds obligations to:
+- Take reasonable steps to protect personal information from misuse, interference, and loss (APP 11)
+- Ensure overseas disclosure requirements are met if data traverses international boundaries (APP 8)
+- Respond to data breach notification obligations under the Notifiable Data Breaches scheme
+
+#### The direction of reform — tranche 2 of the Privacy Act reforms
+
+The first tranche of Privacy Act reform — the _Privacy and Other Legislation Amendment Act 2024_ (Cth) — received Royal Assent on 10 December 2024. It introduced a statutory tort of serious invasions of privacy, automated decision-making transparency requirements, expanded OAIC enforcement powers, and an overseas disclosure "whitelist" mechanism. Notably, it did **not** include the controller/processor distinction.
+
+That distinction is flagged for **tranche 2**, which as of mid-2026 remains under consultation. Multiple credible sources confirm this direction:
+
+- **Norton Rose Fulbright** (Dec 2024): In their analysis of the first tranche, they state that the Attorney-General's Department "has indicated it will soon start consulting on the second tranche of privacy reforms... [which] could include... the controller/processor distinction to mirror the GDPR." ([source](https://www.nortonrosefulbright.com/en/knowledge/publications/be98b0ff/australian-privacy-alert-parliament-passes-major-and-meaningful-privacy-law-reform))
+
+- **Clyde & Co** (Sep 2024): Stated that the next stage of reforms will "introduce... a 'controller' and 'processors' regime similar to that of the GDPR." ([source](https://www.clydeco.com/en/insights/2024/09/setting-the-foundations-for-significant-privacy-la))
+
+- **BSA (Business Software Alliance)** (Jun 2025): In their submission to the Australian Productivity Commission, described the processor/controller distinction as "the most important proposal to emerge from the Privacy Act review." ([source](https://www.bsa.org/files/policy-filings/06062025bsaauprodcomm.pdf))
+
+The underlying proposal (from the AG's Privacy Act Review Report, with Government Response in 2023) recommended introducing the concept of organisations that handle personal information "on behalf of" another entity, with differentiated obligations. The government agreed "in principle." However, agreement in principle and enacted legislation are different things — and tranche 2 has not yet been introduced to Parliament.
+
+#### What this means for us
+
+If tranche 2 is enacted with a controller/processor distinction, the thin infrastructure operator model becomes significantly cleaner under Australian law: the operator would have a legislatively recognised role with bounded obligations (primarily security and confidentiality), rather than needing to manage the full suite of APPs as if it were making decisions about the data.
+
+However, **we cannot rely on law that does not yet exist**. The practical posture is to design for the processor role now — contractually and technically — while complying with current obligations.
+
+#### Practical implications under current law
+
+Until reform is enacted, the infrastructure operator should:
+
+1. **Contractually define the relationship** — service agreements with data custodians should make clear that the operator acts only on instruction, does not access data for its own purposes, and does not determine the purpose of processing. This mirrors what a processor agreement would look like under the GDPR or future Australian law, and establishes the factual basis for a reduced compliance position.
+
+2. **Rely on APP 6 (use and disclosure) limitations** — the operator's "use" of data is limited to providing the service as instructed; it does not use data for a secondary purpose.
+
+3. **Implement strong technical controls** — encryption at rest and in transit, access logging, inability for operator staff to access research data without explicit authorisation — to reinforce the position that the operator does not meaningfully "hold" accessible personal information.
+
+4. **Comply with APP 11 (security) and the Notifiable Data Breaches scheme** — even a processor-like entity has breach notification obligations if it holds data. The first tranche reforms also introduced APP 11.3, which explicitly requires "technical and organisational measures" — this aligns naturally with what an infrastructure operator would already be doing.
+
+5. **Consider whether the operator is a "health service provider"** — if so, additional obligations under state health records legislation may apply (though pure infrastructure provision likely does not constitute a health service).
+
+The overall posture is: _design and behave as a processor now, comply with current obligations as they stand, and be positioned to formalise the role when the law catches up._
+
+---
+
+### Why this matters for choice of legal vehicle
+
+Because the operator's role is thin, the legal vehicle chosen to house it does not need to solve all the governance problems of genomic data sharing. It only needs to:
+
+1. Hold service agreements with participating institutions (data custodians)
+2. Employ or contract technical staff
+3. Manage operational funding
+4. Provide sufficient governance for participating institutions to trust the platform
+5. Maintain a clear, enforceable position that it claims no IP and acts only as a service provider
+
+This dramatically simplifies the choice of vehicle. A Company Limited by Guarantee, for instance, does not need complex IP assignment clauses in its constitution — it needs a straightforward disclaimer. The hard IP/consent/benefit-sharing negotiations remain where they belong: between the parties who generate and use the data.
+
+---
+
+## Legal Vehicles for Operating Infrastructure Services
+
+Given the thin operator model above, the legal vehicle primarily needs to support operational governance, liability protection, and multi-institutional trust — not resolve data sharing complexities. In the Australian context, several vehicles are available, but not all are fit for purpose.
+
+### Vehicles unlikely to be suitable
+
+The following vehicles can be quickly set aside for a nationally-scoped, enduring infrastructure service:
+
+- **Incorporated Association (state-based)** — Governed by state legislation (e.g. _Associations Incorporation Reform Act 2012_ (Vic)), which varies across jurisdictions. Generally limited to small-scale, non-trading activities. A national genomics infrastructure service operating across multiple states, holding significant service contracts, and managing non-trivial funds would outgrow this vehicle quickly. The compliance framework is also lighter than what participating institutions would likely require for assurance.
+
+- **Unincorporated Joint Venture / Consortium Agreement** — A contractual arrangement between institutions without creating a separate legal entity. While fast to stand up, it has no separate legal personality (one party must act as "lead" for contracts and employment), liability allocation is fragile and contestable, and any party can exit. Funders and data custodians are unlikely to place trust in an arrangement that lacks institutional permanence. Suitable for a time-limited pilot, but not for an enduring service.
+
+- **Trust (Purpose Trust or Unit Trust)** — Strong asset protection but complex to administer, with governance that is inherently less transparent and less collaborative than membership-based entities. The trustee structure does not naturally support the multi-institutional, member-driven governance that data custodians would expect from infrastructure they are entrusting with their data. A poor cultural fit for this sector.
+
+### Vehicles worth serious consideration
+
+---
+
+### University-Hosted (Existing Institution as Auspice)
+
+The infrastructure service operates within an existing university or research institute, governed by that institution's policies and ABN.
+
+**Pros**
+- No new entity to establish — fast to stand up
+- Leverages existing procurement, HR, finance, and legal functions
+- Tax-exempt status (if the host is a university or registered research institution)
+- Clear accountability — the host institution bears ultimate responsibility
+
+**Cons**
+- Governance asymmetry — other participating institutions have limited formal say
+- Host institution bears disproportionate risk and liability
+- Subject to the host's internal politics, restructures, and priorities
+- IP ownership defaults to the host unless explicitly negotiated
+- Can be difficult to sustain if key champions leave the host institution
+- Funding bodies may see it as "belonging" to one institution rather than the sector
+
+**Assessment**: A pragmatic starting point — particularly for a pilot or early-stage service. Many successful Australian research infrastructure projects have started as university-hosted initiatives before transitioning to independent entities once scale and multi-party commitment justify the overhead. The key risk is that governance asymmetry erodes trust from participating custodians over time.
+
+---
+
+### Company Limited by Guarantee (CLG)
+
+A not-for-profit company under the _Corporations Act 2001_ (Cth), where members guarantee a nominal amount rather than holding shares. Common for national research infrastructure (e.g. AARNet, ARDC, Bioplatforms Australia).
+
+**Pros**
+- Well-established and understood vehicle for national research infrastructure
+- Federal jurisdiction — consistent rules across Australia
+- Members' liability limited to the guarantee amount (typically $10–$100)
+- Can apply for DGR (Deductible Gift Recipient) and TCC (Tax Concession Charity) status
+- Strong governance frameworks (ACNC + Corporations Act)
+- Board and membership can represent multiple institutions equitably
+- Attractive to government and philanthropic funders
+
+**Cons**
+- More complex and costly to establish than hosting within an existing institution
+- Ongoing compliance obligations (ASIC, ACNC, annual reporting)
+- Board members have directors' duties under Corporations Act
+- Slower decision-making if membership/board is large and diverse
+- Requires genuine charitable or research purpose to maintain NFP status
+
+**Assessment**: The natural long-term vehicle for this type of service. Every major piece of Australian research infrastructure that has achieved sector-wide trust and longevity operates as a CLG. The compliance overhead is manageable and is itself a feature — it signals institutional maturity to custodians who need to trust the operator with their data. The main question is whether the service has reached sufficient scale and commitment to justify the establishment cost.
+
+---
+
+### Cooperative (Co-operative National Law)
+
+A mutual enterprise under the _Co-operatives National Law_, where members are both users and owners of the service.
+
+**Pros**
+- Democratic, member-driven governance (one member, one vote)
+- Designed for shared services — members use what they collectively own
+- Profits returned to members or reinvested (not extracted)
+- National law provides cross-jurisdictional consistency
+
+**Cons**
+- Less familiar in the research sector — may confuse stakeholders
+- Active membership requirements can be administratively heavy
+- Limited access to some funding mechanisms designed for charities/research bodies
+- Smaller pool of legal/accounting expertise compared to CLGs
+
+**Assessment**: Philosophically well-aligned with a shared infrastructure model — members are the custodians who use the service, and governance is inherently democratic. However, the unfamiliarity of the cooperative form in the research sector is a real barrier. Funders, government, and institutional legal teams are far more comfortable with CLGs. Worth considering if the service has a strong community identity and member engagement, but likely harder to sell than a CLG.
+
+---
+
+### Summary
+
+| Criterion | Uni-hosted | CLG | Co-op |
+|-----------|-----------|-----|-------|
+| Speed to establish | ★★★★★ | ★★★ | ★★★ |
+| Multi-party governance | ★★ | ★★★★★ | ★★★★★ |
+| Liability protection | ★★★★ | ★★★★★ | ★★★★ |
+| Funder confidence | ★★★ | ★★★★★ | ★★★ |
+| Operational flexibility | ★★★ | ★★★★ | ★★★ |
+| Sector precedent | ★★★★ | ★★★★★ | ★★ |
+
+The likely trajectory for this type of service is: **start university-hosted** (for speed and pragmatism), **transition to a CLG** once the service has demonstrated value, attracted multiple custodians, and secured ongoing funding. The cooperative model remains an interesting alternative if the community prefers a more explicitly mutual structure.
+
+---
+
+## Open Questions
+
+1. What is the minimum viable trust framework for two nodes to share data?
+2. How do we handle asymmetric governance maturity between nodes?
+3. Can technical controls (e.g. secure compute, differential privacy) substitute for some legal agreements?
+4. What existing frameworks (GA4GH, OECD, etc.) can we adopt vs build from scratch?
+
+---
+
+## References and Prior Art
+
+- GA4GH Framework for Responsible Sharing of Genomic and Health-Related Data
+- Five Safes Framework
+- Australian Genomics — consent and governance work
+- GDPR adequacy and international data transfers
+- NHMRC National Statement on Ethical Conduct in Human Research
+
+---
+
+## Appendix: The Custodian-IP Tension
+
+_A thought piece — not necessarily a discussion to open with stakeholders, but worth articulating._
+
+There is a persistent tension in genomic data sharing negotiations around intellectual property that reveals a conceptual confusion between **custodianship** and **ownership**.
+
+Data custodians — hospitals, biobanks, research institutes — are stewards. They hold and govern data on behalf of participants, under ethics approval and consent. Their role is protective and administrative: they invested in collection, processing, storage, and curation. This is real and valuable work, but it is not the kind of intellectual contribution that generates IP rights under Australian law.
+
+IP rights (patents, copyright) arise from **intellectual creativity** — the act of invention, discovery, or original expression. Raw genomic data is not subject to copyright (it is factual information, not creative expression). A curated database might attract limited compilation copyright, but the underlying sequences are not "owned" by anyone in the IP sense.
+
+Yet in practice, custodial institutions routinely negotiate DSAs as if they hold IP rights over the data itself — demanding:
+
+- Co-authorship on publications arising from data use
+- Revenue-sharing from commercialisation of findings
+- Veto or approval rights over publications
+- Assignment or licensing of IP arising from analyses performed on "their" data
+
+The justifications typically offered are:
+
+- "We invested in collecting and curating this data" — a legitimate interest in recognition and sustainability, but not an IP entitlement
+- "Our ethics approval requires us to control downstream use" — a governance obligation to participants, not a property right against researchers
+- "Our institutional IP policy requires claims on anything touching our resources" — a policy choice by the institution, not a legal right
+
+This conflation of custodial responsibility with ownership claims is one of the major sources of friction in data sharing. Negotiations that should take days take months. Collaborations that should span multiple institutions collapse into bilateral arrangements because the IP negotiations are too complex. Researchers avoid datasets with onerous IP terms, reducing the impact of publicly-funded data collections.
+
+### Relevance to the infrastructure operator
+
+One of the advantages of a thin infrastructure operator explicitly disclaiming any IP interest is that it **breaks this pattern** rather than adding another claimant to the table. The operator's position is simple: "We provide plumbing. We have no interest in what you discover using it. Our service agreement covers operational matters only."
+
+This is analogous to how AWS, Azure, or GCP operate — no cloud provider claims IP over research conducted on their infrastructure. The infrastructure operator should adopt the same posture, and make it contractually unambiguous.
+
+More broadly, if the sector can establish shared infrastructure with a clean IP position, it may also create pressure for custodians to re-examine their own IP claims — particularly where those claims slow down research without meaningfully benefiting participants or the public interest. But that is a conversation for another day.
+
+
+---
+
+## Key Themes
+
+### Data Sovereignty and Jurisdiction
+
+- Where does the data physically reside, and which legal jurisdiction governs it?
+- Cross-border data sharing implications (e.g. Australian Privacy Act, GDPR equivalence)
+- Institutional vs national vs international governance layers
+
+### Consent and Authorisation Models
+
+- Patient/participant consent — granularity, withdrawal, re-consent
+- Tiered/dynamic consent frameworks
+- Distinction between consent for clinical care vs research use
+
+### Trust Frameworks
+
+- What does "trust" mean between nodes?
+- Federation vs centralisation — trust at the network level
+- Identity assurance and authentication as a foundation of trust (AAI/AAF)
+- Mutual recognition of governance standards between institutions
+
+### Data Access Governance
+
+- Who decides who can access what?
+- Data Access Committees (DACs) — role, composition, decision-making
+- Programmatic vs human-in-the-loop access decisions
+- Audit trails and accountability
+
+### Legal Instruments
+
+- Data sharing agreements — bilateral vs multilateral
+- Memoranda of understanding (MOUs)
+- Material/data transfer agreements
+- Contractual vs statutory obligations
+- Liability and indemnity between nodes
+
+### Intellectual Property and Benefit Sharing
+
+- IP arising from federated analyses
+- Benefit-sharing with data contributors / communities
+- Publication and attribution norms
+
+### Risk and Compliance
+
+- Re-identification risk in genomic data
+- Safe harbour / five safes framework applicability
+- Breach notification and incident response across nodes
+
+---
