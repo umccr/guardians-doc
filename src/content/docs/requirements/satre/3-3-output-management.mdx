@@ -1,0 +1,70 @@
+---
+title: "🔶 3.3 Output Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Data Management | Capability: 3.3
+
+
+Output management is significantly more complex for genomics due to the mix of binary and text formats, the difficulty of inspecting large binary outputs, and the challenge of defining what constitutes a "sensitive" genomic output.
+
+<div class="not-content">
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.3.01 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should have a system to help classify outputs.</p>
+  <p class="satre-context mb-2">Guidance, processes and methods for output classification.</p>
+  <p><strong>Genomics context:</strong> Output classification for genomics is challenging (stakeholder CL: "What are the thresholds for what counts as sensitive? There are even single germline genomic locations that reveal a lot about descent"). The TRE needs domain-specific rules: aggregate allele frequencies at population level are generally safe; individual-level variant calls are sensitive; even summary statistics with small cell sizes can be disclosive. Standard statistical disclosure control methods (designed for tabular data) don't directly apply to genomic outputs.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.3.02</strong> (Recommended) — TRE outputs should be limited to the minimum required for sharing results.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.3.03</strong> (Recommended) — You should establish the intended outputs of each project from the outset.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.3.04</strong> (Mandatory) — You must have a documented process for disclosure control of outputs.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.3.05</strong> (Mandatory) — You must have a process for assigning responsibility for output checking.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.3.06 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should have a statistical basis to guide output checker decisions on safety.</p>
+  <p class="satre-context mb-2">Decisions based on risk factors like re-identification or commercial risk.</p>
+  <p><strong>Genomics context:</strong> Standard statistical disclosure control (minimum cell sizes, perturbation) doesn't map to genomic outputs. The statistical basis needs to be genomics-specific: How many individuals must contribute to an allele frequency for it to be safe? Can summary statistics from a GWAS with N&lt;50 be released? What about PRS (polygenic risk scores) — are these individual-level or aggregate? The field lacks consensus here, making this requirement harder to satisfy than for tabular health data.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.3.07 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must have a documented policy for handling disclosure risks for outputs that cannot be manually checked.</p>
+  <p class="satre-context mb-2">SATRE notes binary files and ML model weights as examples of hard-to-check outputs.</p>
+  <p><strong>Genomics context:</strong> This is a major issue for genomics. BAM/CRAM files, VCFs, and other bioinformatics binary formats cannot be meaningfully manually inspected. Even "derived" outputs (variant calls, alignment summaries) may contain individual-level genomic information. Stakeholders note the "mix of plain text and binary formats making egress assessments more challenging." The policy must define what types of genomic outputs are inherently safe (e.g. publication-ready figures, aggregate statistics above N thresholds) vs inherently sensitive (individual variant calls, alignment files).</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.3.08 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Optional):</strong> You could create a semi-automated system for checks on common research outputs.</p>
+  <p class="satre-context mb-2">Automation helps consistency and reduces output checker overhead.</p>
+  <p><strong>Genomics context:</strong> Stakeholders discussed semi-automated checks: "allowed Nextflow workflows that are known to be okay" — meaning pre-approved pipelines whose outputs have been characterised and deemed safe by design. This suggests a model where approved workflows produce outputs with known disclosure properties, reducing the per-output checking burden. The TRE could maintain a registry of approved pipelines whose output types are pre-classified.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.3.09</strong> (Optional) — TREs should generate and retain a machine-readable record of all disclosure-control criteria applied.</p>
+</div>
+
+</div>

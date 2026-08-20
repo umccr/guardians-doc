@@ -1,0 +1,139 @@
+---
+title: "🔶 2.1 End User Computing"
+---
+
+
+Source: [SATRE Specification — End User Computing](https://satre-specification.readthedocs.io/en/latest/pillars/computing_technology.html)
+
+
+<div class="not-content">
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.01</strong> (Mandatory) — You must not allow users to copy data out of your TRE via the system clipboard.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.02 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> Your TRE workspace should provide an environment familiar to your users.</p>
+  <p class="satre-context mb-2">SATRE suggests virtual desktops, JupyterLab, web applications, or terminals.</p>
+  <p><strong>Genomics context:</strong> Genomics researchers expect Linux-based environments with CLI tooling (samtools, bcftools, htslib), notebook interfaces (Jupyter), and workflow development tools. A Windows virtual desktop alone would be insufficient for most genomics workflows. The "familiar environment" for this community skews heavily toward Linux terminal + IDE + notebook combinations.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.03</strong> (Optional) — A TRE could restrict data access entirely and provide an interface for submitting code.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.04</strong> (Recommended) — Your TRE should be accessed via a user interface using commonly available applications.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.05 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> Your TRE must provide clear guidance on how to use software tools and work with data in the TRE.</p>
+  <p class="satre-context mb-2">Standard requirement for tool documentation.</p>
+  <p><strong>Genomics addition:</strong> Documentation must additionally cover genomics-specific concerns: how to submit pipeline workflows, how reference genomes and annotation databases are provisioned, how large intermediate files are managed (scratch vs persistent storage), and how to access compute at the scale needed for population-level analyses.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.06</strong> (Recommended) — Your TRE should, where possible, automatically apply security related updates for user software.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.07 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Optional):</strong> Your TRE could provide shared services that are accessible to users in the same project.</p>
+  <p class="satre-context mb-2">SATRE lists shared file storage, databases, and collaborative writing as examples.</p>
+  <p><strong>Genomics context:</strong> For genomics, shared services within a project are not merely optional — they are practically necessary. Shared reference genome storage, shared variant databases (for joint calling), and shared workflow execution engines (Seqera/Cromwell) are fundamental to how multi-researcher genomics projects operate. This should be elevated to <strong>Recommended</strong> for genomics TREs.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.08</strong> (Mandatory) — Your TRE must ensure that any shared services do not allow users to access data from another project.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.09 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must mitigate and record any risks introduced by the use in your TRE of software that requires telemetry to function.</p>
+  <p class="satre-context mb-2">SATRE gives the example of licensed commercial software contacting licensing servers.</p>
+  <p><strong>Genomics context:</strong> Genomics workflows increasingly use commercial or cloud-native tools (e.g. Illumina DRAGEN, NVIDIA Parabricks, Seqera Platform) that may phone home for licensing or telemetry. Additionally, container registries (pulling workflow containers) create outbound network traffic that must be carefully controlled. The risk surface here is broader than typical TRE software.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.10 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> Your TRE must provide software applications that are required by the data consumers working in the TRE.</p>
+  <p class="satre-context mb-2">SATRE suggests Python, R, IDEs, Jupyter, office applications, and CLI tools.</p>
+  <p><strong>Genomics addition:</strong> A genomics TRE must additionally provide: bioinformatics CLI tools (samtools, bcftools, bedtools, htslib), workflow engines (Nextflow and/or Cromwell/WDL), genome browsers (IGV), variant annotation tools (VEP, SnpEff), and statistical genetics packages (PLINK, Hail). The toolset is substantially larger and more specialised than a generic TRE.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.11 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> Your TRE should provide tools to encourage best-practice in reproducibly analysing data.</p>
+  <p class="satre-context mb-2">SATRE suggests version control and data analysis pipeline tools.</p>
+  <p><strong>Genomics context:</strong> For genomics this should be elevated to <strong>Mandatory</strong>. Reproducibility in genomics is a regulatory and clinical concern (not just best-practice). The TRE must provide workflow engines with native reproducibility features (containerised steps, version-locked dependencies, run provenance tracking). Git, container registries (internal mirrors), and pipeline registries are essential, not optional.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.12 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Optional):</strong> Your TRE could provide access to some public software repositories or container registries.</p>
+  <p class="satre-context mb-2">SATRE suggests allowing pip/CRAN installs or internal mirrors.</p>
+  <p><strong>Genomics context:</strong> Container registries are essential for genomics workflows — most Nextflow/WDL pipelines pull task-specific containers. This should be elevated to <strong>Recommended</strong> for genomics TREs. An internal mirror of approved containers (e.g. from nf-core, BioContainers) is the practical minimum. Without this, pipelines simply cannot run.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.13</strong> (Optional) — Your TRE could tightly control which packages are available.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.1.14 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> Your TRE must maintain segregation of users and data from different projects when using all compute, including HPC.</p>
+  <p class="satre-context mb-2">SATRE notes that physical compute is often shared and data must be wiped between users.</p>
+  <p><strong>Genomics context:</strong> Genomics amplifies this challenge. Dynamic compute (see Taxonomy of Compute Types) means hundreds of transient VMs or containers may be created and destroyed during a single pipeline run. Segregation must be enforced at the orchestration layer (workflow engine) not just at the VM level. Shared HPC nodes running simultaneous genomics jobs from different projects require robust namespace/cgroup isolation and secure scratch storage cleanup.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.15</strong> (Recommended) — Your TRE should be able to provide access to high performance computing or other scalable compute resource if required by users.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.16</strong> (Recommended) — Your TRE should be able to provide access to accelerators such as GPUs if required by users.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.17</strong> (Optional) — Your TRE could make data available to data consumers using common database systems such as PostgreSQL, MSSQL or MongoDB.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.1.18</strong> (Optional) — Your TRE could integrate with large-scale data analytics tools for working with large datasets.</p>
+</div>
+
+<div class="satre-new">
+  <div class="satre-title">
+    <span>🆕</span> NEW — Genomics-specific requirement
+  </div>
+  <p><strong>Proposed (Mandatory):</strong> A genomics TRE must provide dynamic compute provisioning — the ability for workflow engines to programmatically create, use, and destroy compute resources appropriate to each pipeline stage.</p>
+  <p class="satre-context">SATRE does not explicitly require dynamic compute. For genomics this is essential — population-scale analyses require heterogeneous compute (high-memory nodes for joint calling, GPU nodes for base calling, many parallel nodes for per-sample processing). Without this capability, genomics pipelines cannot run at the scale needed for research cohorts.</p>
+</div>
+
+<div class="satre-new">
+  <div class="satre-title">
+    <span>🆕</span> NEW — Genomics-specific requirement
+  </div>
+  <p><strong>Proposed (Mandatory):</strong> A genomics TRE must provide access to reference datasets (reference genomes, annotation databases, known-sites VCFs) as shared, read-only resources available to all projects.</p>
+  <p class="satre-context">Reference data (e.g. GRCh38, gnomAD, ClinVar, COSMIC) is not sensitive but is essential for almost all genomics analysis. These datasets are large (tens to hundreds of GB) and should not need to be ingressed per-project. They should be centrally managed, versioned, and made available as shared read-only mounts or object storage prefixes.</p>
+</div>
+
+</div>

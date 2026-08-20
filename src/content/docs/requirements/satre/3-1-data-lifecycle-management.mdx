@@ -1,0 +1,135 @@
+---
+title: "🔶 3.1 Data Lifecycle Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Data Management | Capability: 3.1
+
+
+This is the most heavily impacted capability for genomics. Data at extreme scale (256 GiB objects, 1M-object datasets, 100s TB cohorts), combined with complex consent scopes and the need to avoid unnecessary duplication, changes the character of many requirements.
+
+<div class="not-content">
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.01</strong> (Mandatory) — You must have processes to assess legal and regulatory implications of handling data through its full lifecycle.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.02</strong> (Recommended) — You should consult appropriately and keep records of data handling decisions.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.1.03 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> Information asset owners must classify datasets according to a common process and data classification methodology.</p>
+  <p class="satre-context mb-2">Once classified, data can be stored in a TRE with appropriate security controls.</p>
+  <p><strong>Genomics context:</strong> Classification for genomics is complicated by: (1) the same dataset may contain participants with different consent scopes — classification is per-participant, not per-dataset, (2) even "de-identified" genomic data is inherently re-identifiable and should be treated as high-sensitivity by default (stakeholder OH: "the TRE operator won't know what data is being managed — assume all data is identifiable/high risk"), (3) VCF files can contain data from multiple participants in a single object, complicating per-file classification.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.1.04 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must have a data ingress process which enforces information governance rules/processes.</p>
+  <p class="satre-context mb-2">Requires that ingress requests have been approved by all required parties.</p>
+  <p><strong>Genomics context:</strong> Data ingress for genomics operates at a fundamentally different scale: individual objects up to 256 GiB, datasets of 1 million objects, transfers that may take days. The ingress process must support: (a) asynchronous, long-running transfers without requiring the triggering device to remain online, (b) cold storage thawing with controllable rates (cost implications), (c) selective ingress of specific objects (not always entire datasets) for governance reasons, (d) integrity verification via checksumming for large objects. The existing copy service requirements (DCREQ series) apply directly here.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.1.05 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must have a data egress process which enforces information governance rules/processes.</p>
+  <p class="satre-context mb-2">Requires that egress requests have been approved by all required parties.</p>
+  <p><strong>Genomics context:</strong> Egress for genomics is complicated by: (1) the mix of plain text and binary formats makes disclosure assessment more challenging — you cannot simply "eyeball" a BAM file for sensitive content, (2) scale means egress costs can be substantial ("nobody gets pinged for the egress of an Excel — but for us possibly ouch"), (3) some workflows may use API-based access (htsget) rather than bulk file transfer — the egress process must accommodate streaming/query access patterns, not just file downloads.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.06</strong> (Mandatory) — Egress must be limited to the information asset owners or their delegates.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.07</strong> (Optional) — Your data egress process could sometimes require project-independent approval.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.08</strong> (Mandatory) — You must keep a record of what data your TRE holds.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.1.09 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must have a policy on data deletion.</p>
+  <p class="satre-context mb-2">Clear policy on retention/deletion, including backups.</p>
+  <p><strong>Genomics context:</strong> Data deletion at genomics scale is a non-trivial operation — securely deleting 100s of TB including all backups and cold storage copies takes time and has cost implications. Additionally, genomic data may have indefinite retention requirements tied to ongoing longitudinal studies and potential re-analysis as reference genomes improve. The deletion policy must reconcile: (a) consent withdrawal requiring deletion, (b) clinical utility requiring retention, (c) storage costs favouring deletion. The immutability of genomic data means deletion is the only way to "un-share" it.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.10</strong> (Recommended) — You should have a method of providing proof of deletion/removal of files.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.11</strong> (Recommended) — You should log how input data is modified.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.12</strong> (Mandatory) — You must, to a reasonable extent, prevent unauthorised data ingress or egress.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.1.13 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> Data held within the TRE should be the minimum required for analysis or research.</p>
+  <p class="satre-context mb-2">Data minimisation reduces risk and storage overhead.</p>
+  <p><strong>Genomics context:</strong> This principle has a specific architectural implication: "you really don't want to unnecessarily duplicate 100 TiB of genomics data into each project in your TRE." The TRE must support efficient shared data access — multiple projects reading the same underlying dataset without duplicating it into each workspace. This suggests architectural patterns like: shared read-only data layers, API-based access (htsget), or copy-on-write storage. The thin infrastructure operator model addresses this by separating the data layer from the TRE compute layer.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.14</strong> (Recommended) — Archived data within the TRE should be read only.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.15</strong> (Recommended) — Long-term archives should be held in simple, standard formats.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.16</strong> (Recommended) — Where ML models are trained on sensitive data, ensure a data management plan for ML artefacts is agreed.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.17</strong> (Mandatory) — You must be able to specify what categories of data your TRE can support.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.18</strong> (Optional) — Your TRE could support projects with differing security requirements through configurable controls.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.19</strong> (Optional) — Your TRE could offer a pre-defined set of security control tiers.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.1.20</strong> (Recommended) — Metadata should be checked for disclosure risk at the point of data upload.</p>
+</div>
+
+<div class="satre-new">
+  <div class="satre-title">
+    <span>🆕</span> NEW — Genomics-specific requirement
+  </div>
+  <p><strong>Proposed (Mandatory):</strong> The TRE must support ingress of data from cold/archival storage tiers (e.g. AWS Glacier, tape) with controllable thawing rates and cost awareness.</p>
+  <p class="satre-context">Genomic objects routinely go into cold storage due to their size and access patterns. The data copying requirements (DCREQ-6, DCREQ-7) specifically address this: the service must thaw objects appropriately and allow the invoker to control the rate at which thawing occurs due to cost implications of rapid retrieval.</p>
+</div>
+
+<div class="satre-new">
+  <div class="satre-title">
+    <span>🆕</span> NEW — Genomics-specific requirement
+  </div>
+  <p><strong>Proposed (Recommended):</strong> The TRE should support API-based streaming access to genomic data (e.g. htsget protocol) as an alternative to bulk file ingress, enabling on-demand access without full dataset duplication.</p>
+  <p class="satre-context">The htsget protocol (GA4GH standard) enables selective, streaming access to genomic data — requesting specific genomic regions or samples without transferring entire BAM/CRAM files. This pattern directly supports data minimisation (3.1.13) and avoids duplicating 100s of TB into each workspace. It represents a fundamentally different ingress model to bulk file copy.</p>
+</div>
+
+</div>

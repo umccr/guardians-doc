@@ -70,9 +70,10 @@ export default defineConfig({
         },
         sidebar: [
             {
-                label: 'Stories',
+                label: 'Introduction',
                 items: [
-                    "stories/introduction",
+                    "introduction/stories",
+                    "introduction/funding",
                 ]
             },
             {
@@ -83,8 +84,40 @@ export default defineConfig({
                     "requirements/data-copying",
                     "requirements/data-release",
                     "requirements/data-control",
-                    "requirements/researcher-environments-raw",
-                    "requirements/researcher-environments"
+                    {
+                        label: 'SATRE vs Genomics',
+                        items: [
+                            "requirements/satre/introduction",
+                            "requirements/satre/1-1-information-governance",
+                            "requirements/satre/1-2-quality-management",
+                            "requirements/satre/1-3-risk-management",
+                            "requirements/satre/1-4-study-management",
+                            "requirements/satre/1-5-researcher-accreditation",
+                            "requirements/satre/1-6-training-management",
+                            "requirements/satre/1-7-public-involvement",
+                            "requirements/satre/2-1-end-user-computing",
+                            "requirements/satre/2-2-infrastructure-management",
+                            "requirements/satre/2-3-capacity-management",
+                            "requirements/satre/2-4-configuration-management",
+                            "requirements/satre/2-5-information-security",
+                            "requirements/satre/2-6-cyber-resilience",
+                            "requirements/satre/2-7-vulnerability-management",
+                            "requirements/satre/2-8-encryption",
+                            "requirements/satre/2-9-physical-security",
+                            "requirements/satre/3-1-data-lifecycle-management",
+                            "requirements/satre/3-2-identity-access-management",
+                            "requirements/satre/3-3-output-management",
+                            "requirements/satre/3-4-information-search-discovery",
+                            "requirements/satre/4-1-business-continuity",
+                            "requirements/satre/4-2-project-programme-management",
+                            "requirements/satre/4-3-knowledge-management",
+                            "requirements/satre/4-4-financial-management",
+                            "requirements/satre/4-5-procurement",
+                            "requirements/satre/4-6-it-service-management",
+                            "requirements/satre/4-7-relationship-management",
+                            "requirements/satre/4-8-legal-services",
+                        ]
+                    },
                 ]
             },
             {
@@ -141,6 +174,12 @@ export default defineConfig({
                     "guides/seqera-setup",
                     "guides/using-aaf-with-oidc",
                     "guides/aws-native-data-sharing",
+                ]
+            },
+            {
+                label: 'Appendix',
+                items: [
+                    "requirements/researcher-environments-raw",
                 ]
             }
 

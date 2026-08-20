@@ -4,8 +4,6 @@ title: Legal and Trust Concepts of Genomic Data Nodes
 
 import DrawioDiagram from '../../../components/DrawioDiagram.astro';
 
-# Legal and Trust Concepts of Genomic Data Nodes
-
 ## Overview
 
 _Working document — organising thoughts on the legal and trust frameworks that underpin genomic data nodes._
@@ -14,17 +12,18 @@ _Working document — organising thoughts on the legal and trust frameworks that
 
 ## Current State: How Genomic Data Sharing Works Today
 
-### The standard model
-
 In Australia (and broadly internationally), genomic data sharing typically follows this pattern:
 
 1. A **data custodian** (hospital, biobank, research institute) holds genomic and associated clinical data under ethics approval and participant consent
 2. A **researcher** applies for access, submitting a proposal to a **Data Access Committee (DAC)** or equivalent governance body
 3. The DAC assesses the application against consent scope, scientific merit, and institutional policies
-4. If approved, a **Data Sharing Agreement (DSA)** or **Data Transfer Agreement (DTA)** is executed between the custodian and the researcher (or their institution)
+4. If approved, a **Data Sharing Agreement (DSA)** (or **Data Transfer Agreement (DTA)**) is executed between the custodian and the researcher (or their institution)
 5. The data is **released** — typically transferred to the researcher's environment (institutional storage, cloud bucket, local compute)
 
-### What a typical Data Sharing Agreement covers
+<DrawioDiagram src="diagrams/legal-dta-current.drawio.svg" showLayers={["DSA"]} />
+
+For the purposes of this document, we assert that most standard data sharing agreements
+contain some combination of the following broad topics:
 
 - Purpose limitation — the specific research use approved
 - Publication and attribution requirements
@@ -35,8 +34,9 @@ In Australia (and broadly internationally), genomic data sharing typically follo
 - Liability and indemnity clauses
 - Breach notification procedures
 - IP and commercialisation terms (often heavily negotiated)
+- Costs - apportioning any costs caused by the data sharing
 
-<DrawioDiagram src="diagrams/legal-dta-current.drawio.svg" caption="Current data sharing model — data is released from custodian to researcher under a data transfer agreement" />
+We can see a tabular summary of these topics in the diagram - and will revisit these in future discussions.
 
 ### The "release" problem
 
@@ -53,15 +53,23 @@ The critical weakness of this model is that once data is **released** to the res
 In practice, compliance relies on trust, attestation, and the threat of contractual remedies after the fact. This
 is the legal equivalent of "we asked them nicely and they signed a piece of paper."
 
-### Trusted Research Environments (TREs) — the right idea, the wrong scale
+---
 
-Trusted Research Environments (also called secure data environments, data safe havens, or secure enclaves) offer a potential
- solution: instead of sending data _to_ the researcher, the researcher comes _to_ the data within a controlled
-  compute environment. The custodian retains technical control — data cannot be extracted, only approved outputs leave the environment.
+### Trusted Research Environments (TREs)
 
-However, in current Australian practice, TREs have not displaced the release model — and there is a fundamental resourcing problem that explains why.
+Trusted Research Environments (also called secure data environments, data safe havens, or secure enclaves) represent a fundamentally different approach to data sharing: instead of sending data _to_ the researcher, the researcher comes _to_ the data within a controlled compute environment.
 
-#### The core problem: TREs are hard and expensive
+#### What TREs get right
+
+The TRE model directly addresses the weaknesses of data release:
+
+- **Custodians retain technical control** — data cannot be extracted from the environment. Only approved outputs (aggregated results, figures, statistical summaries) leave the TRE, and typically only after review.
+- **Access is revocable** — if a researcher's approval expires or consent is withdrawn, access can be terminated immediately. No need to rely on contractual data destruction obligations.
+- **Audit is built in** — every action within the environment is logged. Custodians have real-time visibility into who accessed what, when, and what they did with it.
+- **Security is centralised** — rather than trusting dozens of researcher laptops and institutional storage systems, the custodian trusts one controlled environment with known security properties.
+- **Re-identification risk is contained** — data never leaves the secure perimeter, so linkage attacks require breaching the environment itself rather than simply combining freely-held datasets.
+
+In principle, a well-operated TRE solves almost every problem identified in the release model. It is the right conceptual answer. However, in practice, TREs have not displaced the release model — and there is a fundamental resourcing problem that explains why.
 
 Running a TRE — particularly one capable of handling genomics-scale data and compute — is a significant operational undertaking. It requires:
 
@@ -96,6 +104,11 @@ If Custodian A runs a TRE containing their data and Custodian B runs a separate 
 - Negotiate bespoke arrangements for one custodian to deposit data into the other's TRE — which reintroduces the "release" problem under a different name
 
 This is the same data fragmentation problem the sector has been trying to solve since before the internet made sharing technically trivial. Per-institution TREs risk solving the access control problem while making the integration problem worse.
+
+<DrawioDiagram src="diagrams/legal-dta-current.drawio.svg" showLayers={["TRE"]} />
+
+---
+
 
 A model where multiple custodians can place data into a **shared, neutral infrastructure layer** — each retaining governance authority over their own data, but enabling authorised researchers to perform joint analyses within a single controlled environment — avoids this trap. The infrastructure enables joining without requiring release. The custodians remain in control. The silos dissolve without the data moving to uncontrolled locations.
 
@@ -166,7 +179,7 @@ The **data layer** — our thin operator — does not provide TREs. It does not 
 
 ### What the data layer does
 
-- Stores or indexes genomic data on behalf of custodians
+- Temporarily stores or indexes genomic data on behalf of custodians
 - Enforces access decisions made by custodians / DACs
 - Provides identity and authentication services
 - Maintains audit trails of all data access
@@ -225,7 +238,7 @@ The layered data-plane model is architecturally sound, but it is not without ris
 
 **The legal surface area is genuinely minimal.** The data layer doesn't interact with researchers, doesn't provide analytical tools, doesn't interpret consent, doesn't make access decisions. Each of these "does not" removes a category of legal risk. The operator's obligations reduce to: store securely, enforce access policies faithfully, log everything, and comply with the Privacy Act as a processor-like entity.
 
-**The separation makes the cost conversation tractable.** Funding a narrow, shared data governance layer is a different (and easier) conversation than funding a full-service TRE. The data layer is infrastructure — analogous to what NCRIS funds. TRE provision is a service — fundable through grants, institutional budgets, or even commercial models. Conflating the two makes both harder to fund.
+**The separation makes the cost conversation tractable.** Funding a narrow, shared data governance layer is a different (and easier) conversation than funding a full-service TRE. The data layer is infrastructure — fundable as a national capability through mechanisms like the MRFF. TRE provision is a service — fundable through grants, institutional budgets, or even commercial models. Conflating the two makes both harder to fund.
 
 ### Risks and challenges
 
@@ -448,6 +461,103 @@ A mutual enterprise under the _Co-operatives National Law_, where members are bo
 | Sector precedent | ★★★★ | ★★★★★ | ★★ |
 
 The likely trajectory for this type of service is: **start university-hosted** (for speed and pragmatism), **transition to a CLG** once the service has demonstrated value, attracted multiple custodians, and secured ongoing funding. The cooperative model remains an interesting alternative if the community prefers a more explicitly mutual structure.
+
+---
+
+### Government-driven vehicles
+
+If this is treated as a project of national interest — with a starting investment in the range of $200 million, funded through the Medical Research Future Fund (MRFF) via the Department of Health and Aged Care — then government-driven vehicles also become relevant. At this scale, the federal government may choose to operate the infrastructure directly or through a purpose-built statutory body, rather than funding an independent entity at arm's length.
+
+The MRFF context is significant: MRFF funding is administered by the Department of Health, with the Australian Medical Research Advisory Board (AMRAB) and the NHMRC providing strategic advice. This means the governance and accountability expectations will be health-system-oriented rather than research-infrastructure-oriented — a different framing than NCRIS-funded entities like ARDC or Bioplatforms, which sit within the Department of Education/Industry.
+
+---
+
+### Housed within an existing Commonwealth department or agency
+
+The data layer operates as a program or division within a relevant department (e.g. Department of Health and Aged Care) or existing agency (e.g. the Australian Digital Health Agency, or the Australian Institute of Health and Welfare).
+
+**Pros**
+- Immediate institutional authority and legitimacy
+- Access to Commonwealth procurement, HR, security frameworks (already at scale)
+- Direct ministerial accountability — strong governance signal to custodians
+- Can leverage existing relationships with state health departments
+- No entity establishment overhead — funded through appropriations
+
+**Cons**
+- Subject to machinery-of-government changes — departments get restructured, renamed, merged
+- Public service hiring constraints may make it difficult to attract and retain specialist technical staff
+- Bureaucratic decision-making cadence may not suit an operational infrastructure service
+- Risk of being deprioritised when political attention shifts
+- Governance is top-down — custodians (universities, hospitals) have no formal membership or voice
+- May be perceived as "government-controlled" rather than sector-owned — some custodians (particularly universities) may resist placing data into infrastructure they cannot govern
+
+**Assessment**: Viable for a rapid, well-funded national rollout backed by strong political will. The Australian Digital Health Agency (ADHA) is an instructive precedent — it operates national health infrastructure (My Health Record) as a corporate Commonwealth entity under a specific Act. However, the research genomics community may be more comfortable with infrastructure it has governance over, rather than infrastructure done _to_ it by government.
+
+---
+
+### New statutory body (established by Commonwealth legislation)
+
+A purpose-built entity established by an Act of Parliament, with a legislated mandate, governance structure, powers, and accountability framework. Examples: the Australian Research Council (ARC), the National Health and Medical Research Council (NHMRC), the Australian Digital Health Agency.
+
+**Pros**
+- Maximum institutional permanence — exists until Parliament repeals the Act
+- Legislated mandate provides clarity of purpose and authority
+- Can be given specific statutory powers (e.g. power to set standards, compel interoperability, issue binding guidelines)
+- Independent of departmental restructures
+- Board governance can be legislated to include sector representation (universities, health services, research institutes)
+- Strong signal of national commitment — attracts international collaboration and recognition
+- Can hold data under its own statutory authority, simplifying the privacy relationship
+
+**Cons**
+- Extremely slow to establish — requires drafting legislation, consultation, Parliamentary passage (12-24+ months)
+- Politically difficult — requires sustained bipartisan support and a minister willing to champion it
+- Once established, difficult to modify — legislative amendment required for governance changes
+- Overhead of a statutory agency (annual reports, Senate Estimates, ministerial oversight) may be disproportionate for a focused infrastructure service
+- Risk of scope creep if the legislated mandate is broad
+- Government may prefer lighter-touch options (funding a CLG) over the political cost of new legislation
+
+**Assessment**: The "gold standard" for permanence and authority, but with significant establishment cost and lead time. Appropriate if the government views genomic data infrastructure as enduring national capability on par with the NHMRC or Bureau of Meteorology — not if it's seen as a time-limited project. The ADHA model (a corporate Commonwealth entity under the _Public Governance, Performance and Accountability Act 2013_ with its own enabling legislation) is probably the closest template.
+
+---
+
+### Existing statutory body with expanded mandate
+
+Rather than creating a new body, an existing entity could be given an expanded mandate and additional funding. Candidates might include:
+
+- **Australian Institute of Health and Welfare (AIHW)** — already holds and governs national health data; has statutory protections for data confidentiality; legislated data governance expertise
+- **Australian Digital Health Agency (ADHA)** — operates national health digital infrastructure; already has relationships with health service providers
+- **ARDC (Australian Research Data Commons)** — a CLG operating under NCRIS with a mandate for research data infrastructure; however, ARDC's focus is broad research data, not health-specific
+
+**Pros**
+- Faster than establishing a new body — leverages existing governance, staff, and institutional knowledge
+- Existing relationships with data custodians and government
+- Avoids the political cost of new legislation (if the mandate extension can be done administratively or through minor legislative amendment)
+
+**Cons**
+- Existing bodies have existing cultures, priorities, and technical capabilities that may not align with genomics-scale infrastructure
+- Risk of the new function being subordinated to the body's primary mission
+- May require significant internal transformation to deliver a technically demanding service
+- Governance may not adequately represent the genomics/research community specifically
+
+**Assessment**: Worth exploring, particularly the AIHW (strong data governance pedigree, statutory confidentiality protections) and ADHA (operational digital health infrastructure). The risk is that genomic data infrastructure is sufficiently specialised that grafting it onto a generalist body produces a poor fit. But at $200M+ scale, government will likely explore this option before committing to a new entity.
+
+---
+
+### Summary (including government-driven options)
+
+| Criterion | Uni-hosted | CLG | Co-op | Dept/Agency | New statutory body | Expanded existing body |
+|-----------|-----------|-----|-------|-------------|-------------------|----------------------|
+| Speed to establish | ★★★★★ | ★★★ | ★★★ | ★★★★ | ★ | ★★★ |
+| Multi-party governance | ★★ | ★★★★★ | ★★★★★ | ★★ | ★★★★ | ★★★ |
+| Liability protection | ★★★★ | ★★★★★ | ★★★★ | ★★★★★ | ★★★★★ | ★★★★★ |
+| Funder confidence | ★★★ | ★★★★★ | ★★★ | ★★★★★ | ★★★★★ | ★★★★ |
+| Permanence | ★★ | ★★★★ | ★★★★ | ★★ | ★★★★★ | ★★★★ |
+| Sector ownership | ★★ | ★★★★★ | ★★★★★ | ★ | ★★★ | ★★ |
+| Operational agility | ★★★ | ★★★★ | ★★★ | ★★ | ★★★ | ★★ |
+
+The choice between sector-owned (CLG) and government-driven (statutory body or existing agency) models ultimately reflects a political judgement about **who should own and govern national genomic data infrastructure**. The sector-owned model (CLG) offers more agility, community ownership, and insulation from political cycles. The government model offers permanence, authority, and the ability to mandate participation — but at the cost of sector autonomy.
+
+A hybrid is also possible: government establishes a statutory framework and provides funding, but the operational entity is a CLG with legislated or contractual governance requirements. The MRFF funding model — where the Department of Health and Aged Care administers large-scale grants to sector-led entities with governance conditions in the funding agreement — naturally supports this hybrid. The government retains oversight and accountability for public funds without needing to operate the infrastructure itself.
 
 ---
 

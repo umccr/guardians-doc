@@ -1,0 +1,43 @@
+---
+title: "🔶 2.3 Capacity Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Computing Technology and Information Security | Capability: 2.3
+
+
+<div class="not-content">
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.3.01 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must ensure that all project members understand what resources are available and what the associated costs will be before the project starts.</p>
+  <p class="satre-context mb-2">Standard transparency about resources and costs.</p>
+  <p><strong>Genomics context:</strong> The unpredictable resource profile of genomics workloads makes this harder than for typical TREs. A pipeline may need 16 CPUs with 1 GB memory for one hour, then a single CPU with 128 GiB, then fan out to 23 machines — all within a single run. Resources cannot be specified "6 months in advance" as in traditional merit allocation. The TRE must communicate resource availability in terms of on-demand capacity and burst limits rather than fixed allocations. Cost models need to support: BYO cloud account, pre-paid with limits, and invoicing/cost-recovery.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.3.02</strong> (Recommended) — You should ensure anticipated project needs can be satisfied with available resources.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.3.03 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must have a procedure for allocating available resources among projects.</p>
+  <p class="satre-context mb-2">SATRE suggests scaling, deploying additional resources, or procurement processes.</p>
+  <p><strong>Genomics context:</strong> For cloud-based genomics TREs, allocation is fundamentally dynamic — workflow engines create and destroy resources on demand from a shared pool. The allocation procedure must handle burst capacity (a researcher submitting 50 patients through a pipeline simultaneously creates hundreds of VMs) and prevent one project from starving others. This is more like cloud quota management than traditional resource allocation. ABLES-style ad-hoc access schemes are needed rather than 6-month advance merit allocations.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.3.04 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must ensure anticipated resource requirements will not result in overspending by the TRE.</p>
+  <p class="satre-context mb-2">Budget management for cloud TREs, managing expectations for on-premises.</p>
+  <p><strong>Genomics context:</strong> This is critically important for genomics. Stakeholders emphasised that "nobody is getting pinged for the egress fees of an Excel — but for us possibly ouch." A single poorly configured pipeline can run up thousands of dollars. The TRE must provide: per-project budget caps with automatic enforcement (stop jobs when limit reached), real-time cost dashboards, and cost estimation tools before pipeline submission. Data custodians need to know who is on the hook for storage and compute costs.</p>
+</div>
+
+</div>

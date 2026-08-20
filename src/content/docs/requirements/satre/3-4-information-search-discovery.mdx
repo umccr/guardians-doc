@@ -1,0 +1,33 @@
+---
+title: "🔶 3.4 Information Search and Discovery"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Data Management | Capability: 3.4
+
+
+<div class="not-content">
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.4.01 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should provide a metadata catalogue of available datasets for users.</p>
+  <p class="satre-context mb-2">Particularly relevant for TREs with population-level data. Access to catalogues should itself be subject to disclosure control.</p>
+  <p><strong>Genomics context:</strong> For the thin infrastructure operator model, the data catalogue is a core function of the data layer — it catalogues available datasets and their access conditions, enabling researchers to discover what data exists before applying for access. GA4GH Beacon and similar discovery APIs provide established patterns for genomics data discovery that allow "can I find data matching these criteria?" queries without exposing the underlying data. The catalogue must describe: sample counts, data types available (WGS, WES, RNA-seq), consent scope, and access conditions.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.4.02</strong> (Recommended) — You should have a consistent metadata data model to describe data asset contents.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.4.03</strong> (Optional) — You could provide an interface for data consumers and subjects to query elements of the data.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.4.04</strong> (Optional) — You could provide summary, abstracted or synthetic data without exposing the underlying dataset.</p>
+</div>
+
+</div>

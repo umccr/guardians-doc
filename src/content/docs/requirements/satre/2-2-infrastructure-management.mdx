@@ -1,0 +1,97 @@
+---
+title: "🔶 2.2 Infrastructure Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Computing Technology and Information Security | Capability: 2.2
+
+
+<div class="not-content">
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.01</strong> (Mandatory) — You must have a documented procedure for deploying infrastructure.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.2.02 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should, where possible, automate any repeatable aspects of your deployment.</p>
+  <p class="satre-context mb-2">SATRE suggests infrastructure-as-code tools or scripts.</p>
+  <p><strong>Genomics context:</strong> For genomics this should be elevated to <strong>Mandatory</strong>. The dynamic compute model (workflow engines creating/destroying hundreds of VMs per pipeline run) makes manual deployment untenable. Infrastructure-as-code (Terraform) is the established pattern in this ecosystem. The thin infrastructure operator model requires reproducible, auditable deployments that custodians can inspect and trust.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.03</strong> (Mandatory) — You must have a documented procedure for making changes to deployed infrastructure.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.04</strong> (Mandatory) — You must test changes before they are used in production.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.05</strong> (Recommended) — You should have a development environment mirroring production for testing.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.06</strong> (Mandatory) — You must have a documented procedure for removing infrastructure when no longer needed.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.2.07 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should understand the availability and uptime guarantees of any providers that you rely on.</p>
+  <p class="satre-context mb-2">Standard uptime awareness for cloud and data centre providers.</p>
+  <p><strong>Genomics context:</strong> Genomics has a different availability profile to typical TREs. Stakeholders note that genomics compute may have "infrequently used computing that should be reliable for the time that it's running, but is allowed to be off or have long periods of downtime." A pipeline running for 8 hours cannot tolerate interruption mid-execution, but the TRE may not need 24/7 always-on availability. Uptime guarantees should be expressed in terms of job completion reliability, not constant availability.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.2.08 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should develop an availability target or statement and share this with your users.</p>
+  <p class="satre-context mb-2">Helps projects plan their work around potential unavailability.</p>
+  <p><strong>Genomics context:</strong> Availability targets for genomics TREs should include: (a) job completion guarantee — a submitted pipeline will run to completion without infrastructure failure, (b) data accessibility — datasets are readable when needed, (c) scheduling latency — how long from submission to first compute node being provisioned. These are more relevant metrics than traditional "99.9% uptime" for a genomics workload.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.09</strong> (Mandatory) — Your TRE must control and manage all network infrastructure.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.10</strong> (Mandatory) — Your TRE must not allow connectivity between users in different projects.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.2.11 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> Your TRE must block outbound connections to the internet by default.</p>
+  <p class="satre-context mb-2">Limited outbound connectivity may be allowed for some services.</p>
+  <p><strong>Genomics context:</strong> This creates significant tension for genomics workflows. Pipelines commonly need to: pull containers from registries, access reference genome mirrors, and communicate with workflow orchestration services (Seqera Platform). The "limited outbound" exceptions become substantial. Practical implementations require either: (a) internal mirrors of all needed resources (container registries, reference data), or (b) carefully allowlisted outbound endpoints. The TRE must balance strict egress control against the practical needs of containerised workflow execution.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.12</strong> (Recommended) — You should monitor TRE configuration for misconfigurations and vulnerabilities.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.13</strong> (Mandatory) — Your TRE must record usage data.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.2.14</strong> (Recommended) — Your TRE should record which datasets are accessed, when and by who.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.2.15 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> Your TRE should record computational resource usage at the user or aggregate level.</p>
+  <p class="satre-context mb-2">Useful for optimising allocation and managing costs.</p>
+  <p><strong>Genomics context:</strong> For genomics this should be elevated to <strong>Mandatory</strong>. Compute costs at genomics scale can reach $1,000s–$10,000s per pipeline run. Stakeholders specifically noted that "costs can be quite large, and sometimes unexpected for certain workflows." Per-project and per-pipeline cost tracking is essential — not merely recommended — for financial sustainability and custodian confidence. The TRE must record compute hours, storage consumption, and network transfer at project granularity.</p>
+</div>
+
+</div>
