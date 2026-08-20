@@ -1,0 +1,50 @@
+---
+title: "🔶 1.3 Risk Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Information Governance | Capability: 1.3
+
+
+<div class="not-content">
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>1.3.01</strong> (Mandatory) — You must have a way to quantify risk to understand the underlying severity.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 1.3.02 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must carry out a data processing assessment for all projects requiring a TRE.</p>
+  <p class="satre-context mb-2">SATRE references Data Protection Impact Assessment (DPIA) as an example.</p>
+  <p><strong>Genomics context:</strong> Genomic data processing assessments must account for risks unique to this domain: (1) immutability — re-identification risk never diminishes over time, (2) familial implications — a participant's data reveals information about biological relatives who may not have consented, (3) high-dimensionality — even "de-identified" genomic data is notoriously re-identifiable through linkage attacks as reference databases grow. Standard DPIAs designed for tabular health data underestimate these risks.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>1.3.03</strong> (Mandatory) — You must have a process for designing, implementing and recording risk mitigations.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>1.3.04</strong> (Mandatory) — You must have clear roles and responsibilities relating to risk ownership, escalation and delegation.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 1.3.05 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must understand the risk appetite of your TRE organisation.</p>
+  <p class="satre-context mb-2">Standard requirement to understand organisational risk tolerance.</p>
+  <p><strong>Genomics context:</strong> There is a fundamental mismatch between the risk appetite of researchers (who want minimal barriers to productive analysis) and data custodians (who want maximal control). This tension is amplified in genomics by the irreversible nature of re-identification — unlike other data types, there is no "the risk diminishes over time" argument. The TRE must explicitly navigate this mismatch and articulate whose risk appetite prevails in which circumstances. Stakeholders note that "the more locked down the data, the harder it will be to use, which goes against what users may expect."</p>
+</div>
+
+<div class="satre-new">
+  <div class="satre-title">
+    <span>🆕</span> NEW — Genomics-specific requirement
+  </div>
+  <p><strong>Proposed (Mandatory):</strong> Risk assessments for genomic data must specifically address re-identification risk, familial data implications, and the permanence of genomic information when quantifying severity.</p>
+  <p class="satre-context">Standard risk assessment methodologies may not adequately weight the unique properties of genomic data. A genomic data breach has lifelong consequences for the individual and their relatives — this must be reflected in risk scoring. Single germline locations can reveal information about descent even when most genomic positions do not.</p>
+</div>
+
+</div>

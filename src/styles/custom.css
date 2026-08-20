@@ -2,3 +2,139 @@
     --sl-content-width: 60rem;
     color-scheme: light;
 }
+
+/* SATRE genomics assessment requirement cards */
+
+.satre-unchanged {
+    border-left-width: 4px;
+    border-left-color: #22c55e;
+    background-color: #f0fdf4;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.satre-unchanged p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #166534;
+    margin: 0;
+}
+
+.satre-changed {
+    border-left-width: 4px;
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.satre-changed .satre-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 0.25rem;
+}
+
+.satre-changed p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.satre-new {
+    border-left-width: 4px;
+    border-left-color: #3b82f6;
+    background-color: #eff6ff;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.satre-new .satre-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #1e40af;
+    margin-bottom: 0.25rem;
+}
+
+.satre-new p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.satre-context {
+    color: #4b5563;
+}
+
+.satre-australian {
+    border-left-width: 4px;
+    border-left-color: #a855f7;
+    background-color: #faf5ff;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.satre-australian .satre-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #6b21a8;
+    margin-bottom: 0.25rem;
+}
+
+.satre-australian p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .satre-unchanged {
+        background-color: rgba(6, 78, 59, 0.2);
+    }
+    .satre-unchanged p {
+        color: #bbf7d0;
+    }
+    .satre-changed {
+        background-color: rgba(120, 53, 15, 0.2);
+    }
+    .satre-changed .satre-title {
+        color: #fde68a;
+    }
+    .satre-new {
+        background-color: rgba(30, 58, 138, 0.2);
+    }
+    .satre-new .satre-title {
+        color: #bfdbfe;
+    }
+    .satre-context {
+        color: #9ca3af;
+    }
+    .satre-australian {
+        background-color: rgba(88, 28, 135, 0.2);
+    }
+    .satre-australian .satre-title {
+        color: #e9d5ff;
+    }
+}
