@@ -135,9 +135,13 @@ export default defineConfig({
                     "guides/using-aaf-with-oidc",
                     "guides/aws-native-data-sharing",
                 ]
+            },
+            {
+                label: 'Reports',
+                items: [
+                    "reports/costing-data-sharing-platform/overview",
+                ],
             }
-
-
         ],
     })],
     vite: {
