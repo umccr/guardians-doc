@@ -1,4 +1,243 @@
 ---
-title: Standing costs – costing an AWS data‑sharing platform
+title: Standing costs 
 ---
-# Running the platform – standing costs
+import { LinkButton } from '@astrojs/starlight/components';
+
+
+## What we mean by "standing cost"
+
+We use "standing cost" to describe the non‑zero cost of doing nothing. 
+Even with no active projects, the data‑sharing platform still needs networking, storage, authentication, 
+logging and control services to be available. 
+These always‑on components form the fixed cost of operating the platform and keeping 
+analysis‑ready data accessible when needed.
+
+
+You migh think of this as the cots of mantaining a data centre running in traditional on‑premises infrastructure, 
+where you pay for the cost of keeping the data centre powered on, the network running,
+and the core systems ready—even on a quiet weekend when nobody is using anything. This principle is the same in AWS:
+ certain services incur charges simply by existing and being ready to serve requests, regardless of whether traffic is flowing through them.
+
+Understanding standing cost is essential for setting a baseline budget for the platform: 
+the minimum you'll spend each month, regardless of activity.
+ This baseline is critical for sustainability planning and funding conversations, and 
+ it informs strategic decisions, such as whether to keep a platform running or 
+  consolidate it with others, and
+   what architectural choices best balance cost efficiency with the functionality and resilience
+    your users need.
+
+
+<div style={{ textAlign: 'center', margin: '2rem 0' }}>
+  <LinkButton href="#standing-cost-at-a-glance">
+    Standing cost at a glance 
+  </LinkButton>
+</div>
+
+
+## Main components of standing cost
+
+At a high level, most of the standing cost of a data‑sharing platform comes from a 
+small set of always‑on building blocks:
+
+
+### Network and access
+
+The platform typically runs inside an AWS **Virtual Private Cloud (VPC)**, which is a private,
+ isolated network within AWS. To make the platform reachable (whether by internal users, partner
+  organisations, or automated systems) you need networking infrastructure that stays in place:
+
+
+- **VPC Endpoints**  (powered by [AWS PrivateLink](https://docs.aws.amazon.com/vpc/latest/privatelink/what-is-privatelink.html))
+ provide private, secure access to AWS services.
+ Gateway endpoints (for S3 and DynamoDB) are free; interface endpoints 
+ (for services such as CloudWatch Logs, AWS Secrets Manager, or Systems Manager) 
+ charge hourly plus per-GB data processing fees.
+ 
+- **NAT Gateways** ([AWS's managed Network Address Translation service](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html))
+ allow systems inside your VPC to initiate outbound connections to the internet while remaining private. 
+For a data-sharing platform, this might include calling external identity providers, triggering webhooks on external 
+services, or integrating with systems on other cloud platforms.
+NAT Gateways charge hourly per gateway, plus data processing charges per GB.
+
+- **API Gateway** ([AWS's managed API service](https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html))
+ provides a public endpoint for your platform, to users and partners. It charges hourly per API, plus per-request fees.
+
+
+💡 These networking components have an **hourly standing charge** just for existing, independent of how much traffic flows through them.
+
+
+
+### Core storage and metadata
+
+Before any project uploads data, a data‑sharing platform must have foundational storage and indexing:
+
+- **S3 buckets** ([AWS's object storage service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html))
+ hold shared datasets, platform configuration, catalogues, and logs. S3 charges primarily for data volume stored, 
+ but there is always a **minimum baseline** of platform data that persists month to month. Storage optimization 
+ is covered in [Storing data](/docs/reports/costing-data-sharing-platform/storage.mdx) and [Looking after data](/docs/reports/costing-data-sharing-platform/data-lifecycle.mdx).
+
+- **Metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)) 
+or **RDS** ([a relational database](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)) 
+index datasets, track permissions, and record sharing history. These often incur a **minimum monthly charge** 
+even when lightly used.
+
+💡 Unlike networking, storage cost scales with data volume, so it is not purely "fixed". 
+However, the platform's own metadata and configuration occupy a small but persistent footprint,
+ contributing to the standing cost.
+
+
+### Identity and security
+
+Secure data sharing requires identity and access control infrastructure:
+
+- **Identity Provider (IdP) integration** ([AWS IAM Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html) or [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-cognito.html)) enables user authentication. Integration with an existing organisational IdP typically has minimal standing cost, while managed services like AWS Cognito incur per-user or per-authentication charges.
+
+- **AWS IAM roles and policies** ([AWS Identity and Access Management](https://docs.aws.amazon.com/iam/latest/userguide/introduction.html)) define who can access what. While defining roles and policies is free, the infrastructure that evaluates them contributes to the platform's operational cost.
+
+- **AWS KMS (Key Management Service)** ([AWS Key Management Service](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)) manages encryption keys for data at rest. Each customer‑managed key incurs a small monthly fee, plus charges per cryptographic operation.
+
+- Optional **security services** such as **GuardDuty** ([Amazon GuardDuty](https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html)), **Security Hub** ([AWS Security Hub](https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html)), or **AWS Config** ([AWS Config](https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html)) monitor for misconfigurations and suspicious activity. These services generate findings and logs that accumulate over time, creating a slow but steady cost.
+
+
+
+
+### Monitoring and audit
+
+Any production platform must have visibility into what is happening:
+
+- **CloudWatch** ([Amazon CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html)) collects metrics (e.g. CPU usage, request counts) and logs from all platform components. Even a quiet platform generates a trickle of metrics and events, and CloudWatch charges per metric and per GB of logs ingested and stored.
+
+- **CloudTrail** ([AWS CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)) records every API call made in the AWS account(s), creating an immutable record of who did what and when. [3] This is essential for compliance and security, but it generates a continuous stream of events that must be stored, typically in an S3 bucket. CloudTrail charges per 100,000 events recorded, plus S3 storage for the logs. [4]
+
+- **Log aggregation and archival buckets** where CloudWatch logs and CloudTrail records are stored long‑term. These contribute to S3 storage cost.
+
+
+
+
+### Baseline compute
+
+The platform needs some compute capacity to orchestrate data sharing and perform housekeeping tasks.
+ This might be always‑on [EC2 instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html or 
+ [ECS/EKS tasks](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html (incurring hourly charges), 
+ or serverless [Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html) (pay-per-invocation with minimal standing cost). The architectural choice determines whether standing cost is significant or minimal.
+
+
+💡 The architectural choice is significant: always‑on servers have a clear standing cost, while serverless components have minimal standing cost but may cost more per operation.
+
+
+
+## Internal vs cross‑organisation platforms: different "do nothing" footprints
+
+The same five components appear in both an **internal sharing platform (ISP)** and a **cross‑organisation sharing platform (CSP)**.
+
+
+### Internal Sharing Platform 
+
+An ISP is used within a single organisation by one or more teams. Because access is internal and trust relationships are simpler:
+
+- Networking can be relatively simple: a single VPC, perhaps one NAT Gateway, minimal external endpoints.
+- Identity management can rely on the organisation's existing SSO or directory service.
+- Audit logging can be lighter (internal compliance requirements are usually less stringent than cross‑organisational).
+- Some components can scale down during low activity. For example, metadata synchronisation or data validation jobs can run on a schedule rather than continuously.
+
+
+### Cross Organisation Sharing Platform 
+
+A CSP regularly shares data with external partner organisations. This requires more infrastructure to stay ready:
+
+- **External entry points** must be available 24/7: PrivateLink endpoints for partner access, or public API endpoints with strong authentication.
+- **Identity federation** is more complex: you may need to integrate with multiple external IdPs or manage cross‑account IAM roles for each partner.
+- **Audit and compliance logging** is typically more stringent: you need detailed records of who accessed what data, when, and from where. This means more CloudTrail data events, longer retention periods, and possibly additional security services.
+- **Isolation and governance** often require **multi‑account architectures**: separate AWS accounts for different partners or data domains, each with its own VPC, endpoints, logging pipelines, and core buckets. This multiplies the standing cost of networking, monitoring, and metadata storage.
+
+
+## Design choices 
+
+Within this landscape, several architectural decisions can change the shape of standing cost:
+
+### Managed services vs self‑managed compute
+
+Using **managed, serverless services** (Lambda, Step Functions, S3, DynamoDB) reduces the need for always‑on infrastructure. You pay mainly for what you use, not for idle capacity. However, this can shift costs into per‑request or per‑GB charges, which may be higher at scale.
+
+Using **self‑managed compute** (EC2 instances, Kubernetes clusters) means you own the infrastructure and pay for it whether it is busy or idle. This creates a higher standing cost, but can be cheaper at high scale if you can keep utilisation high.
+
+
+### Single‑account vs multi‑account architecture
+
+A **single‑account setup** is simpler: one VPC, one set of endpoints, one logging pipeline. Standing cost is lower, but isolation and governance are weaker.
+
+A **multi‑account setup** (common for CSPs) provides better isolation between partners or data domains, and clearer cost attribution. However, it multiplies the number of VPCs, endpoints, logging streams, and core buckets, raising the standing cost.
+
+### Depth of monitoring and logging
+
+Turning on **detailed logging** (e.g. CloudTrail data events on every S3 access, or verbose application logs) improves auditability and helps with troubleshooting, but increases the continuous cost of log ingestion, storage, and retention.
+
+A lighter logging approach (e.g. API‑level events only, shorter retention) reduces standing cost but may leave you with less visibility if something goes wrong.
+
+### Automation and lifecycle management
+
+Automating **lifecycle policies** (e.g. automatically archiving old logs to cheaper storage, or deleting temporary data) can reduce long‑term storage cost. However, setting up and maintaining these policies requires upfront effort and ongoing monitoring.
+
+
+
+
+## Standing cost at a glance
+
+Standing cost is the baseline budget for keeping a data‑sharing platform ready, 
+even when nothing much is happening. It comes from five main sources: [networking](#network-and-access), 
+[core storage and metadata](#core-storage-and-metadata), [identity and security](#identity-and-security),
+ [monitoring and audit](#monitoring-and-audit), and [baseline compute](#baseline-compute).
+
+An [internal sharing platform (ISP)](#internal-sharing-platform) typically has a lower standing cost because it can rely on simpler networking, lighter audit requirements, and more flexible scaling. A [cross‑organisation sharing platform (CSP)](#cross-organisation-sharing-platform) typically has a higher standing cost because it must keep external entry points ready, support complex identity federation, maintain detailed audit trails, and often use multi‑account architectures for isolation.
+
+Understanding these components and the trade‑offs between them is essential for designing a sustainable platform and explaining its cost to stakeholders.
+
+
+
+<table >
+  <tr>
+    <th> Standing Cost Component</th>
+    <th> Internal Sharing Platform (ISP)</th>
+    <th>Cross-Organisation Sharing Platform (CSP)</th>
+  </tr>
+  <tr>
+    <td>[Network & access](#network-and-access)</td>
+    <td>$100–200</td>
+    <td>$500–1K</td>
+  </tr>
+  <tr>
+    <td>[Storage & metadata](#core-storage-and-metadata)</td>
+    <td>$50–100</td>
+    <td>$100–200</td>
+  </tr>
+  <tr>
+    <td>[Identity & security](#identity-and-security)</td>
+    <td>$50–100</td>
+    <td>$200–500</td>
+  </tr>
+  <tr>
+    <td>[Monitoring & audit](#monitoring-and-audit)</td>
+    <td>$100–200</td>
+    <td>$500–1K</td>
+  </tr>
+  <tr>
+    <td>[Baseline compute](#baseline-compute)</td>
+    <td>$200–500</td>
+    <td>$500–1.5K</td>
+  </tr>
+  <tr>
+    <td><strong>Total standing cost</strong></td>
+    <td><strong>~$500–1.1K</strong></td>
+    <td><strong>~$1.7–4.2K</strong></td>
+  </tr>
+</table>
+                                                                           
+
+*Costs shown in USD.
+
+
+
+
+
+
+
