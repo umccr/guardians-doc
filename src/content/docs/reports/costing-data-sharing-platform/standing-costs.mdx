@@ -4,7 +4,6 @@ title: Standing costs
 import { LinkButton } from '@astrojs/starlight/components';
 
 
-## What we mean by "standing cost"
 
 We use "standing cost" to describe the non‑zero cost of doing nothing. 
 Even with no active projects, the data‑sharing platform still needs networking, storage, authentication, 
@@ -13,7 +12,7 @@ These always‑on components form the fixed cost of operating the platform and k
 analysis‑ready data accessible when needed.
 
 
-You migh think of this as the cots of mantaining a data centre running in traditional on‑premises infrastructure, 
+You might think of this as the cots of maintaining a data centre running in traditional on‑premises infrastructure, 
 where you pay for the cost of keeping the data centre powered on, the network running,
 and the core systems ready—even on a quiet weekend when nobody is using anything. This principle is the same in AWS:
  certain services incur charges simply by existing and being ready to serve requests, regardless of whether traffic is flowing through them.
@@ -34,7 +33,7 @@ the minimum you'll spend each month, regardless of activity.
 </div>
 
 
-## Main components of standing cost
+## Main cost components
 
 At a high level, most of the standing cost of a data‑sharing platform comes from a 
 small set of always‑on building blocks:
@@ -74,7 +73,7 @@ Before any project uploads data, a data‑sharing platform must have foundationa
 - **S3 buckets** ([AWS's object storage service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html))
  hold shared datasets, platform configuration, catalogues, and logs. S3 charges primarily for data volume stored, 
  but there is always a **minimum baseline** of platform data that persists month to month. Storage optimization 
- is covered in [Storing data](/docs/reports/costing-data-sharing-platform/storage.mdx) and [Looking after data](/docs/reports/costing-data-sharing-platform/data-lifecycle.mdx).
+ is covered in [Storing data](../storage/) and [Looking after data](../data-lifecycle/).
 
 - **Metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)) 
 or **RDS** ([a relational database](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)) 
@@ -107,7 +106,7 @@ Any production platform must have visibility into what is happening:
 
 - **CloudWatch** ([Amazon CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html)) collects metrics (e.g. CPU usage, request counts) and logs from all platform components. Even a quiet platform generates a trickle of metrics and events, and CloudWatch charges per metric and per GB of logs ingested and stored.
 
-- **CloudTrail** ([AWS CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)) records every API call made in the AWS account(s), creating an immutable record of who did what and when. [3] This is essential for compliance and security, but it generates a continuous stream of events that must be stored, typically in an S3 bucket. CloudTrail charges per 100,000 events recorded, plus S3 storage for the logs. [4]
+- **CloudTrail** ([AWS CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html)) records every API call made in the AWS account(s), creating an immutable record of who did what and when. This is essential for compliance and security, but it generates a continuous stream of events that must be stored, typically in an S3 bucket. CloudTrail charges per 100,000 events recorded, plus S3 storage for the logs.
 
 - **Log aggregation and archival buckets** where CloudWatch logs and CloudTrail records are stored long‑term. These contribute to S3 storage cost.
 
@@ -243,9 +242,6 @@ Below, we describe the representative setups we assumed for an ISP and a CSP,
 
 
 
-
-
-
 #### Network & access 
 
 **ISP**
@@ -264,9 +260,6 @@ Below, we describe the representative setups we assumed for an ISP and a CSP,
 
 AWS pricing references:  
 [NAT Gateway](https://aws.amazon.com/vpc/pricing/), [VPC interface endpoints / PrivateLink](https://aws.amazon.com/privatelink/pricing/),[API Gateway](https://aws.amazon.com/api-gateway/pricing/).
-
-
-
 
 
 
