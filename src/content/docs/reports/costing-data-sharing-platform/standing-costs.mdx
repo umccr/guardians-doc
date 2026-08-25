@@ -180,64 +180,160 @@ Automating **lifecycle policies** (e.g. automatically archiving old logs to chea
 
 
 
-
 ## Standing cost at a glance
 
 Standing cost is the baseline budget for keeping a data‑sharing platform ready, 
-even when nothing much is happening. It comes from five main sources: [networking](#network-and-access), 
-[core storage and metadata](#core-storage-and-metadata), [identity and security](#identity-and-security),
- [monitoring and audit](#monitoring-and-audit), and [baseline compute](#baseline-compute).
+even when nothing much is happening. It comes from five main sources: 
+[networking](#network-and-access), 
+[core storage and metadata](#core-storage-and-metadata), 
+[identity and security](#identity-and-security),
+[monitoring and audit](#monitoring-and-audit), and 
+[baseline compute](#baseline-compute).
 
 An [internal sharing platform (ISP)](#internal-sharing-platform) typically has a lower standing cost because it can rely on simpler networking, lighter audit requirements, and more flexible scaling. A [cross‑organisation sharing platform (CSP)](#cross-organisation-sharing-platform) typically has a higher standing cost because it must keep external entry points ready, support complex identity federation, maintain detailed audit trails, and often use multi‑account architectures for isolation.
 
-Understanding these components and the trade‑offs between them is essential for designing a sustainable platform and explaining its cost to stakeholders.
 
+The table below summarises indicative monthly standing‑cost ranges for each component in an ISP and a CSP. 
+The underlying estimation details are described in the 
+[Assumptions and estimates](#assumptions-and-estimates) section. Costs shown in USD.
 
-
-<table >
+<table>
   <tr>
-    <th> Standing Cost Component</th>
-    <th> Internal Sharing Platform (ISP)</th>
-    <th>Cross-Organisation Sharing Platform (CSP)</th>
+    <th> </th>
+    <th>Internal Sharing Platform (ISP)</th>
+    <th>Cross‑Organisation Sharing Platform (CSP)</th>
   </tr>
   <tr>
     <td>[Network & access](#network-and-access)</td>
-    <td>$100–200</td>
-    <td>$500–1K</td>
+    <td>\$100–200</td>
+    <td>\$500–1K</td>
   </tr>
   <tr>
     <td>[Storage & metadata](#core-storage-and-metadata)</td>
-    <td>$50–100</td>
-    <td>$100–200</td>
+    <td>\$50–100</td>
+    <td>\$100–200</td>
   </tr>
   <tr>
     <td>[Identity & security](#identity-and-security)</td>
-    <td>$50–100</td>
-    <td>$200–500</td>
+    <td>\$50–100</td>
+    <td>\$200–500</td>
   </tr>
   <tr>
     <td>[Monitoring & audit](#monitoring-and-audit)</td>
-    <td>$100–200</td>
-    <td>$500–1K</td>
+    <td>\$100–200</td>
+    <td>\$500–1K</td>
   </tr>
   <tr>
     <td>[Baseline compute](#baseline-compute)</td>
-    <td>$200–500</td>
-    <td>$500–1.5K</td>
+    <td>\$200–500</td>
+    <td>\$500–1.5K</td>
   </tr>
   <tr>
     <td><strong>Total standing cost</strong></td>
-    <td><strong>~$500–1.1K</strong></td>
-    <td><strong>~$1.7–4.2K</strong></td>
+    <td><strong>~\$500–1.1K</strong></td>
+    <td><strong>~\$1.7–4.2K</strong></td>
   </tr>
 </table>
-                                                                           
-
-*Costs shown in USD.
 
 
+### Assumptions and estimates
+
+Below, we describe the representative setups we assumed for an ISP and a CSP,
+ and the corresponding estimates for each of the five components.
 
 
 
 
 
+
+#### Network & access 
+
+**ISP**
+
+- 1 VPC in a single region – no direct monthly fee for the VPC itself  
+- 1 NAT Gateway – around \$40/month including light data processing  
+- 3 VPC interface endpoints (e.g. S3, CloudWatch Logs, Secrets Manager) – together roughly \$30–50/month in endpoint‑hour and data processing charges  
+- 1 regional HTTP API in API Gateway with low request volume – about \$5–10/month  
+
+**CSP**
+
+- 2 production VPCs (e.g. internal and partner‑facing), peered or linked – no direct monthly fee for the VPCs themselves  
+- 2 NAT Gateways – together around \$100–120/month with higher data volumes  
+- 6 VPC interface endpoints (internal and external accounts) – together roughly \$80–150/month  
+- 2 regional HTTP APIs in API Gateway – together about \$50–100/month at higher request volume  
+
+AWS pricing references:  
+[NAT Gateway](https://aws.amazon.com/vpc/pricing/), [VPC interface endpoints / PrivateLink](https://aws.amazon.com/privatelink/pricing/),[API Gateway](https://aws.amazon.com/api-gateway/pricing/).
+
+
+
+
+
+
+
+#### Core storage and metadata
+
+**ISP**
+
+- 1–2 S3 buckets for platform configuration, catalogues and logs – together around \$20–40/month for ~100 GB of Standard storage and a modest request volume  
+- 1 small metadata store (e.g. DynamoDB table or small RDS instance) – around \$30–60/month for baseline capacity and light usage  
+
+**CSP**
+
+- Several S3 buckets across accounts for catalogues, logs and shared config – together around \$50–100/month for ~200 GB of storage and more requests  
+- 2–3 metadata stores (e.g. per‑partner or per‑domain DynamoDB tables or RDS instances) – together around \$50–100/month for baseline capacity  
+
+AWS pricing references:  
+[S3](https://aws.amazon.com/s3/pricing/), [DynamoDB](https://aws.amazon.com/dynamodb/pricing/), [RDS](https://aws.amazon.com/rds/pricing/).
+
+
+#### Identity and security
+
+**ISP**
+
+- 1 CloudTrail trail recording management events in a single account – around \$20–40/month for event recording and S3 log storage  
+- A small number of customer‑managed KMS keys for platform data – around \$5–20/month in key fees and request charges  
+- Integration with an organisational IdP (via IAM Identity Center or similar) – typically low direct AWS cost for standing usage  
+
+**CSP**
+
+- CloudTrail trails in 2–3 accounts, plus selected data events on key S3 buckets – together around \$100–300/month depending on event volume and retention  
+- More KMS keys and higher request volumes (e.g. per‑partner or per‑dataset keys) – together around \$20–50/month  
+- More complex identity federation (multiple external IdPs or cross‑account roles) – some additional operational overhead, but often small direct AWS cost
+
+AWS pricing references:  
+[CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [IAM Identity Center](https://aws.amazon.com/iam/identity-center/pricing/).
+
+
+#### Monitoring and audit
+
+**ISP**
+
+- CloudWatch metrics for core services (CPU, requests, errors) – around \$20–40/month for a modest number of custom metrics  
+- CloudWatch Logs for application and platform logs, with moderate retention (e.g. 30–90 days) – around \$50–150/month depending on GB ingested and stored  
+- Occasional use of dashboards and alarms – typically a small additional cost compared to metrics and logs  
+
+**CSP**
+
+- More CloudWatch metrics and log streams across multiple accounts and VPCs – together around \$200–500/month  
+- Longer log retention to meet cross‑organisational audit requirements – adding another \$300–500/month depending on volume  
+- Optional security monitoring services (e.g. GuardDuty, Security Hub) – which can contribute additional tens to hundreds of dollars per month
+
+AWS pricing references:  
+[CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [GuardDuty](https://aws.amazon.com/guardduty/pricing/), [Security Hub](https://aws.amazon.com/security-hub/pricing/).
+
+
+#### Baseline compute
+
+**ISP**
+
+- A small set of always‑on compute (e.g. 1–2 EC2 instances or EKS/ECS worker nodes for control‑plane services) – together around \$100–300/month depending on instance type and region  
+- Light use of serverless components (e.g. Lambda functions for housekeeping) – typically a small additional monthly cost for low invocation volumes  
+
+**CSP**
+
+- A larger or multi‑account control‑plane footprint (e.g. 3–6 EC2 instances or worker nodes across environments) – together around \$300–1,000/month  
+- More frequent use of Lambda or Fargate for partner‑facing jobs and workflows – adding roughly \$200–500/month at moderate scale  
+
+AWS pricing references:  
+[EC2](https://aws.amazon.com/ec2/pricing/), [ECS](https://aws.amazon.com/ecs/pricing/), [EKS](https://aws.amazon.com/eks/pricing/), [Lambda](https://aws.amazon.com/lambda/pricing/), [Fargate](https://aws.amazon.com/fargate/pricing/).
