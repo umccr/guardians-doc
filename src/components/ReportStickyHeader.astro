@@ -1,0 +1,44 @@
+---
+import { LinkButton } from '@astrojs/starlight/components';
+
+interface Props {
+  title: string;
+  backHref?: string;
+  backText?: string;
+}
+
+const {
+  title,
+  backHref = './overview/',
+  backText = 'Back to cost overview',
+} = Astro.props;
+---
+
+<div class="report-sticky-header">
+  <h1>{title}</h1>
+  <LinkButton href={backHref}>{backText}</LinkButton>
+</div>
+
+<style>
+  .report-sticky-header {
+    position: sticky;
+    top: var(--sl-nav-height, 0px);
+    z-index: 40;
+    background: var(--sl-color-bg);
+    border-bottom: 1px solid var(--sl-color-hairline);
+    padding: 0.75rem 0 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .report-sticky-header h1 {
+    margin: 0 0 0.75rem;
+  }
+
+  :global(.content-panel h1#_top) {
+    display: none;
+  }
+
+  :global(.content-panel:has(> .sl-container > h1#_top)) {
+    display: none;
+  }
+</style>
