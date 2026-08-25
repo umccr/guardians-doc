@@ -1,5 +1,346 @@
 ---
-title: Data lifecycle – costing an AWS data‑sharing platform
+title: Data lifecycle 
 ---
+import { LinkButton } from '@astrojs/starlight/components';
 
-# Data lifecycle – costing an AWS data‑sharing platform
+
+Lifecycle cost is what you pay to manage data over its lifetime: how long you keep it, how you store it as it ages, and when you delete it. Unlike storage cost (which is a snapshot of what you pay this month), lifecycle cost is about the **cumulative cost over years**.
+
+A platform that keeps everything hot forever will see storage cost grow continuously. A platform with thoughtful lifecycle policies can keep storage cost flat or even declining, by archiving old data or deleting intermediates.
+
+Lifecycle management is also about **sustainability**: deciding what data is worth keeping long‑term, and what can be safely deleted or archived.
+
+<div style={{ textAlign: 'center', margin: '2rem 0' }}>
+  <LinkButton href="#lifecycle-cost-at-a-glance">
+    Lifecycle cost at a glance 
+  </LinkButton>
+</div>
+
+
+## Main cost components
+
+At a high level, lifecycle cost comes from four closely related decisions:
+
+
+### Retention – how long to keep data
+
+A **retention policy** defines how long data is kept before it is eligible for deletion:
+
+- **No explicit retention** (keep forever): data accumulates indefinitely; cost grows as long as new data is added.
+- **Fixed retention** (e.g. 3 or 7 years): data is deleted after the retention period; cumulative cost plateaus once steady state is reached.
+- **Tiered retention** (e.g. “keep curated outputs longer, delete intermediates sooner”): different data types have different lifespans.
+
+Retention is often driven by:
+
+- **Compliance requirements** – regulations may require minimum retention periods for clinical or research data.
+- **Scientific reproducibility** – keeping data long enough to support re‑analysis or audit.
+- **Cost and sustainability** – balancing the value of data against the cost of keeping it.
+
+
+### Tiering – moving data between storage classes
+
+**Tiering** moves data to cheaper storage classes as it ages:
+
+- **Hot tiers** (e.g. S3 Standard) – highest cost per GB per month; fastest access.
+- **Warm tiers** (e.g. S3 Standard‑IA) – lower cost, but retrieval charges and higher minimum storage duration.
+- **Cold tiers** (e.g. S3 Glacier Instant / Flexible) – much lower cost, retrieval in minutes to hours.
+- **Deep archival tiers** (e.g. S3 Glacier Deep Archive) – lowest cost, retrieval in many hours.
+
+Example tiering policy:
+
+- “Keep in S3 Standard for 12 months, move to Glacier Instant for 4 years, then to Deep Archive.”
+
+Tiering significantly reduces average storage cost over the lifetime of a dataset, while still preserving access in principle.
+
+AWS pricing references:  
+[S3 storage classes](https://aws.amazon.com/s3/pricing/).
+
+
+### Deletion – removing data permanently
+
+**Deletion policies** specify when data is removed entirely:
+
+- **No deletion** – data is kept indefinitely (or until retention expires).
+- **Automatic deletion** – data is deleted after a certain age (e.g. “delete intermediates after 1 year”).
+- **Manual deletion** – data is reviewed and deleted by a person or process.
+
+Deletion is the most aggressive cost control lever, but requires careful governance: you must be confident data is no longer needed for science, compliance or audit.
+
+### Automation – lifecycle rules
+
+**Lifecycle rules** automate tiering and deletion:
+
+- Configured once and run automatically, for example:
+  - “Move objects to Glacier after 365 days; delete after 7 years.”
+  - “Delete log files after 90 days.”
+- Reduce manual effort and ensure consistent policies.
+- Can dramatically reduce long‑term cost without relying on manual clean‑up.
+
+AWS references:  
+[S3 lifecycle rules](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html).
+
+
+## Internal vs cross‑organisation platforms: contrasting lifecycle policies
+
+The same lifecycle concepts apply to both an **internal sharing platform (ISP)** and a **cross‑organisation sharing platform (CSP)**, but the policies and cost shapes often differ.
+
+### Internal Sharing Platform
+
+An ISP serves a single organisation. It can often adopt relatively aggressive, cost‑conscious lifecycle policies:
+
+- Focus on **curated outputs** (final BAM/CRAM, VCFs, summary tables), not every intermediate artefact.
+- **Intermediate files** (scratch outputs, temporary BAMs, logs) deleted after a short period (e.g. 6–12 months).
+- Tiering of older curated outputs from hot storage to Glacier and then Deep Archive.
+- Retention of curated outputs for a moderate period (e.g. 5–7 years) to support reproducibility and internal audits.
+
+**Cost shape**:
+
+- Storage cost grows as projects accumulate over the first several years.
+- As older data is tiered and eventually deleted, cost growth slows and can plateau.
+- Lifecycle policies keep cumulative cost significantly lower than “keep everything hot forever”.
+
+### Cross‑Organisation Sharing Platform
+
+A CSP supports multiple organisations and external partners. Lifecycle policies are often stricter and more complex:
+
+- Retention periods may be longer (e.g. 10+ years) to meet clinical or cross‑organisational agreements.
+- Audit trails and access logs may need to be kept for extended periods.
+- Multi‑region copies may be required, so lifecycle policies must be coordinated across accounts and regions.
+- Tiering of partner‑accessible datasets may be slower; data may need to stay hot for longer to serve collaborators.
+
+**Cost shape**:
+
+- Storage cost grows faster and stays higher for longer, especially if retention and hot‑storage windows are long.
+- Archiving still helps, but the plateau may come later and at a higher level.
+- Lifecycle decisions must balance strict governance and partner expectations against sustainability.
+
+
+## Design choices
+
+Several design decisions have strong effects on lifecycle cost:
+
+### Retention length
+
+**Shorter retention** (e.g. 3–5 years):
+
+- Lower cumulative cost.
+- Less historical data available for re‑analysis and long‑term audit.
+
+**Longer retention** (e.g. 10+ years):
+
+- Higher cumulative cost.
+- More historical data preserved, better support for long‑term studies and compliance.
+
+The trade‑off is between regulatory requirements and scientific priorities on one hand, and sustainability on the other. For many genomics platforms, 5–7 years of retention for curated outputs, with shorter retention for intermediates and logs, is a reasonable compromise.
+
+### Tiering strategy
+
+Options include:
+
+- **No tiering** – keep everything in hot storage:
+  - Highest cost; simplest access.
+- **Aggressive tiering** – move data rapidly to Glacier/Deep Archive:
+  - Lowest cost; slower access if data is needed later.
+- **Balanced tiering** – keep data hot while it is actively used, then move to colder tiers:
+  - Moderate cost; reasonable access times for older data.
+
+Tiering strategy should reflect how often older data is actually re‑used. Data that is very rarely accessed can be moved to Deep Archive without harming most workflows.
+
+AWS pricing references:  
+[S3 Standard vs Glacier vs Deep Archive](https://aws.amazon.com/s3/pricing/).
+
+
+### Deletion policy
+
+Different deletion policies:
+
+- **No deletion** – keep all data indefinitely:
+  - Highest cumulative cost; maximum historical coverage; may exceed practical budget.
+- **Selective deletion** – delete intermediates and scratch artefacts, keep curated outputs:
+  - Moderate cost; strong reproducibility; manageable footprint.
+- **Aggressive deletion** – delete most data after retention:
+  - Lowest cost; must be aligned carefully with governance and scientific needs.
+
+In practice, for most platforms:
+
+- **Curated outputs** are kept for longer.
+- **Intermediates and logs** are deleted much sooner (months to a few years).
+- Policies must be documented and communicated clearly.
+
+### Automation and lifecycle rules
+
+Approaches:
+
+- **Manual management** – humans review and delete or archive:
+  - Flexible but labour‑intensive and error‑prone.
+- **Automated lifecycle rules** – policies encoded in S3 and other systems:
+  - Consistent, low‑effort; requires up‑front design and careful testing.
+- **Hybrid** – automated rules for routine data, manual review for important datasets.
+
+Automation is generally necessary for sustained cost control; without it, lifecycle decisions easily slip and data accumulates beyond what was intended.
+
+
+## Lifecycle cost at a glance
+
+Lifecycle cost is the long‑term reflection of your retention, tiering and deletion decisions. The table below summarises indicative **steady‑state monthly storage cost ranges** for an ISP and a CSP, broken down by lifecycle‑related components. The underlying estimation details are described in the [Assumptions and estimates](#assumptions-and-estimates) section. Costs are shown in USD and are illustrative.
+
+<table>
+  <tr>
+    <th> </th>
+    <th>Internal Sharing Platform (ISP)</th>
+    <th>Cross‑Organisation Sharing Platform (CSP)</th>
+  </tr>
+  <tr>
+    <td>Curated outputs (long‑term hot + warm storage)</td>
+    <td>\$100–300</td>
+    <td>\$200–500</td>
+  </tr>
+  <tr>
+    <td>Archived outputs (cold & deep archival storage)</td>
+    <td>\$50–150</td>
+    <td>\$100–300</td>
+  </tr>
+  <tr>
+    <td>Intermediates & scratch (short‑term retention)</td>
+    <td>\$20–50</td>
+    <td>\$50–100</td>
+  </tr>
+  <tr>
+    <td>Logs & audit trail (multi‑year retention)</td>
+    <td>\$20–50</td>
+    <td>\$50–150</td>
+  </tr>
+  <tr>
+    <td><strong>Lifecycle‑shaped storage cost (steady‑state monthly)</strong></td>
+    <td><strong>~\$190–550</strong></td>
+    <td><strong>~\$400–1.05K</strong></td>
+  </tr>
+</table>
+
+These ranges assume a moderate‑scale platform with tens of projects and TB‑scale curated outputs after lifecycle policies have been applied for several years. They are intended to show **orders of magnitude** rather than exact bills. Actual costs depend on data growth rates, retention requirements, tiering strategy and region‑specific pricing.
+
+
+### Assumptions and estimates
+
+Below, we describe representative setups we assumed for an ISP and a CSP, and the corresponding estimates for each component.
+
+#### Curated outputs (long‑term hot + warm storage)
+
+**ISP**
+
+- Curated outputs from around 50 projects.  
+- Typical pattern: recent data (last 1–2 years) in S3 Standard; older curated outputs in Standard‑IA or Glacier Instant.  
+- Approximate volume: 5–10 TB across hot and warm tiers.  
+- Typical monthly cost: **\$100–300** for these long‑lived curated datasets.
+
+**CSP**
+
+- Curated outputs across multiple organisations, kept hot or warm for longer due to external access requirements.  
+- Approximate volume: 10–20 TB across hot and warm tiers.  
+- Typical monthly cost: **\$200–500**, reflecting longer hot‑storage windows and more data.
+
+AWS pricing references:  
+[S3 Standard & Standard‑IA](https://aws.amazon.com/s3/pricing/), [Glacier Instant](https://aws.amazon.com/s3/pricing/).
+
+
+#### Archived outputs (cold & deep archival storage)
+
+**ISP**
+
+- Older curated outputs moved to Glacier Flexible or Deep Archive according to lifecycle rules.  
+- Approximate volume: 10–30 TB of archival data accumulated over several years.  
+- Typical monthly cost: **\$50–150** in cold and deep archival tiers.
+
+**CSP**
+
+- Larger archival footprint due to longer retention periods and multi‑organisation commitments.  
+- Approximate volume: 20–60 TB of archival data, potentially across multiple regions.  
+- Typical monthly cost: **\$100–300**, depending on tier mix and retention length.
+
+AWS pricing references:  
+[Glacier Flexible](https://aws.amazon.com/s3/pricing/), [Glacier Deep Archive](https://aws.amazon.com/s3/pricing/).
+
+
+#### Intermediates & scratch (short‑term retention)
+
+**ISP**
+
+- Intermediate artefacts (temporary BAMs, pipeline outputs, scratch files) kept only for short periods (e.g. 30–365 days).  
+- Approximate volume at any one time: 1–5 TB of recently created intermediates.  
+- Typical monthly cost: **\$20–50**, assuming aggressive deletion once intermediates are no longer needed.
+
+**CSP**
+
+- More complex intermediate data between organisations, sometimes retained longer for investigative or audit purposes.  
+- Approximate volume: 2–10 TB of intermediates in hot storage at any one time.  
+- Typical monthly cost: **\$50–100**, depending on how aggressively intermediates are cleaned up.
+
+AWS pricing references:  
+[S3](https://aws.amazon.com/s3/pricing/), [Lifecycle rules](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html).
+
+
+#### Logs & audit trail (multi‑year retention)
+
+**ISP**
+
+- Application logs, catalogue logs and moderate audit logs retained for months to a few years.  
+- Approximate volume: tens to low hundreds of GB in logs and audit records.  
+- Typical monthly cost: **\$20–50** for log and audit storage.
+
+**CSP**
+
+- More detailed audit trails and logs spanning multiple organisations, retained for longer periods (e.g. several years).  
+- Approximate volume: hundreds of GB to several TB of logs across accounts.  
+- Typical monthly cost: **\$50–150**, depending on log volume and retention.
+
+AWS pricing references:  
+[CloudWatch Logs](https://aws.amazon.com/cloudwatch/pricing/), [CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [S3](https://aws.amazon.com/s3/pricing/).
+
+
+### Typical cumulative storage cost over 5 years (rough order of magnitude, USD)
+
+In addition to steady‑state monthly figures, it is useful to look at **five‑year cumulative storage cost** under different lifecycle policies. The table below shows rough orders of magnitude for a few illustrative scenarios, reusing the same broad assumptions as the storage document.
+
+<table>
+  <tr>
+    <th>Scenario</th>
+    <th>Policy</th>
+    <th>5‑year total</th>
+    <th>Average per month</th>
+  </tr>
+  <tr>
+    <td>ISP: 50 projects</td>
+    <td>Keep everything hot forever</td>
+    <td>~\$18,000</td>
+    <td>~\$300</td>
+  </tr>
+  <tr>
+    <td>ISP: 50 projects</td>
+    <td>Archive after 2 years, delete intermediates after 1 year</td>
+    <td>~\$6,500</td>
+    <td>~\$110</td>
+  </tr>
+  <tr>
+    <td>CSP: 20 projects, single region</td>
+    <td>Keep curated outputs hot, minimal tiering</td>
+    <td>~\$12,000</td>
+    <td>~\$200</td>
+  </tr>
+  <tr>
+    <td>CSP: 20 projects, multi‑region</td>
+    <td>Keep hot forever, 10‑year retention (5‑year portion)</td>
+    <td>~\$32,500</td>
+    <td>~\$540</td>
+  </tr>
+  <tr>
+    <td>CSP: 20 projects, multi‑region</td>
+    <td>Archive after 1 year, delete intermediates after 2 years</td>
+    <td>~\$9,000</td>
+    <td>~\$150</td>
+  </tr>
+</table>
+
+*Costs shown in USD. These are approximate cumulative costs based on typical data growth and lifecycle policies. Actual costs depend on data volume growth rate, retention requirements, tiering strategy and region‑specific pricing; Australian pricing is typically somewhat higher.*
+
+AWS pricing references:  
+[S3 Standard](https://aws.amazon.com/s3/pricing/), [Glacier](https://aws.amazon.com/s3/pricing/), [Glacier Deep Archive](https://aws.amazon.com/s3/pricing/), [Lifecycle rules](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html).
