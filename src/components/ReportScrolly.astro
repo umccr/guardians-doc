@@ -1,6 +1,6 @@
 ---
 interface Props {
-  steps: { id: string; title: string; text: string; visual: string }[];
+  steps: { id: string; title: string; text: string; visual: string; link?: string; linkText?: string }[];
 }
 const { steps } = Astro.props;
 ---
@@ -19,6 +19,9 @@ const { steps } = Astro.props;
       <div class="scrolly-step-card" data-visual-content={step.visual}>
         <h3>{step.title}</h3>
         <p>{step.text}</p>
+        {step.link ? (
+          <p style="margin-top:0.75rem;"><a class="read-more" href={step.link}>{step.linkText ?? 'Read more'}</a></p>
+        ) : null}
       </div>
     ))}
   </div>
@@ -65,6 +68,17 @@ const { steps } = Astro.props;
     padding: 1.5rem;
     border-radius: 0.5rem;
     box-shadow: var(--sl-shadow-sm);
+    position: relative;
+  }
+
+  .read-more {
+    display: inline-block;
+    padding: 0.4rem 0.6rem;
+    background: transparent;
+    border: 1px solid var(--sl-color-hairline, #e4e4e7);
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
   }
 </style>
 
