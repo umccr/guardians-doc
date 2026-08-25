@@ -1,19 +1,44 @@
 ---
 title: Costing a data‑sharing platform
-prev: false
-next: false
 ---
 
-<article className="prose dark:prose-invert">
+import ReportScrolly from '../../../../components/ReportScrolly.astro';
 
-# Start Overview
+# Full introduction to costing a data‑sharing platform
+This report provides a high‑level overview of the costs associated with running a data‑sharing platform in AWS. It is intended to help you understand the different cost components and how they contribute to the total cost of ownership.
 
-[standing costs](../standing-costs/)
+export const sceneData = [
+    { 
+        id: 'scene1', 
+        title: 'Standing Costs', 
+        text: '[standing costs](../standing-costs/)',
+        visual: 'Some nice visual representation of standing costs here.' 
+    },
+    { 
+        id: 'scene2', 
+        title: 'Storage Costs', 
+        text: '[storage costs](../storage/)',
+        visual: 'Some nice visual representation of storage costs here.' 
+    },
+    { 
+        id: 'scene3', 
+        title: 'Data Movement Costs', 
+        text: '[data movement costs](../data-movement-egress/)',
+        visual: 'Some nice visual representation of data movement costs here.' 
+    },
+    { 
+        id: 'scene4', 
+        title: 'Data Lifecycle Costs', 
+        text: '[data lifecycle costs](../data-lifecycle/)',
+        visual: 'Some nice visual representation of data lifecycle costs here.' 
+    }  
+];
 
-[storage costs](../storage/)
+<ReportScrolly steps={sceneData} />
 
-[lifecycle costs](../data-lifecycle/)
-
-[data movement & egress costs](../data-movement-egress/)
-
-</article>
+## Total Cost Overview
+The total cost of a data‑sharing platform is the sum
+ of standing costs and data movement costs. Standing costs 
+ are incurred simply by having the platform running, 
+ while data movement costs depend on how much data is
+  transferred in and out of the platform.

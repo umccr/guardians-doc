@@ -1,0 +1,95 @@
+---
+interface Props {
+  steps: { id: string; title: string; text: string; visual: string }[];
+}
+const { steps } = Astro.props;
+---
+
+<div class="report-scrolly-layout">
+  <!-- Left Side: Sticky Visual Container -->
+  <div class="scrolly-visual-pane">
+    <div class="visual-box" id="scrolly-display">
+      <p id="visual-text">Scroll to begin report data...</p>
+    </div>
+  </div>
+
+  <!-- Right Side: Scrolling Markdown Steps -->
+  <div class="scrolly-text-pane">
+    {steps.map((step) => (
+      <div class="scrolly-step-card" data-visual-content={step.visual}>
+        <h3>{step.title}</h3>
+        <p>{step.text}</p>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .report-scrolly-layout {
+    display: flex;
+    position: relative;
+    gap: 2rem;
+    margin: 3rem 0;
+  }
+  .scrolly-visual-pane {
+    flex: 1;
+    position: sticky;
+    top: 5rem; /* Adjust based on your doc page header height */
+    height: 60vh;
+    display: flex;
+    align-items: center;
+  }
+  .visual-box {
+    width: 100%;
+    height: 100%;
+    background: var(--sl-color-bg-subtle, #f4f4f5);
+    border: 1px solid var(--sl-color-hairline, #e4e4e7);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-weight: bold;
+    text-align: center;
+  }
+  .scrolly-text-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 50vh; /* Pushes narrative text apart so it scrolls cleanly */
+    padding-bottom: 30vh;
+  }
+  .scrolly-step-card {
+    background: var(--sl-color-bg, #ffffff);
+    border: 1px solid var(--sl-color-hairline, #e4e4e7);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--sl-shadow-sm);
+  }
+</style>
+
+<script>
+  const displayNode = document.getElementById('scrolly-display');
+  const textNode = document.getElementById('visual-text');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const visualUpdate = entry.target.getAttribute('data-visual-content');
+        if (textNode) textNode.textContent = visualUpdate;
+        
+        // Highlight active card slightly
+        entry.target.style.opacity = '1';
+      } else {
+        entry.target.style.opacity = '0.4';
+      }
+    });
+  }, {
+    rootMargin: '0px 0px -40% 0px',
+    threshold: 0.2
+  });
+
+  document.querySelectorAll('.scrolly-step-card').forEach(card => {
+    observer.observe(card);
+  });
+</script>
