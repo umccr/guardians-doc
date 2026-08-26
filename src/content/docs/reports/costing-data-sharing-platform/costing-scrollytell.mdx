@@ -8,34 +8,70 @@ import ReportScrolly from '../../../../components/ReportScrolly.astro';
 This report provides a high‑level overview of the costs associated with running a data‑sharing platform in AWS. It is intended to help you understand the different cost components and how they contribute to the total cost of ownership.
 
 export const sceneData = [
-    { 
-        id: 'scene1', 
-        title: 'Standing Costs', 
-        text: '[standing costs](../standing-costs/)',
-        visual: 'Some nice visual representation of standing costs here.',
-        link:'../standing-costs/' 
+  {
+    id: 'scene1',
+    title: 'Standing Costs',
+    text: 'Core baseline infrastructure costs that apply even before any project data is processed.',
+    visual: '',
+    link: '../standing-costs/',
+    linkText: 'Open standing costs',
+    chart: {
+      title: 'Standing costs only',
+      max: 2560,
+      bars: [
+        { label: 'ISP', values: [500] },
+        { label: 'CSP', values: [1320] },
+      ],
     },
-    { 
-        id: 'scene2', 
-        title: 'Storage Costs', 
-        text: 'Mucho mucho mucho mucho mucho mucho mucho mucho ',
-        visual: 'Some nice visual representation of storage costs here.',
-        link:'../storage/' 
+  },
+  {
+    id: 'scene2',
+    title: 'Storage Costs',
+    text: 'Adds dataset-at-rest costs on top of baseline platform costs.',
+    visual: '',
+    link: '../storage/',
+    linkText: 'Open storage costs',
+    chart: {
+      title: 'Standing + Storage',
+      max: 2560,
+      bars: [
+        { label: 'ISP', values: [1130, 570] },
+        { label: 'CSP', values: [1320, 520] },
+      ],
     },
-    { 
-        id: 'scene3', 
-        title: 'Data Movement Costs', 
-        text: '[data movement costs](../data-movement-egress/)',
-        visual: 'Some nice visual representation of data movement costs here.',
-        link:'../data-movement-egress/' 
+  },
+  {
+    id: 'scene3',
+    title: 'Data Movement Costs',
+    text: 'Adds recurring data egress and transfer costs driven by monthly movement volume.',
+    visual: '',
+    link: '../data-movement-egress/',
+    linkText: 'Open data movement costs',
+    chart: {
+      title: 'Standing + Storage + Movement',
+      max: 2560,
+      bars: [
+        { label: 'ISP', values: [1130, 570, 480] },
+        { label: 'CSP', values: [1320, 520, 450] },
+      ],
     },
-    { 
-        id: 'scene4', 
-        title: 'Data Lifecycle Costs', 
-        text: '[data lifecycle costs](../data-lifecycle/)',
-        visual: 'Some nice visual representation of data lifecycle costs here.',
-        link:'../data-lifecycle/' 
-    }  
+  },
+  {
+    id: 'scene4',
+    title: 'Data Lifecycle Costs',
+    text: 'Adds lifecycle orchestration and retention operations to form the full monthly total.',
+    visual: '',
+    link: '../data-lifecycle/',
+    linkText: 'Open data lifecycle costs',
+    chart: {
+      title: 'Full stack',
+      max: 2560,
+      bars: [
+        { label: 'ISP', values: [1130, 570, 480, 230] },
+        { label: 'CSP', values: [1320, 520, 450, 270] },
+      ],
+    },
+  },
 ];
 
 <ReportScrolly steps={sceneData} />

@@ -1,15 +1,34 @@
 ---
+import CostCumulativeBars from './CostCumulativeBars.astro';
+
 interface Props {
-  steps: { id: string; title: string; text: string; visual: string; link?: string; linkText?: string; metric?: { value: string; unit?: string; label?: string } }[];
+  steps: {
+    id: string;
+    title: string;
+    text: string;
+    visual: string;
+    link?: string;
+    linkText?: string;
+    chart?: {
+      title?: string;
+      max?: number;
+      bars: { label: string; values: number[] }[];
+    };
+  }[];
 }
 const { steps } = Astro.props;
+
+const initialStep = steps[0];
 ---
 
 <div class="report-scrolly-layout">
   <!-- Left Side: Scrolling Markdown Steps -->
   <div class="scrolly-text-pane">
     {steps.map((step) => (
-      <div class="scrolly-step-card" data-visual-content={step.visual} data-metric-value={step.metric?.value} data-metric-unit={step.metric?.unit} data-metric-label={step.metric?.label}>
+      <div
+        class="scrolly-step-card"
+        data-step-id={step.id}
+      >
         <h3>{step.title}</h3>
         <p>{step.text}</p>
         {step.link ? (
@@ -22,12 +41,11 @@ const { steps } = Astro.props;
   <!-- Right Side: Sticky Visual Container -->
   <div class="scrolly-visual-pane">
     <div class="visual-box" id="scrolly-display">
-      <div class="metric">
-        <div class="metric-value" id="metric-value"></div>
-        <div class="metric-unit" id="metric-unit"></div>
-        <div class="metric-label" id="metric-label"></div>
-      </div>
-      <p id="visual-text">Scroll to begin report data...</p>
+      {steps.map((step, i) => (
+        <div class="chart-slide" data-step-chart={step.id} aria-hidden={i !== 0 ? 'true' : 'false'}>
+          {step.chart && <CostCumulativeBars title={step.chart.title} max={step.chart.max} bars={step.chart.bars} />}
+        </div>
+      ))}
     </div>
   </div>
 </div>
@@ -45,7 +63,7 @@ const { steps } = Astro.props;
     top: 5rem; /* Adjust based on your doc page header height */
     height: 60vh;
     display: flex;
-    align-items: center;
+    align-items: stretch;
   }
   .visual-box {
     width: 100%;
@@ -53,30 +71,24 @@ const { steps } = Astro.props;
     background: var(--sl-color-bg-subtle, #f4f4f5);
     border: 1px solid var(--sl-color-hairline, #e4e4e7);
     border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    font-weight: bold;
-    text-align: center;
+    padding: 1.25rem 1.5rem;
+    overflow: hidden;
+    position: relative;
   }
-  .metric {
+
+  .chart-slide {
+    position: absolute;
+    inset: 1.25rem 1.5rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 0.5rem;
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
   }
-  .metric-value {
-    font-size: 2rem;
-    font-weight: 800;
-  }
-  .metric-unit {
-    font-size: 0.9rem;
-    color: var(--sl-color-muted, #6b7280);
-  }
-  .metric-label {
-    font-size: 0.85rem;
-    color: var(--sl-color-muted, #6b7280);
+
+  .chart-slide[aria-hidden="false"] {
+    opacity: 1;
+    pointer-events: auto;
   }
   .scrolly-text-pane {
     flex: 1;
@@ -106,25 +118,18 @@ const { steps } = Astro.props;
 </style>
 
 <script>
-  const displayNode = document.getElementById('scrolly-display');
-  const textNode = document.getElementById('visual-text');
-  const metricValueNode = document.getElementById('metric-value');
-  const metricUnitNode = document.getElementById('metric-unit');
-  const metricLabelNode = document.getElementById('metric-label');
+  function activateStep(stepId) {
+    document.querySelectorAll('.chart-slide').forEach((slide) => {
+      const isActive = slide.getAttribute('data-step-chart') === stepId;
+      slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    });
+  }
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const visualUpdate = entry.target.getAttribute('data-visual-content');
-        const metricValue = entry.target.getAttribute('data-metric-value');
-        const metricUnit = entry.target.getAttribute('data-metric-unit');
-        const metricLabel = entry.target.getAttribute('data-metric-label');
-        if (metricValueNode) metricValueNode.textContent = metricValue || '';
-        if (metricUnitNode) metricUnitNode.textContent = metricUnit || '';
-        if (metricLabelNode) metricLabelNode.textContent = metricLabel || '';
-        if (textNode) textNode.textContent = visualUpdate;
-
-        // Highlight active card slightly
+        const stepId = entry.target.getAttribute('data-step-id');
+        activateStep(stepId);
         entry.target.style.opacity = '1';
       } else {
         entry.target.style.opacity = '0.4';
@@ -135,7 +140,12 @@ const { steps } = Astro.props;
     threshold: 0.2
   });
 
-  document.querySelectorAll('.scrolly-step-card').forEach(card => {
-    observer.observe(card);
-  });
+  const stepCards = document.querySelectorAll('.scrolly-step-card');
+  stepCards.forEach(card => observer.observe(card));
+
+  if (stepCards.length > 0) {
+    const firstId = stepCards[0].getAttribute('data-step-id');
+    activateStep(firstId);
+    stepCards[0].style.opacity = '1';
+  }
 </script>
