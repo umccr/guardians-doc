@@ -137,11 +137,11 @@ export default defineConfig({
                 ]
             },
             {
-                label: 'Reports',
-                items: [
-                    "reports/costing-data-sharing-platform/overview",
-                ],
-            }
+            label: 'Reports',
+            items: [
+                "reports/costing-data-sharing-platform/costing-scrollytell",
+            ],
+            },
         ],
     })],
     vite: {
