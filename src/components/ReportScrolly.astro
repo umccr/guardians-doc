@@ -1,151 +1,120 @@
 ---
-import CostCumulativeBars from './CostCumulativeBars.astro';
+type ScrollyStep = {
+	id?: string;
+	title: string;
+	text: string;
+	image: string;
+	link: string;
+	linkText: string;
+};
 
 interface Props {
-  steps: {
-    id: string;
-    title: string;
-    text: string;
-    visual: string;
-    link?: string;
-    linkText?: string;
-    chart?: {
-      title?: string;
-      max?: number;
-      bars: { label: string; values: number[] }[];
-    };
-  }[];
+	steps: ScrollyStep[];
 }
-const { steps } = Astro.props;
 
-const initialStep = steps[0];
+const { steps = [] } = Astro.props;
+
+const normalizeWithBase = (value: string) => {
+	if (!value) return value;
+	if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) {
+		return value;
+	}
+	if (value.startsWith('/')) {
+		return `${import.meta.env.BASE_URL}${value.slice(1)}`;
+	}
+	return value;
+};
 ---
 
-<div class="report-scrolly-layout">
-  <!-- Left Side: Scrolling Markdown Steps -->
-  <div class="scrolly-text-pane">
-    {steps.map((step) => (
-      <div
-        class="scrolly-step-card"
-        data-step-id={step.id}
-      >
-        <h3>{step.title}</h3>
-        <p>{step.text}</p>
-        {step.link ? (
-          <p style="margin-top:0.75rem;"><a class="read-more" href={step.link}>{step.linkText ?? 'Read more'}</a></p>
-        ) : null}
-      </div>
-    ))}
-  </div>
+<div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2" data-scrolly-root>
+	<div class="md:sticky md:top-20 h-[55vh] md:h-[70vh]">
+		<div class="relative h-full w-full overflow-hidden rounded border p-4">
+			{steps.map((step, index) => (
+				<img
+					data-scrolly-visual
+					data-index={String(index)}
+					src={normalizeWithBase(step.image)}
+					alt={step.title}
+					loading="lazy"
+					class:list={[
+						'scrolly-visual absolute inset-0 h-full w-full object-contain transition-opacity duration-500',
+						index === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none',
+					]}
+				/>
+			))}
+		</div>
+	</div>
 
-  <!-- Right Side: Sticky Visual Container -->
-  <div class="scrolly-visual-pane">
-    <div class="visual-box" id="scrolly-display">
-      {steps.map((step, i) => (
-        <div class="chart-slide" data-step-chart={step.id} aria-hidden={i !== 0 ? 'true' : 'false'}>
-          {step.chart && <CostCumulativeBars title={step.chart.title} max={step.chart.max} bars={step.chart.bars} />}
-        </div>
-      ))}
-    </div>
-  </div>
+	<div class="space-y-20 md:space-y-28">
+		{steps.map((step, index) => (
+			<section
+				id={step.id}
+				data-scrolly-step
+				data-index={String(index)}
+				class="scrolly-step min-h-[70vh] flex items-center"
+			>
+				<div
+					data-scrolly-copy
+					class:list={[
+						'max-w-prose space-y-4 transition-all duration-300',
+						index === 0 ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-4',
+					]}
+				>
+					<h3 class="text-2xl font-semibold">{step.title}</h3>
+					<p>{step.text}</p>
+					<a href={step.link} class="inline-block rounded border px-4 py-2">
+						{step.linkText}
+					</a>
+				</div>
+			</section>
+		))}
+	</div>
 </div>
 
-<style>
-  .report-scrolly-layout {
-    display: flex;
-    position: relative;
-    gap: 2rem;
-    margin: 3rem 0;
-  }
-  .scrolly-visual-pane {
-    flex: 1;
-    position: sticky;
-    top: 5rem; /* Adjust based on your doc page header height */
-    height: 60vh;
-    display: flex;
-    align-items: stretch;
-  }
-  .visual-box {
-    width: 100%;
-    height: 100%;
-    background: var(--sl-color-bg-subtle, #f4f4f5);
-    border: 1px solid var(--sl-color-hairline, #e4e4e7);
-    border-radius: 0.75rem;
-    padding: 1.25rem 1.5rem;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .chart-slide {
-    position: absolute;
-    inset: 1.25rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    opacity: 0;
-    transition: opacity 400ms ease;
-    pointer-events: none;
-  }
-
-  .chart-slide[aria-hidden="false"] {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .scrolly-text-pane {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 50vh; /* Pushes narrative text apart so it scrolls cleanly */
-    padding-bottom: 30vh;
-  }
-  .scrolly-step-card {
-    background: var(--sl-color-bg, #ffffff);
-    border: 1px solid var(--sl-color-hairline, #e4e4e7);
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    box-shadow: var(--sl-shadow-sm);
-    position: relative;
-  }
-
-  .read-more {
-    display: inline-block;
-    padding: 0.4rem 0.6rem;
-    background: transparent;
-    border: 1px solid var(--sl-color-hairline, #e4e4e7);
-    border-radius: 6px;
-    text-decoration: none;
-    color: inherit;
-  }
-</style>
-
 <script>
-  function activateStep(stepId) {
-    document.querySelectorAll('.chart-slide').forEach((slide) => {
-      const isActive = slide.getAttribute('data-step-chart') === stepId;
-      slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-    });
-  }
+	const roots = document.querySelectorAll('[data-scrolly-root]');
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const stepId = entry.target.getAttribute('data-step-id');
-        activateStep(stepId);
-        entry.target.style.opacity = '1';
-      } else {
-        entry.target.style.opacity = '0.4';
-      }
-    });
-  }, {
-    rootMargin: '0px 0px -40% 0px',
-    threshold: 0.2
-  });
+	for (const root of roots) {
+		const stepElements = Array.from(root.querySelectorAll('[data-scrolly-step]'));
+		const visualElements = Array.from(root.querySelectorAll('[data-scrolly-visual]'));
+		const copyElements = Array.from(root.querySelectorAll('[data-scrolly-copy]'));
 
-  const stepCards = document.querySelectorAll('.scrolly-step-card');
-  stepCards.forEach(card => observer.observe(card));
+		if (stepElements.length === 0) continue;
 
-  if (stepCards.length > 0) {
-    const firstId = stepCards[0].getAttribute('data-step-id');
-    activateStep(firstId);
-    stepCards[0].style.opacity = '1';
-  }
+		const activate = (activeIndex) => {
+			visualElements.forEach((visual, index) => {
+				visual.classList.toggle('opacity-100', index === activeIndex);
+				visual.classList.toggle('opacity-0', index !== activeIndex);
+				visual.classList.toggle('pointer-events-none', index !== activeIndex);
+			});
+
+			copyElements.forEach((copy, index) => {
+				copy.classList.toggle('opacity-100', index === activeIndex);
+				copy.classList.toggle('translate-y-0', index === activeIndex);
+				copy.classList.toggle('opacity-50', index !== activeIndex);
+				copy.classList.toggle('translate-y-4', index !== activeIndex);
+			});
+		};
+
+		activate(0);
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+				if (visibleEntries.length === 0) return;
+
+				visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+				const topEntry = visibleEntries[0];
+				const activeIndex = Number(topEntry.target.getAttribute('data-index') || 0);
+				activate(activeIndex);
+			},
+			{
+				root: null,
+				threshold: [0.2, 0.4, 0.6, 0.8],
+				rootMargin: '-20% 0px -35% 0px',
+			}
+		);
+
+		stepElements.forEach((step) => observer.observe(step));
+	}
 </script>

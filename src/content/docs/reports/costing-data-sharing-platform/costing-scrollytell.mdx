@@ -12,65 +12,33 @@ export const sceneData = [
     id: 'scene1',
     title: 'Standing Costs',
     text: 'Core baseline infrastructure costs that apply even before any project data is processed.',
-    visual: '',
+    image: '/diagrams/costing-scene1.svg',
     link: '../standing-costs/',
     linkText: 'Open standing costs',
-    chart: {
-      title: 'Standing costs only',
-      max: 2560,
-      bars: [
-        { label: 'ISP', values: [500] },
-        { label: 'CSP', values: [1320] },
-      ],
-    },
   },
   {
     id: 'scene2',
     title: 'Storage Costs',
     text: 'Adds dataset-at-rest costs on top of baseline platform costs.',
-    visual: '',
+    image: '/diagrams/costing-scene2.svg',
     link: '../storage/',
     linkText: 'Open storage costs',
-    chart: {
-      title: 'Standing + Storage',
-      max: 2560,
-      bars: [
-        { label: 'ISP', values: [1130, 570] },
-        { label: 'CSP', values: [1320, 520] },
-      ],
-    },
   },
   {
     id: 'scene3',
     title: 'Data Movement Costs',
     text: 'Adds recurring data egress and transfer costs driven by monthly movement volume.',
-    visual: '',
+    image: '/diagrams/costing-scene3.svg',
     link: '../data-movement-egress/',
     linkText: 'Open data movement costs',
-    chart: {
-      title: 'Standing + Storage + Movement',
-      max: 2560,
-      bars: [
-        { label: 'ISP', values: [1130, 570, 480] },
-        { label: 'CSP', values: [1320, 520, 450] },
-      ],
-    },
   },
   {
     id: 'scene4',
     title: 'Data Lifecycle Costs',
     text: 'Adds lifecycle orchestration and retention operations to form the full monthly total.',
-    visual: '',
+    image: '/diagrams/costing-scene4.svg',
     link: '../data-lifecycle/',
     linkText: 'Open data lifecycle costs',
-    chart: {
-      title: 'Full stack',
-      max: 2560,
-      bars: [
-        { label: 'ISP', values: [1130, 570, 480, 230] },
-        { label: 'CSP', values: [1320, 520, 450, 270] },
-      ],
-    },
   },
 ];
 
