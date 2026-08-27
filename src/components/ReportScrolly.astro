@@ -1,4 +1,6 @@
 ---
+import { LinkButton } from '@astrojs/starlight/components';
+
 type ScrollyStep = {
 	id?: string;
 	title: string;
@@ -33,7 +35,7 @@ const normalizedSteps = steps.map((step) => ({
 
 <div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start" data-scrolly-root>
 	<div class="md:sticky md:top-20 md:self-start h-[55vh] md:h-[70vh]">
-		<div class="relative h-full w-full overflow-hidden rounded border p-4">
+		<div class="relative h-full w-full overflow-hidden rounded-2xl bg-slate-50 p-6">
 			<img
 				data-scrolly-image
 				src={normalizedSteps[0]?.image}
@@ -65,9 +67,9 @@ const normalizedSteps = steps.map((step) => ({
 				>
 					<h3 class="text-2xl font-semibold">{step.title}</h3>
 					<p>{step.text}</p>
-					<a href={step.link} class="inline-block rounded border px-4 py-2">
+					<LinkButton href={step.link}>
 						{step.linkText}
-					</a>
+					</LinkButton>
 				</div>
 			</section>
 		))}
