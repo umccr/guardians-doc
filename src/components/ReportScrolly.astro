@@ -24,34 +24,37 @@ const normalizeWithBase = (value: string) => {
 	}
 	return value;
 };
+
+const normalizedSteps = steps.map((step) => ({
+	...step,
+	image: normalizeWithBase(step.image),
+}));
 ---
 
-<div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2" data-scrolly-root>
-	<div class="md:sticky md:top-20 h-[55vh] md:h-[70vh]">
+<div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start" data-scrolly-root>
+	<div class="md:sticky md:top-20 md:self-start h-[55vh] md:h-[70vh]">
 		<div class="relative h-full w-full overflow-hidden rounded border p-4">
-			{steps.map((step, index) => (
-				<img
-					data-scrolly-visual
-					data-index={String(index)}
-					src={normalizeWithBase(step.image)}
-					alt={step.title}
-					loading="lazy"
-					class:list={[
-						'scrolly-visual absolute inset-0 h-full w-full object-contain transition-opacity duration-500',
-						index === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none',
-					]}
-				/>
-			))}
+			<img
+				data-scrolly-image
+				src={normalizedSteps[0]?.image}
+				alt={normalizedSteps[0]?.title ?? ''}
+				loading="eager"
+				decoding="async"
+				class="h-full w-full object-contain object-bottom transition-opacity duration-200"
+			/>
 		</div>
 	</div>
 
-	<div class="space-y-20 md:space-y-28">
-		{steps.map((step, index) => (
+	<div>
+		<div class="h-[20vh] md:h-[28vh]" aria-hidden="true"></div>
+		{normalizedSteps.map((step, index) => (
 			<section
 				id={step.id}
 				data-scrolly-step
 				data-index={String(index)}
-				class="scrolly-step min-h-[70vh] flex items-center"
+				data-image={step.image}
+				data-title={step.title}
+				class="scrolly-step min-h-screen py-16 flex items-center"
 			>
 				<div
 					data-scrolly-copy
@@ -68,6 +71,7 @@ const normalizeWithBase = (value: string) => {
 				</div>
 			</section>
 		))}
+		<div class="h-[20vh] md:h-[28vh]" aria-hidden="true"></div>
 	</div>
 </div>
 
@@ -76,17 +80,31 @@ const normalizeWithBase = (value: string) => {
 
 	for (const root of roots) {
 		const stepElements = Array.from(root.querySelectorAll('[data-scrolly-step]'));
-		const visualElements = Array.from(root.querySelectorAll('[data-scrolly-visual]'));
+		const activeImage = root.querySelector('[data-scrolly-image]');
 		const copyElements = Array.from(root.querySelectorAll('[data-scrolly-copy]'));
 
-		if (stepElements.length === 0) continue;
+		if (stepElements.length === 0 || !activeImage) continue;
+
+		let currentActiveIndex = -1;
 
 		const activate = (activeIndex) => {
-			visualElements.forEach((visual, index) => {
-				visual.classList.toggle('opacity-100', index === activeIndex);
-				visual.classList.toggle('opacity-0', index !== activeIndex);
-				visual.classList.toggle('pointer-events-none', index !== activeIndex);
-			});
+			if (activeIndex === currentActiveIndex) return;
+			const targetStep = stepElements[activeIndex];
+			if (!targetStep) return;
+
+			currentActiveIndex = activeIndex;
+
+			const nextSrc = targetStep.getAttribute('data-image') || '';
+			const nextAlt = targetStep.getAttribute('data-title') || '';
+
+			if (activeImage.getAttribute('src') !== nextSrc) {
+				activeImage.classList.add('opacity-0');
+				window.setTimeout(() => {
+					activeImage.setAttribute('src', nextSrc);
+					activeImage.setAttribute('alt', nextAlt);
+					activeImage.classList.remove('opacity-0');
+				}, 110);
+			}
 
 			copyElements.forEach((copy, index) => {
 				copy.classList.toggle('opacity-100', index === activeIndex);
@@ -96,25 +114,41 @@ const normalizeWithBase = (value: string) => {
 			});
 		};
 
-		activate(0);
+		const getClosestStepIndexToActivationLine = () => {
+			const activationLine = window.innerHeight * 0.45;
+			let bestIndex = 0;
+			let bestDistance = Number.POSITIVE_INFINITY;
 
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const visibleEntries = entries.filter((entry) => entry.isIntersecting);
-				if (visibleEntries.length === 0) return;
+			stepElements.forEach((step, index) => {
+				const rect = step.getBoundingClientRect();
+				const stepCenter = rect.top + rect.height / 2;
+				const distance = Math.abs(stepCenter - activationLine);
+				if (distance < bestDistance) {
+					bestDistance = distance;
+					bestIndex = index;
+				}
+			});
 
-				visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-				const topEntry = visibleEntries[0];
-				const activeIndex = Number(topEntry.target.getAttribute('data-index') || 0);
-				activate(activeIndex);
-			},
-			{
-				root: null,
-				threshold: [0.2, 0.4, 0.6, 0.8],
-				rootMargin: '-20% 0px -35% 0px',
-			}
-		);
+			return bestIndex;
+		};
 
-		stepElements.forEach((step) => observer.observe(step));
+		const syncActiveWithScroll = () => {
+			const activeIndex = getClosestStepIndexToActivationLine();
+			activate(activeIndex);
+		};
+
+		let scheduled = false;
+		const onScroll = () => {
+			if (scheduled) return;
+			scheduled = true;
+			requestAnimationFrame(() => {
+				syncActiveWithScroll();
+				scheduled = false;
+			});
+		};
+
+		syncActiveWithScroll();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll);
 	}
 </script>
