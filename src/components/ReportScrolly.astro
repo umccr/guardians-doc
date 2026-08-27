@@ -40,7 +40,7 @@ const normalizedSteps = steps.map((step) => ({
 				alt={normalizedSteps[0]?.title ?? ''}
 				loading="eager"
 				decoding="async"
-				class="h-full w-full object-contain object-bottom transition-opacity duration-200"
+				class="h-full w-full object-contain object-bottom transition-all duration-500 ease-out"
 			/>
 		</div>
 	</div>
@@ -85,6 +85,16 @@ const normalizedSteps = steps.map((step) => ({
 
 		if (stepElements.length === 0 || !activeImage) continue;
 
+		const preloadSources = new Set(
+			stepElements
+				.map((step) => step.getAttribute('data-image'))
+				.filter(Boolean)
+		);
+		for (const src of preloadSources) {
+			const image = new Image();
+			image.src = src;
+		}
+
 		let currentActiveIndex = -1;
 
 		const activate = (activeIndex) => {
@@ -98,12 +108,12 @@ const normalizedSteps = steps.map((step) => ({
 			const nextAlt = targetStep.getAttribute('data-title') || '';
 
 			if (activeImage.getAttribute('src') !== nextSrc) {
-				activeImage.classList.add('opacity-0');
-				window.setTimeout(() => {
-					activeImage.setAttribute('src', nextSrc);
-					activeImage.setAttribute('alt', nextAlt);
-					activeImage.classList.remove('opacity-0');
-				}, 110);
+				activeImage.classList.add('opacity-90', 'scale-[0.995]');
+				activeImage.setAttribute('src', nextSrc);
+				activeImage.setAttribute('alt', nextAlt);
+				requestAnimationFrame(() => {
+					activeImage.classList.remove('opacity-90', 'scale-[0.995]');
+				});
 			}
 
 			copyElements.forEach((copy, index) => {
