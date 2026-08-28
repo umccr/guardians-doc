@@ -1,334 +1,358 @@
-<div class="cost-pie-wrapper" data-cost-pie-root>
-  <div class="cost-pie-charts">
-    <div class="cost-pie-card">
-      <div class="cost-pie-header">
-        <h3>Internal Sharing Platform (ISP)</h3>
-        <p class="cost-pie-total" id="total-isp"></p>
+  <div class="cost-pie-wrapper not-prose not-content" data-cost-pie-root>
+    <div class="cost-pie-charts">
+      <div class="cost-pie-card">
+        <div class="cost-pie-header">
+          <h3>
+            <span class="cost-pie-title-main"> Internal Sharing Platform</span>
+          </h3>
+          <p class="cost-pie-total" id="total-isp"></p>
+        </div>
+        <div class="cost-pie-canvas-wrap">
+          <canvas id="pie-isp"></canvas>
+        </div>
+        <p class="cost-pie-hover" id="hover-isp"></p>
       </div>
-      <div class="cost-pie-canvas-wrap">
-        <canvas id="pie-isp"></canvas>
+      <div class="cost-pie-card">
+        <div class="cost-pie-header">
+          <h3>
+            <span class="cost-pie-title-main">Cross-Organisation Sharing Platform</span>
+          </h3>
+          <p class="cost-pie-total" id="total-csp"></p>
+        </div>
+        <div class="cost-pie-canvas-wrap">
+          <canvas id="pie-csp"></canvas>
+        </div>
+        <p class="cost-pie-hover" id="hover-csp"></p>
       </div>
-      <p class="cost-pie-hover" id="hover-isp"></p>
-    </div>
-    <div class="cost-pie-card">
-      <div class="cost-pie-header">
-        <h3>Cross-Organisation Sharing Platform </h3>
-        <p class="cost-pie-total" id="total-csp"></p>
-      </div>
-      <div class="cost-pie-canvas-wrap">
-        <canvas id="pie-csp"></canvas>
-      </div>
-      <p class="cost-pie-hover" id="hover-csp"></p>
     </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script>
-  (function () {
-    // Colors match SCENE_BLUES in gen_costing_svgs.py:
-    // #dbeafe · #93c5fd · #3b82f6 · #1e40af
-    const CATEGORIES = [
-      {
-        name: 'Standing Costs',
-        color: '#dbeafe',
-        items: [
-          'Network & access',
-          'Storage & metadata',
-          'Identity & security',
-          'Monitoring & audit',
-          'Baseline compute',
-        ],
-      },
-      {
-        name: 'Storage Costs',
-        color: '#93c5fd',
-        items: [
-          'Active curated outputs (hot)',
-          'Archived outputs (cold)',
-          'Metadata & indexing',
-          'Catalogue, logs & audit',
-          'Replication & multi-region',
-        ],
-      },
-      {
-        name: 'Data Movement',
-        color: '#3b82f6',
-        items: [
-          'Platform infrastructure',
-          'Internal movement (same region)',
-          'Cross-region movement',
-          'External egress',
-        ],
-      },
-      {
-        name: 'Data Lifecycle',
-        color: '#1e40af',
-        items: [
-          'Curated outputs (long-term)',
-          'Archived outputs (archival)',
-          'Intermediates & scratch',
-          'Logs & audit trail',
-        ],
-      },
-    ];
-
-    // Values per scenario: outer array = categories, inner = sub-items
-    const SCENARIOS = {
-      ISP: [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]],
-      CSP: [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]],
-    };
-
-    function buildPaletteAndLabels() {
-      const colors = [];
-      const labels = [];
-      const groupByIndex = [];
-      CATEGORIES.forEach((cat, catIdx) => {
-        cat.items.forEach((item) => {
-          colors.push(cat.color);
-          labels.push(`${cat.name} – ${item}`);
-          groupByIndex.push(catIdx);
-        });
-      });
-      return { colors, labels, groupByIndex };
-    }
-
-    function flatValues(scenarioValues) {
-      return scenarioValues.flat();
-    }
-
-    function createChart(canvasId, totalId, hoverId, values, labels, colors, groupByIndex, realTotal) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) return;
-      const total = realTotal;
-      const totalEl = document.getElementById(totalId);
-      const hoverEl = document.getElementById(hoverId);
-      if (totalEl) totalEl.textContent = `Total: ~$${total.toLocaleString()}/month`;
-      if (hoverEl) hoverEl.textContent = '';
-
-      const defaultBorderWidth = new Array(values.length).fill(2);
-      const fadedColor = 'rgba(148, 163, 184, 0.28)';
-
-      // @ts-ignore
-      const chart = new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [
-            {
-              data: values,
-              backgroundColor: colors,
-              borderColor: '#ffffff',
-              borderWidth: defaultBorderWidth,
-              hoverOffset: 0,
-            },
+  <script>
+    (function () {
+      // Colors match SCENE_BLUES in gen_costing_svgs.py:
+      // #dbeafe · #93c5fd · #3b82f6 · #1e40af
+      const CATEGORIES = [
+        {
+          name: 'Standing Costs',
+          color: '#dbeafe',
+          items: [
+            'Network & access',
+            'Storage & metadata',
+            'Identity & security',
+            'Monitoring & audit',
+            'Baseline compute',
           ],
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          cutout: '42%',
-          onHover(_event, activeElements) {
-            const dataset = chart.data.datasets[0];
-            const nextColors = [...colors];
-            const nextBorderWidths = new Array(values.length).fill(2);
+        {
+          name: 'Storage Costs',
+          color: '#93c5fd',
+          items: [
+            'Active curated outputs (hot)',
+            'Archived outputs (cold)',
+            'Metadata & indexing',
+            'Catalogue, logs & audit',
+            'Replication & multi-region',
+          ],
+        },
+        {
+          name: 'Data Movement',
+          color: '#3b82f6',
+          items: [
+            'Platform infrastructure',
+            'Internal movement (same region)',
+            'Cross-region movement',
+            'External egress',
+          ],
+        },
+        {
+          name: 'Data Lifecycle',
+          color: '#1e40af',
+          items: [
+            'Curated outputs (long-term)',
+            'Archived outputs (archival)',
+            'Intermediates & scratch',
+            'Logs & audit trail',
+          ],
+        },
+      ];
 
-            if (activeElements.length > 0) {
-              const hoveredIndex = activeElements[0].index;
-              const hoveredGroup = groupByIndex[hoveredIndex];
-              const hoveredLabel = labels[hoveredIndex];
-              const hoveredValue = values[hoveredIndex];
-              const hoveredPct = ((hoveredValue / total) * 100).toFixed(1);
-              const [mainComponent, subComponent] = hoveredLabel.split(' – ');
+      // Values per scenario: outer array = categories, inner = sub-items
+      const SCENARIOS = {
+        ISP: [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]],
+        CSP: [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]],
+      };
 
-              for (let i = 0; i < values.length; i++) {
-                if (groupByIndex[i] !== hoveredGroup) {
-                  nextColors[i] = fadedColor;
-                }
-              }
+      function buildPaletteAndLabels() {
+        const colors = [];
+        const labels = [];
+        const groupByIndex = [];
+        CATEGORIES.forEach((cat, catIdx) => {
+          cat.items.forEach((item) => {
+            colors.push(cat.color);
+            labels.push(`${cat.name} – ${item}`);
+            groupByIndex.push(catIdx);
+          });
+        });
+        return { colors, labels, groupByIndex };
+      }
 
-              nextBorderWidths[hoveredIndex] = 4;
-              if (hoverEl) {
-                hoverEl.innerHTML = `<strong>${mainComponent}</strong>${subComponent ? ` — ${subComponent}` : ''}: ~$${hoveredValue.toLocaleString()}/month (${hoveredPct}%)`;
-              }
-            } else if (hoverEl) {
-              hoverEl.innerHTML = '';
-            }
+      function flatValues(scenarioValues) {
+        return scenarioValues.flat();
+      }
 
-            dataset.backgroundColor = nextColors;
-            dataset.borderWidth = nextBorderWidths;
-            chart.update('none');
+      function createChart(canvasId, totalId, hoverId, values, labels, colors, groupByIndex, realTotal) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const total = realTotal;
+        const totalEl = document.getElementById(totalId);
+        const hoverEl = document.getElementById(hoverId);
+        if (totalEl) totalEl.textContent = `Total: ~$${total.toLocaleString()}/month`;
+        if (hoverEl) hoverEl.textContent = '';
+
+        const defaultBorderWidth = new Array(values.length).fill(2);
+        const fadedColor = 'rgba(148, 163, 184, 0.28)';
+
+        // @ts-ignore
+        const chart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: colors,
+                borderColor: '#ffffff',
+                borderWidth: defaultBorderWidth,
+                hoverOffset: 0,
+              },
+            ],
           },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              enabled: false,
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '42%',
+            onHover(_event, activeElements) {
+              const dataset = chart.data.datasets[0];
+              const nextColors = [...colors];
+              const nextBorderWidths = new Array(values.length).fill(2);
+
+              if (activeElements.length > 0) {
+                const hoveredIndex = activeElements[0].index;
+                const hoveredGroup = groupByIndex[hoveredIndex];
+                const hoveredLabel = labels[hoveredIndex];
+                const hoveredValue = values[hoveredIndex];
+                const hoveredPct = ((hoveredValue / total) * 100).toFixed(1);
+                const [mainComponent, subComponent] = hoveredLabel.split(' – ');
+
+                for (let i = 0; i < values.length; i++) {
+                  if (groupByIndex[i] !== hoveredGroup) {
+                    nextColors[i] = fadedColor;
+                  }
+                }
+
+                nextBorderWidths[hoveredIndex] = 4;
+                if (hoverEl) {
+                  hoverEl.innerHTML = `<strong>${mainComponent}</strong>${subComponent ? ` — ${subComponent}` : ''}: ~$${hoveredValue.toLocaleString()}/month (${hoveredPct}%)`;
+                }
+              } else if (hoverEl) {
+                hoverEl.innerHTML = '';
+              }
+
+              dataset.backgroundColor = nextColors;
+              dataset.borderWidth = nextBorderWidths;
+              chart.update('none');
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                enabled: false,
+              },
             },
           },
-        },
-      });
-    }
+        });
+      }
 
-    function init() {
-      const { colors, labels, groupByIndex } = buildPaletteAndLabels();
-      const ispReal = SCENARIOS.ISP.flat().reduce((a, b) => a + b, 0);
-      const cspReal = SCENARIOS.CSP.flat().reduce((a, b) => a + b, 0);
-      createChart('pie-isp', 'total-isp', 'hover-isp', flatValues(SCENARIOS.ISP), labels, colors, groupByIndex, ispReal);
-      createChart('pie-csp', 'total-csp', 'hover-csp', flatValues(SCENARIOS.CSP), labels, colors, groupByIndex, cspReal);
-    }
+      function init() {
+        const { colors, labels, groupByIndex } = buildPaletteAndLabels();
+        const ispReal = SCENARIOS.ISP.flat().reduce((a, b) => a + b, 0);
+        const cspReal = SCENARIOS.CSP.flat().reduce((a, b) => a + b, 0);
+        createChart('pie-isp', 'total-isp', 'hover-isp', flatValues(SCENARIOS.ISP), labels, colors, groupByIndex, ispReal);
+        createChart('pie-csp', 'total-csp', 'hover-csp', flatValues(SCENARIOS.CSP), labels, colors, groupByIndex, cspReal);
+      }
 
-    const root = document.querySelector('[data-cost-pie-root]');
-    let initialized = false;
+      const root = document.querySelector('[data-cost-pie-root]');
+      let initialized = false;
 
-    function renderOnce() {
-      if (initialized) return;
-      initialized = true;
-      init();
-    }
+      function renderOnce() {
+        if (initialized) return;
+        initialized = true;
+        init();
+      }
 
-    function whenChartReady(callback) {
-      if (typeof Chart !== 'undefined') {
-        callback();
+      function whenChartReady(callback) {
+        if (typeof Chart !== 'undefined') {
+          callback();
+          return;
+        }
+        const scripts = document.querySelectorAll('script[src*="chart.js"]');
+        const lastScript = scripts[scripts.length - 1];
+        if (lastScript) {
+          lastScript.addEventListener('load', callback, { once: true });
+        } else {
+          window.addEventListener('load', callback, { once: true });
+        }
+      }
+
+      function revealAndRender() {
+        if (root) {
+          root.classList.add('is-visible');
+        }
+        whenChartReady(renderOnce);
+      }
+
+      if (!root) {
+        revealAndRender();
         return;
       }
-      const scripts = document.querySelectorAll('script[src*="chart.js"]');
-      const lastScript = scripts[scripts.length - 1];
-      if (lastScript) {
-        lastScript.addEventListener('load', callback, { once: true });
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                revealAndRender();
+                observer.disconnect();
+              }
+            });
+          },
+          { threshold: 0.3 }
+        );
+        observer.observe(root);
       } else {
-        window.addEventListener('load', callback, { once: true });
+        revealAndRender();
       }
+    })();
+  </script>
+
+  <style>
+    .cost-pie-wrapper {
+      margin: 2rem 0;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 420ms ease, transform 420ms ease;
     }
 
-    function revealAndRender() {
-      if (root) {
-        root.classList.add('is-visible');
-      }
-      whenChartReady(renderOnce);
+    .cost-pie-wrapper.is-visible {
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    if (!root) {
-      revealAndRender();
-      return;
-    }
-
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              revealAndRender();
-              observer.disconnect();
-            }
-          });
-        },
-        { threshold: 0.3 }
-      );
-      observer.observe(root);
-    } else {
-      revealAndRender();
-    }
-  })();
-</script>
-
-<style>
-  .cost-pie-wrapper {
-    margin: 2rem 0;
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity 420ms ease, transform 420ms ease;
-  }
-
-  .cost-pie-wrapper.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .cost-pie-charts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
-
-  @media (max-width: 720px) {
     .cost-pie-charts {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      
     }
-  }
 
-  .cost-pie-card {
-    display: grid;
-    grid-template-rows: auto 320px;
-    justify-items: center;
-    gap: 0.5rem;
-  }
+    @media (max-width: 720px) {
+      .cost-pie-charts {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  .cost-pie-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    width: 100%;
-  }
-
-  .cost-pie-card h3 {
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-align: center;
-    margin: 0;
-    line-height: 1.25;
-  }
-
-  .cost-pie-canvas-wrap {
-    width: 320px;
-    height: 320px;
-  }
-
-  .cost-pie-canvas-wrap canvas {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .cost-pie-total {
-    font-size: 0.85rem;
-    font-weight: 600;
-    opacity: 0.75;
-    margin: 0;
-    white-space: nowrap;
-  }
-
-  .cost-pie-hover {
-    margin: 0.8rem 0 0;
-    width: 320px;
-    min-height: 2.2rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.78rem;
-    line-height: 1.3;
-    text-align: center;
-    opacity: 0.8;
-    border: 1px solid var(--sl-color-hairline);
-    border-radius: 0.75rem;
-    background: var(--sl-color-bg);
-    box-sizing: border-box;
-  }
-
-  @media (max-width: 720px) {
     .cost-pie-card {
-      grid-template-rows: auto 300px;
+      display: grid;
+      grid-template-rows: 5.5rem 320px 3rem;
+      justify-items: center;
+      gap: 0.5rem;
+      width: 320px;
+      margin-inline: auto;
+    }
+
+    .cost-pie-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.25rem;
+      width: 320px;
+      min-height: 5.5rem;
+    }
+
+    .cost-pie-card h3 {
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 0;
+      line-height: 1.25;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.05rem;
+      min-height: 3rem;
+      justify-content: center;
+    }
+
+    .cost-pie-title-main {
+      text-align: center;
     }
 
     .cost-pie-canvas-wrap {
-      width: 300px;
-      height: 300px;
+      width: 320px;
+      height: 320px;
+    }
+
+    .cost-pie-canvas-wrap canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .cost-pie-total {
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0.75;
+      margin: 0;
+      min-height: 1.05rem;
+      line-height: 1.05rem;
+      white-space: nowrap;
     }
 
     .cost-pie-hover {
-      width: 300px;
+      margin: 0.8rem 0 0;
+      width: 320px;
+      min-height: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.78rem;
+      line-height: 1.3;
+      text-align: center;
+      opacity: 0.8;
+      border: 1px solid var(--sl-color-hairline);
+      border-radius: 0.75rem;
+      background: var(--sl-color-bg);
+      box-sizing: border-box;
     }
-  }
+
+    @media (max-width: 720px) {
+      .cost-pie-card {
+        grid-template-rows: 5.5rem 300px 3rem;
+        width: 300px;
+      }
+
+      .cost-pie-header {
+        width: 300px;
+      }
+
+      .cost-pie-canvas-wrap {
+        width: 300px;
+        height: 300px;
+      }
+
+      .cost-pie-hover {
+        width: 300px;
+      }
+    }
 
 
-</style>
+  </style>
