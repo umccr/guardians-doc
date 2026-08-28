@@ -1,0 +1,229 @@
+<div class="cost-pie-wrapper">
+  <div class="cost-pie-charts">
+    <div class="cost-pie-card">
+      <h3>Internal Sharing Platform (ISP)</h3>
+      <div class="cost-pie-canvas-wrap">
+        <canvas id="pie-isp"></canvas>
+      </div>
+      <p class="cost-pie-total" id="total-isp"></p>
+    </div>
+    <div class="cost-pie-card">
+      <h3>Cross-Organisation Sharing Platform (CSP)</h3>
+      <div class="cost-pie-canvas-wrap">
+        <canvas id="pie-csp"></canvas>
+      </div>
+      <p class="cost-pie-total" id="total-csp"></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+  (function () {
+    // Colors match SCENE_BLUES in gen_costing_svgs.py:
+    // #dbeafe · #93c5fd · #3b82f6 · #1e40af
+    const CATEGORIES = [
+      {
+        name: 'Standing Costs',
+        color: '#dbeafe',
+        items: [
+          'Network & access',
+          'Storage & metadata',
+          'Identity & security',
+          'Monitoring & audit',
+          'Baseline compute',
+        ],
+      },
+      {
+        name: 'Storage Costs',
+        color: '#93c5fd',
+        items: [
+          'Active curated outputs (hot)',
+          'Archived outputs (cold)',
+          'Metadata & indexing',
+          'Catalogue, logs & audit',
+          'Replication & multi-region',
+        ],
+      },
+      {
+        name: 'Data Movement',
+        color: '#3b82f6',
+        items: [
+          'Platform infrastructure',
+          'Internal movement (same region)',
+          'Cross-region movement',
+          'External egress',
+        ],
+      },
+      {
+        name: 'Data Lifecycle',
+        color: '#1e40af',
+        items: [
+          'Curated outputs (long-term)',
+          'Archived outputs (archival)',
+          'Intermediates & scratch',
+          'Logs & audit trail',
+        ],
+      },
+    ];
+
+    // Values per scenario: outer array = categories, inner = sub-items
+    const SCENARIOS = {
+      ISP: [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]],
+      CSP: [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]],
+    };
+
+    function buildPaletteAndLabels() {
+      const colors = [];
+      const labels = [];
+      const groupByIndex = [];
+      CATEGORIES.forEach((cat, catIdx) => {
+        cat.items.forEach((item) => {
+          colors.push(cat.color);
+          labels.push(`${cat.name} – ${item}`);
+          groupByIndex.push(catIdx);
+        });
+      });
+      return { colors, labels, groupByIndex };
+    }
+
+    function flatValues(scenarioValues) {
+      return scenarioValues.flat();
+    }
+
+    function createChart(canvasId, totalId, values, labels, colors, groupByIndex, realTotal) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const total = realTotal;
+      const totalEl = document.getElementById(totalId);
+      if (totalEl) totalEl.textContent = `Total: ~$${total.toLocaleString()}/month`;
+
+      const defaultBorderWidth = new Array(values.length).fill(2);
+      const fadedColor = 'rgba(148, 163, 184, 0.28)';
+
+      // @ts-ignore
+      const chart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [
+            {
+              data: values,
+              backgroundColor: colors,
+              borderColor: '#ffffff',
+              borderWidth: defaultBorderWidth,
+              hoverOffset: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '42%',
+          onHover(_event, activeElements) {
+            const dataset = chart.data.datasets[0];
+            const nextColors = [...colors];
+            const nextBorderWidths = new Array(values.length).fill(2);
+
+            if (activeElements.length > 0) {
+              const hoveredIndex = activeElements[0].index;
+              const hoveredGroup = groupByIndex[hoveredIndex];
+
+              for (let i = 0; i < values.length; i++) {
+                if (groupByIndex[i] !== hoveredGroup) {
+                  nextColors[i] = fadedColor;
+                }
+              }
+
+              nextBorderWidths[hoveredIndex] = 4;
+            }
+
+            dataset.backgroundColor = nextColors;
+            dataset.borderWidth = nextBorderWidths;
+            chart.update('none');
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const val = ctx.parsed;
+                  const pct = ((val / total) * 100).toFixed(1);
+                  return ` $${val}/mo  (${pct}%)`;
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    function init() {
+      const { colors, labels, groupByIndex } = buildPaletteAndLabels();
+      const ispReal = SCENARIOS.ISP.flat().reduce((a, b) => a + b, 0);
+      const cspReal = SCENARIOS.CSP.flat().reduce((a, b) => a + b, 0);
+      createChart('pie-isp', 'total-isp', flatValues(SCENARIOS.ISP), labels, colors, groupByIndex, ispReal);
+      createChart('pie-csp', 'total-csp', flatValues(SCENARIOS.CSP), labels, colors, groupByIndex, cspReal);
+    }
+
+    // Wait for Chart.js to be available
+    if (typeof Chart !== 'undefined') {
+      init();
+    } else {
+      const scripts = document.querySelectorAll('script[src*="chart.js"]');
+      const lastScript = scripts[scripts.length - 1];
+      if (lastScript) {
+        lastScript.addEventListener('load', init);
+      } else {
+        window.addEventListener('load', init);
+      }
+    }
+  })();
+</script>
+
+<style>
+  .cost-pie-wrapper {
+    margin: 2rem 0;
+  }
+
+  .cost-pie-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 720px) {
+    .cost-pie-charts {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cost-pie-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .cost-pie-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+  }
+
+  .cost-pie-canvas-wrap {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .cost-pie-total {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.75;
+    margin: 0;
+  }
+
+
+</style>
