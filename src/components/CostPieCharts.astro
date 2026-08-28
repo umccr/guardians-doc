@@ -1,18 +1,22 @@
-<div class="cost-pie-wrapper">
+<div class="cost-pie-wrapper" data-cost-pie-root>
   <div class="cost-pie-charts">
     <div class="cost-pie-card">
-      <h3>Internal Sharing Platform (ISP)</h3>
+      <div class="cost-pie-header">
+        <h3>Internal Sharing Platform<br />(ISP)</h3>
+        <p class="cost-pie-total" id="total-isp"></p>
+      </div>
       <div class="cost-pie-canvas-wrap">
         <canvas id="pie-isp"></canvas>
       </div>
-      <p class="cost-pie-total" id="total-isp"></p>
     </div>
     <div class="cost-pie-card">
-      <h3>Cross-Organisation Sharing Platform (CSP)</h3>
+      <div class="cost-pie-header">
+        <h3>Cross-Organisation Sharing Platform<br />(CSP)</h3>
+        <p class="cost-pie-total" id="total-csp"></p>
+      </div>
       <div class="cost-pie-canvas-wrap">
         <canvas id="pie-csp"></canvas>
       </div>
-      <p class="cost-pie-total" id="total-csp"></p>
     </div>
   </div>
 </div>
@@ -167,17 +171,56 @@
       createChart('pie-csp', 'total-csp', flatValues(SCENARIOS.CSP), labels, colors, groupByIndex, cspReal);
     }
 
-    // Wait for Chart.js to be available
-    if (typeof Chart !== 'undefined') {
+    const root = document.querySelector('[data-cost-pie-root]');
+    let initialized = false;
+
+    function renderOnce() {
+      if (initialized) return;
+      initialized = true;
       init();
-    } else {
+    }
+
+    function whenChartReady(callback) {
+      if (typeof Chart !== 'undefined') {
+        callback();
+        return;
+      }
       const scripts = document.querySelectorAll('script[src*="chart.js"]');
       const lastScript = scripts[scripts.length - 1];
       if (lastScript) {
-        lastScript.addEventListener('load', init);
+        lastScript.addEventListener('load', callback, { once: true });
       } else {
-        window.addEventListener('load', init);
+        window.addEventListener('load', callback, { once: true });
       }
+    }
+
+    function revealAndRender() {
+      if (root) {
+        root.classList.add('is-visible');
+      }
+      whenChartReady(renderOnce);
+    }
+
+    if (!root) {
+      revealAndRender();
+      return;
+    }
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              revealAndRender();
+              observer.disconnect();
+            }
+          });
+        },
+        { threshold: 0.3 }
+      );
+      observer.observe(root);
+    } else {
+      revealAndRender();
     }
   })();
 </script>
@@ -185,12 +228,21 @@
 <style>
   .cost-pie-wrapper {
     margin: 2rem 0;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 420ms ease, transform 420ms ease;
+  }
+
+  .cost-pie-wrapper.is-visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .cost-pie-charts {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
+    align-items: start;
   }
 
   @media (max-width: 720px) {
@@ -200,10 +252,19 @@
   }
 
   .cost-pie-card {
+    display: grid;
+    grid-template-rows: auto 320px;
+    justify-items: center;
+    gap: 0.5rem;
+  }
+
+  .cost-pie-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 0.25rem;
+    width: 100%;
   }
 
   .cost-pie-card h3 {
@@ -211,11 +272,17 @@
     font-weight: 600;
     text-align: center;
     margin: 0;
+    line-height: 1.25;
   }
 
   .cost-pie-canvas-wrap {
-    width: 100%;
-    max-width: 320px;
+    width: 320px;
+    height: 320px;
+  }
+
+  .cost-pie-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .cost-pie-total {
@@ -223,6 +290,18 @@
     font-weight: 600;
     opacity: 0.75;
     margin: 0;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 720px) {
+    .cost-pie-card {
+      grid-template-rows: auto 300px;
+    }
+
+    .cost-pie-canvas-wrap {
+      width: 300px;
+      height: 300px;
+    }
   }
 
 
