@@ -9,14 +9,16 @@ OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
 
 MAX_Y = 5000
 Y_TICKS = [0, 1000,  2000,  3000, 4000, 5000]
-W, H = 3.6, 4.8
+W, H = 3.8, 5.0
 BAR_WIDTH = 0.9
+X_PAD = 0.02
 
 SCENE_BLUES = ["#dbeafe", "#93c5fd", "#3b82f6", "#1e40af"]
 
 SCENES = [
     {
         "id": "standing-costs",
+        "title": "Baseline Platform Cost",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000]]},
@@ -24,6 +26,7 @@ SCENES = [
     },
     {
         "id": "storage-costs",
+        "title": "Baseline + Storage",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350],[200, 100, 35, 35, 25]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000],[400, 200, 75, 100, 200]]},
@@ -31,6 +34,7 @@ SCENES = [
     },
     {
         "id": "data-movement-egress",
+        "title": "Baseline + Storage + Transfer",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]]},
@@ -38,6 +42,7 @@ SCENES = [
     },
     {
         "id": "data-lifecycle",
+        "title": "Full Monthly Cost Stack",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]]},
@@ -88,20 +93,23 @@ for scene_index, scene in enumerate(SCENES):
                 bottom += value
 
     ax.set_ylim(0, MAX_Y)
-    ax.set_xlim(-0.5, len(bars) - 0.5)
+    ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
     ax.set_yticks(Y_TICKS)
     ax.set_xticks(x)
     ax.set_xticklabels([b["label"] for b in bars])
+    ax.set_title(scene["title"], fontsize=11.5, fontweight="normal", pad=20)
     ax.tick_params(axis="x", length=0)
-    ax.tick_params(axis="y", left=True, labelleft=True)
-    ax.set_ylabel("USD / month")
+    ax.yaxis.tick_right()
+    ax.yaxis.set_label_position("right")
+    ax.tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True, pad=2)
+    ax.set_ylabel("USD / month", labelpad=6)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["bottom"].set_visible(False)
     ax.spines["left"].set_visible(False)
 
-    fig.subplots_adjust(left=0.2, right=0.96, bottom=0.16, top=0.96)
+    fig.subplots_adjust(left=0.03, right=0.78, bottom=0.08, top=0.94)
     out_path = os.path.join(OUT_DIR, f"{scene['id']}.svg")
-    fig.savefig(out_path, transparent=True)
+    fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
     print(f"Saved {out_path}")
