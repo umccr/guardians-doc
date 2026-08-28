@@ -5,42 +5,56 @@ from matplotlib.patches import FancyBboxPatch
 
 OUT_DIR = "../public/diagrams"
 
-MAX_Y = 2560
-Y_TICKS = [0, 500, 1000, 1500, 2000, 2500]
+MAX_Y = 3600
+Y_TICKS = [0, 1000,  2000,  3000]
 W, H = 3.6, 4.8
-COLORS = ["#93c5fd", "#2563eb", "#1d4ed8", "#7c3aed"]
 BAR_WIDTH = 0.9
+
+GROUP_PALETTES = [
+    ["#d5e9e3", "#bfdcd3", "#a6cec2", "#8dbfaf"],
+    ["#d8e4f2", "#c4d6ea", "#a9c2df", "#8daad0"],
+    ["#e5dcef", "#d4c7e4", "#c0afd8", "#a894c9"],
+    ["#f0d9d5", "#e4bcb5", "#d79e95", "#c47c72"],
+]
 
 SCENES = [
     {
         "id": "costing-scene1",
         "bars": [
-            {"label": "ISP", "values": [100,150,200]},
-            {"label": "CSP", "values": [200,300,400]},
+            {"label": "ISP", "values": [[100, 150, 200]]},
+            {"label": "CSP", "values": [[200, 300, 400]]},
         ],
     },
     {
         "id": "costing-scene2",
         "bars": [
-            {"label": "ISP", "values": [1130, 570]},
-            {"label": "CSP", "values": [1320, 520]},
+            {"label": "ISP", "values": [[100, 150, 200], [300, 350]]},
+            {"label": "CSP", "values": [[200, 300, 400], [420, 500]]},
         ],
     },
     {
         "id": "costing-scene3",
         "bars": [
-            {"label": "ISP", "values": [1130, 570, 480]},
-            {"label": "CSP", "values": [1320, 520, 450]},
+            {"label": "ISP", "values": [[100, 150, 200], [300, 350], [220, 260]]},
+            {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300]]},
         ],
     },
     {
         "id": "costing-scene4",
         "bars": [
-            {"label": "ISP", "values": [1130, 570, 480, 230]},
-            {"label": "CSP", "values": [1320, 520, 450, 270]},
+            {"label": "ISP", "values": [[100, 150, 200], [300, 350], [220, 260], [180,200]]},
+            {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300], [350, 400,500]]},
         ],
     },
 ]
+
+def normalize_value_groups(values):
+    if not values:
+        return []
+    if isinstance(values[0], list):
+        return values
+    return [values]
+
 
 for scene in SCENES:
     fig, ax = plt.subplots(figsize=(W, H))
@@ -52,19 +66,23 @@ for scene in SCENES:
 
     for i, bar in enumerate(bars):
         bottom = 0
-        for j, value in enumerate(bar["values"]):
-            segment = FancyBboxPatch(
-                (x[i] - BAR_WIDTH / 2, bottom),
-                BAR_WIDTH,
-                value,
-                boxstyle="round,pad=0,rounding_size=0.06",
-                facecolor=COLORS[j % len(COLORS)],
-                edgecolor="#f8fafc",
-                linewidth=2,
-                mutation_scale=8,
-            )
-            ax.add_patch(segment)
-            bottom += value
+        value_groups = normalize_value_groups(bar["values"])
+
+        for group_index, group_values in enumerate(value_groups):
+            palette = GROUP_PALETTES[group_index % len(GROUP_PALETTES)]
+            for segment_index, value in enumerate(group_values):
+                segment = FancyBboxPatch(
+                    (x[i] - BAR_WIDTH / 2, bottom),
+                    BAR_WIDTH,
+                    value,
+                    boxstyle="round,pad=0,rounding_size=0.06",
+                    facecolor=palette[segment_index % len(palette)],
+                    edgecolor="#f8fafc",
+                    linewidth=2,
+                    mutation_scale=8,
+                )
+                ax.add_patch(segment)
+                bottom += value
 
     ax.set_ylim(0, MAX_Y)
     ax.set_xlim(-0.5, len(bars) - 0.5)
