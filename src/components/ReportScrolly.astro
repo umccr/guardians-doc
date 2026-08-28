@@ -65,7 +65,7 @@ const normalizedSteps = steps.map((step) => ({
 ---
 
 <div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start" data-scrolly-root>
-	<div class="md:sticky md:top-20 md:self-start h-[60vh] md:h-[75vh]">
+	<div class="md:order-2 md:sticky md:top-20 md:self-start h-[60vh] md:h-[75vh]">
 		<div class="relative h-full w-full overflow-hidden rounded-2xl bg-slate-50 p-6">
 			<img
 				data-scrolly-image
@@ -78,7 +78,7 @@ const normalizedSteps = steps.map((step) => ({
 		</div>
 	</div>
 
-	<div>
+	<div class="md:order-1">
 		<div class="-mt-16 h-0" aria-hidden="true"></div>
 		{normalizedSteps.map((step, index) => (
 			<section
