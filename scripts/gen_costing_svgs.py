@@ -18,7 +18,6 @@ SCENE_BLUES = ["#dbeafe", "#93c5fd", "#3b82f6", "#1e40af"]
 SCENES = [
     {
         "id": "standing-costs",
-        "title": "Baseline Platform Cost",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000]]},
@@ -26,7 +25,6 @@ SCENES = [
     },
     {
         "id": "storage-costs",
-        "title": "Baseline + Storage",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350],[200, 100, 35, 35, 25]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000],[400, 200, 75, 100, 200]]},
@@ -34,7 +32,6 @@ SCENES = [
     },
     {
         "id": "data-movement-egress",
-        "title": "Baseline + Storage + Transfer",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]]},
@@ -42,7 +39,6 @@ SCENES = [
     },
     {
         "id": "data-lifecycle",
-        "title": "Full Monthly Cost Stack",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]]},
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]]},
@@ -97,7 +93,6 @@ for scene_index, scene in enumerate(SCENES):
     ax.set_yticks(Y_TICKS)
     ax.set_xticks(x)
     ax.set_xticklabels([b["label"] for b in bars])
-    ax.set_title(scene["title"], fontsize=11.5, fontweight="normal", pad=20)
     ax.tick_params(axis="x", length=0)
     ax.yaxis.tick_right()
     ax.yaxis.set_label_position("right")
@@ -108,7 +103,7 @@ for scene_index, scene in enumerate(SCENES):
     ax.spines["bottom"].set_visible(False)
     ax.spines["left"].set_visible(False)
 
-    fig.subplots_adjust(left=0.03, right=0.78, bottom=0.08, top=0.94)
+    fig.subplots_adjust(left=0.03, right=0.78, bottom=0.08, top=0.99)
     out_path = os.path.join(OUT_DIR, f"{scene['id']}.svg")
     fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
