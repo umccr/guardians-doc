@@ -1,10 +1,28 @@
 ---
 import { LinkButton } from '@astrojs/starlight/components';
 
+type ScrollySection = {
+	heading?: string;
+	paragraph?: string;
+	items?: string[];
+};
+
+type ScrollyNote = {
+	label: string;
+	text: string;
+};
+
 type ScrollyStep = {
 	id?: string;
 	title: string;
-	text: string;
+	/** Simple, plain-text lead-in. Prefer `intro` for new content. */
+	text?: string;
+	/** Plain-text lead-in paragraph rendered before any sections. */
+	intro?: string;
+	/** Structured sub-sections, each with an optional heading and bullet list. */
+	sections?: ScrollySection[];
+	/** Highlighted callout rendered at the end, e.g. a "Key insight". */
+	note?: ScrollyNote;
 	image: string;
 	link: string;
 	linkText: string;
@@ -13,6 +31,19 @@ type ScrollyStep = {
 interface Props {
 	steps: ScrollyStep[];
 }
+
+/**
+ * Splits a bullet item like "Storage class: hot vs cold" into a bold label
+ * and the remaining text, so authors can write plain strings in content
+ * files instead of embedding Markdown (which this component does not parse).
+ */
+const splitLabel = (item: string) => {
+	const separatorIndex = item.indexOf(': ');
+	if (separatorIndex === -1 || separatorIndex > 60) {
+		return { label: null, rest: item };
+	}
+	return { label: item.slice(0, separatorIndex), rest: item.slice(separatorIndex + 1) };
+};
 
 const { steps = [] } = Astro.props;
 
@@ -66,7 +97,31 @@ const normalizedSteps = steps.map((step) => ({
 					]}
 				>
 					<h3 class="text-2xl font-semibold">{step.title}</h3>
-					<p>{step.text}</p>
+					{step.intro && <p>{step.intro}</p>}
+					{!step.intro && step.text && <p>{step.text}</p>}
+					{step.sections?.map((section) => (
+						<div class="scrolly-section space-y-1.5">
+							{section.heading && <p class="font-semibold">{section.heading}</p>}
+							{section.paragraph && <p>{section.paragraph}</p>}
+							{section.items && (
+								<ul class="list-disc space-y-1 pl-5">
+									{section.items.map((item) => {
+										const { label, rest } = splitLabel(item);
+										return (
+											<li>
+												{label ? <><strong>{label}:</strong>{rest}</> : rest}
+											</li>
+										);
+									})}
+								</ul>
+							)}
+						</div>
+					))}
+					{step.note && (
+						<p class="scrolly-note border-l-2 border-sky-400/60 pl-3 text-sm italic">
+							<strong>{step.note.label}:</strong> {step.note.text}
+						</p>
+					)}
 					<LinkButton href={step.link}>
 						{step.linkText}
 					</LinkButton>
