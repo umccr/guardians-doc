@@ -3,10 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
-OUT_DIR = "../public/diagrams"
+# Get the script directory and build the output path
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
 
-MAX_Y = 13000
-Y_TICKS = [0, 1000,  2000,  3000]
+MAX_Y = 5000
+Y_TICKS = [0, 1000,  2000,  3000, 4000, 5000]
 W, H = 3.6, 4.8
 BAR_WIDTH = 0.9
 
@@ -14,31 +16,31 @@ SCENE_BLUES = ["#dbeafe", "#93c5fd", "#3b82f6", "#1e40af"]
 
 SCENES = [
     {
-        "id": "costing-scene1",
+        "id": "standing-costs",
         "bars": [
-            {"label": "ISP", "values": [[1000, 1000, 1000]]},
-            {"label": "CSP", "values": [[200, 300, 400]]},
+            {"label": "ISP", "values": [[150, 75, 75, 150, 350]]},
+            {"label": "CSP", "values": [[750, 150, 350, 750, 1000]]},
         ],
     },
     {
-        "id": "costing-scene2",
+        "id": "storage-costs",
         "bars": [
-            {"label": "ISP", "values": [[1000, 1000, 1000], [1000, 1000, 1000]]},
-            {"label": "CSP", "values": [[200, 300, 400], [420, 500]]},
+            {"label": "ISP", "values": [[150, 75, 75, 150, 350],[200, 100, 35, 35, 25]]},
+            {"label": "CSP", "values": [[750, 150, 350, 750, 1000],[400, 200, 75, 100, 200]]},
         ],
     },
     {
-        "id": "costing-scene3",
+        "id": "data-movement-egress",
         "bars": [
-            {"label": "ISP", "values": [[1000, 1000, 1000], [1000, 1000, 1000], [1000, 1000, 1000]]},
-            {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300]]},
+            {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]]},
+            {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]]},
         ],
     },
     {
-        "id": "costing-scene4",
+        "id": "data-lifecycle",
         "bars": [
-            {"label": "ISP", "values": [[1000, 1000, 1000], [1000, 1000, 1000], [1000, 1000, 1000], [1000, 1000, 1000]]},
-            {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300], [350, 400, 500]]},
+            {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]]},
+            {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]]},
         ],
     },
 ]
