@@ -10,12 +10,7 @@ Y_TICKS = [0, 1000,  2000,  3000]
 W, H = 3.6, 4.8
 BAR_WIDTH = 0.9
 
-GROUP_PALETTES = [
-    ["#d5e9e3", "#bfdcd3", "#a6cec2", "#8dbfaf"],
-    ["#d8e4f2", "#c4d6ea", "#a9c2df", "#8daad0"],
-    ["#e5dcef", "#d4c7e4", "#c0afd8", "#a894c9"],
-    ["#f0d9d5", "#e4bcb5", "#d79e95", "#c47c72"],
-]
+SCENE_BLUES = ["#dbeafe", "#93c5fd", "#3b82f6", "#1e40af"]
 
 SCENES = [
     {
@@ -56,7 +51,7 @@ def normalize_value_groups(values):
     return [values]
 
 
-for scene in SCENES:
+for scene_index, scene in enumerate(SCENES):
     fig, ax = plt.subplots(figsize=(W, H))
     fig.patch.set_alpha(0)
     ax.set_facecolor("none")
@@ -69,14 +64,14 @@ for scene in SCENES:
         value_groups = normalize_value_groups(bar["values"])
 
         for group_index, group_values in enumerate(value_groups):
-            palette = GROUP_PALETTES[group_index % len(GROUP_PALETTES)]
-            for segment_index, value in enumerate(group_values):
+            group_color = SCENE_BLUES[group_index % len(SCENE_BLUES)]
+            for value in group_values:
                 segment = FancyBboxPatch(
                     (x[i] - BAR_WIDTH / 2, bottom),
                     BAR_WIDTH,
                     value,
                     boxstyle="round,pad=0,rounding_size=0.06",
-                    facecolor=palette[segment_index % len(palette)],
+                    facecolor=group_color,
                     edgecolor="#f8fafc",
                     linewidth=2,
                     mutation_scale=8,
