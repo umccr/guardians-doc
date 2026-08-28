@@ -5,7 +5,7 @@ from matplotlib.patches import FancyBboxPatch
 
 OUT_DIR = "../public/diagrams"
 
-MAX_Y = 3600
+MAX_Y = 13000
 Y_TICKS = [0, 1000,  2000,  3000]
 W, H = 3.6, 4.8
 BAR_WIDTH = 0.9
@@ -16,29 +16,29 @@ SCENES = [
     {
         "id": "costing-scene1",
         "bars": [
-            {"label": "ISP", "values": [[100, 150, 200]]},
+            {"label": "ISP", "values": [[1000, 1000, 1000]]},
             {"label": "CSP", "values": [[200, 300, 400]]},
         ],
     },
     {
         "id": "costing-scene2",
         "bars": [
-            {"label": "ISP", "values": [[100, 150, 200], [300, 350]]},
+            {"label": "ISP", "values": [[1000, 1000, 1000], [1000, 1000, 1000]]},
             {"label": "CSP", "values": [[200, 300, 400], [420, 500]]},
         ],
     },
     {
         "id": "costing-scene3",
         "bars": [
-            {"label": "ISP", "values": [[100, 150, 200], [300, 350], [220, 260]]},
+            {"label": "ISP", "values": [[1000, 1000, 1000], [1000, 1000, 1000], [1000, 1000, 1000]]},
             {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300]]},
         ],
     },
     {
         "id": "costing-scene4",
         "bars": [
-            {"label": "ISP", "values": [[100, 150, 200], [300, 350], [220, 260], [180,200]]},
-            {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300], [350, 400,500]]},
+            {"label": "ISP", "values": [[1000, 1000, 1000], [1000, 1000, 1000], [1000, 1000, 1000], [1000, 1000, 1000]]},
+            {"label": "CSP", "values": [[200, 300, 400], [420, 500], [240, 300], [350, 400, 500]]},
         ],
     },
 ]
@@ -49,6 +49,11 @@ def normalize_value_groups(values):
     if isinstance(values[0], list):
         return values
     return [values]
+
+
+def to_segment_thicknesses(values):
+    """Return actual segment costs as-is."""
+    return values
 
 
 for scene_index, scene in enumerate(SCENES):
@@ -65,7 +70,8 @@ for scene_index, scene in enumerate(SCENES):
 
         for group_index, group_values in enumerate(value_groups):
             group_color = SCENE_BLUES[group_index % len(SCENE_BLUES)]
-            for value in group_values:
+            segment_values = to_segment_thicknesses(group_values)
+            for value in segment_values:
                 segment = FancyBboxPatch(
                     (x[i] - BAR_WIDTH / 2, bottom),
                     BAR_WIDTH,
