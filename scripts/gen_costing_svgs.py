@@ -59,6 +59,12 @@ def to_segment_thicknesses(values):
     return values
 
 
+def format_total(value):
+    if value >= 1000:
+        return f"${value / 1000:.1f}k"
+    return f"${value:.0f}"
+
+
 for scene_index, scene in enumerate(SCENES):
     fig, ax = plt.subplots(figsize=(W, H))
     fig.patch.set_alpha(0)
@@ -66,6 +72,7 @@ for scene_index, scene in enumerate(SCENES):
 
     bars = scene["bars"]
     x = np.arange(len(bars))
+    bar_totals = []
 
     for i, bar in enumerate(bars):
         bottom = 0
@@ -88,23 +95,43 @@ for scene_index, scene in enumerate(SCENES):
                 ax.add_patch(segment)
                 bottom += value
 
-    ax.set_ylim(0, MAX_Y)
+        bar_totals.append(bottom)
+
+    scene_max = max(bar_totals) if bar_totals else MAX_Y
+    y_top = max(MAX_Y, scene_max) 
+    ax.set_ylim(0, y_top)
     ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
-    ax.set_yticks(Y_TICKS)
+    ax.set_yticks([])
+    ax.set_yticklabels([])
+    ax.yaxis.set_label_position("right")
+    ax.set_ylabel("USD / month", labelpad=8, fontsize=10, color="#334155")
+    ax.set_xlabel("")
     ax.set_xticks(x)
     ax.set_xticklabels([b["label"] for b in bars])
     ax.tick_params(axis="x", length=0)
-    ax.yaxis.tick_right()
-    ax.yaxis.set_label_position("right")
-    ax.tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True, pad=2)
-    ax.set_ylabel("USD / month", labelpad=6)
+    ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=False)
+
+    label_offset = y_top * 0.006
+    for i, total in enumerate(bar_totals):
+        ax.text(
+            x[i],
+            total + label_offset,
+            format_total(total),
+            ha="center",
+            va="bottom",
+            fontsize=11.5,
+            fontweight="bold",
+            fontfamily="DejaVu Sans",
+            color="#0f172a",
+        )
+
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["bottom"].set_visible(False)
     ax.spines["left"].set_visible(False)
 
-    fig.subplots_adjust(left=0.03, right=0.78, bottom=0.08, top=0.99)
+    fig.subplots_adjust(left=0.03, right=0.97, bottom=0.05, top=0.998)
     out_path = os.path.join(OUT_DIR, f"{scene['id']}.svg")
-    fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.02)
+    fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
     plt.close(fig)
     print(f"Saved {out_path}")
