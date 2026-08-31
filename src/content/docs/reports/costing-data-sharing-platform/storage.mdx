@@ -15,12 +15,14 @@ In a data‑sharing platform, storage decisions have a big impact on long‑term
 
 - **How much to keep**: do you archive everything, or only curated outputs?
 - **How long to keep it**: do you retain data indefinitely, or delete after a certain period?
-- **Where to keep it**: do you use fast, expensive storage (S3 Standard) or slower, cheaper tiers (S3 Glacier, S3 Deep Archive)?
+- **Where to keep it**: do you use fast, expensive storage (S3 Standard) or slower,
+ cheaper tiers (S3 Glacier, S3 Deep Archive)?
 
-These choices compound over time. A platform that keeps everything hot forever will see storage cost grow linearly with the 
-number of projects. A platform that archives old data or deletes intermediates can keep storage cost much flatter.
+These choices compound over time. A platform that keeps everything hot forever will see storage cost grow linearly 
+over time, while one with thoughtful archiving and deletion policies can keep costs much flatter.
 
-
+Here we will describe the cost of different storage classes and data volumes. 
+The strategies on managing storage cost over time through lifecycle policies are addressed in [Looking after data](../data-lifecycle/).
 
 
 <div style={{ textAlign: 'center', margin: '2rem 0' }}>
@@ -33,182 +35,186 @@ number of projects. A platform that archives old data or deletes intermediates c
 
 ## Main cost components
 
-At a high level, most of the storage cost of a data‑sharing platform comes from a small set of building blocks:
-
-
+At a high level, storage cost breaks down into a few main contributors:
 
 
 ### S3 buckets and storage classes
 
-AWS S3 is the primary storage service for genomics data. S3 charges based on:
+**S3 is the core storage layer** for analysis‑ready data in a data‑sharing platform. All datasets, results, 
+and platform metadata are stored in S3 buckets. S3 pricing has two main dimensions:
 
-- **Volume of data stored** (per GB per month).
-- **Storage class** (how the data is stored and how quickly it can be retrieved), for example:
-  - **S3 Standard** – fast access, highest cost.
-  - **S3 Standard‑IA (Infrequent Access)** – lower cost, but retrieval charges and higher minimum storage duration.
-  - **S3 Glacier Instant / Flexible** – archive storage, much lower cost, retrieval takes minutes to hours.
-  - **S3 Glacier Deep Archive** – very cheap, retrieval takes many hours.
+- **Volume of data stored** (per GB per month) – the more data you keep, the more you pay.
+- **Storage class** (how the data is stored and how quickly it can be retrieved) – this is the biggest cost lever.
 
-The choice of storage class is a key lever. Keeping 1 TB in a hot tier costs several times more per month than keeping it in Glacier or Deep Archive. Storage class decisions therefore dominate the long‑term storage budget.
+
+**Storage classes** let you trade cost for access speed and retrieval flexibility. The main S3 classes are:
+
+- **Standard** – millisecond access, highest cost. Use for frequently accessed data.
+- **Standard-IA (Infrequent Access)** – millisecond access, lower cost than Standard, 
+but you pay per retrieval and have a 30-day minimum storage duration. Use for data accessed occasionally.
+- **Glacier Instant Retrieval** – millisecond access, significantly cheaper than Standard, 
+no retrieval charges, but 90-day minimum storage duration. Use for archive data that you rarely access but might need immediately.
+- **Glacier Flexible Retrieval** – retrieval takes 1–5 minutes (Standard option) to 12+ hours (Bulk option), very low cost, 90-day minimum storage duration. Use for rarely accessed long-term data where retrieval speed is not critical.
+- **Glacier Deep Archive** – retrieval takes 12+ hours, lowest cost, 180-day minimum storage duration. 
+Use for long-term compliance or backup where you almost never need to retrieve data.
+
 
 ### Metadata and indexing
 
-Beyond raw data storage, platforms typically maintain:
+Beyond raw data storage, platforms need to track and index information *about* the data. This includes dataset names, ownership, creation dates, access history, and other operational metadata. These metadata systems are essential for users to discover, understand, and access datasets, and also consume storage space.
 
-- **S3 object metadata** (tags, versions, access logs) – small but persistent.
-- **Metadata databases** (e.g. DynamoDB or RDS tables) that index datasets, track provenance, record access history.
-- **Catalogue and search indices** (e.g. OpenSearch or similar) that allow users to discover datasets.
+Platforms typically maintain three types of metadata storage:
 
-These systems are usually much smaller than the raw data, but still contribute a steady storage footprint.
+- **S3 object metadata** (tags, versions, access logs) – small but persistent. AWS stores this alongside your data in S3.
+- **Metadata databases** (e.g. [DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) or [RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html) tables) that index datasets, track provenance, and record access history. These enable structured queries and operational tracking.
+- **Catalogue and search indices** (e.g. OpenSearch or similar search service) that allow users to discover datasets, enabling full-text search and exploration of available data.
 
-### Catalogue, logs and audit trail
+These systems are usually much smaller than the raw data itself, but they accumulate over time and contribute a steady storage footprint to the platform's overall cost.
 
-Genomics platforms accumulate:
 
-- **Catalogue records** – summaries of datasets and projects.
-- **Application logs** – for debugging and operational insight.
-- **Audit logs** – records of who accessed what data, when and how.
-
-Much of this is stored in S3 and log stores (e.g. CloudWatch Logs, OpenSearch). The volume of logs and the retention period both affect storage cost.
 
 ### Replication and multi‑region storage
 
-For resilience or compliance, some platforms replicate data:
+Data-sharing platforms often need to replicate data for two reasons: **resilience** (so data survives infrastructure failures) and **compliance** (to meet jurisdictional or regulatory requirements). Replication means keeping copies of data in multiple locations, which multiplies storage cost.
 
-- **Across regions** – so data survives a regional failure and meets jurisdictional requirements.
-- **Across accounts** – so partners can access data within their own AWS environments.
+Platforms typically replicate data in two ways:
 
-Replication multiplies storage cost. A dataset kept in two regions costs roughly twice as much at rest, even before considering the transfer charges.
+- **Across regions** – keeping copies in different AWS regions. This protects against regional outages and meets data residency requirements (e.g. "data must be stored in Australia"). Each additional region doubles the storage cost for that data.
+- **Across accounts** – keeping copies in different AWS accounts (e.g. one for your organisation, one for a partner). This allows partners to access data within their own AWS environment and provides isolation for governance and billing. Each additional account adds storage cost.
 
-### Lifecycle footprint
+Replication costs scale quickly. A dataset kept in two regions costs roughly twice as much at rest, even before considering the transfer charges for keeping the replicas in sync.
 
-Data lifecycle choices also shape storage cost:
 
-- Keeping everything hot permanently keeps cost high and growing.
-- Archiving older data to cheaper tiers reduces cost while preserving availability.
-- Deleting intermediate artefacts and obsolete copies reduces both footprint and complexity.
 
-Lifecycle effects are covered in more detail in the [Looking after data](../data-lifecycle/) document, but they are a key part of storage cost.
 
 
 
 ## Internal vs cross‑organisation platforms: different storage growth patterns
 
-The same main components appear in both an **internal sharing platform (ISP)** and a **cross‑organisation sharing platform (CSP)**,
- but the way they grow over time is different.
-
+Storage needs and growth patterns differ significantly between**internal sharing platform (ISP)** and a **cross‑organisation sharing platform (CSP)**. 
+While both use the same storage components, how data accumulates and is managed over time varies considerably.
 
 
 ### Internal Sharing Platform
 
-An ISP is used within a single organisation by one or more teams. Storage behaviour is typically:
+A ISP will be characterised by **centralised, single-region storage** with
+ simpler replication needs. Data is stored and managed within a single organisation's AWS environment:
 
-- Projects upload analysis‑ready results (e.g. aligned BAMs/CRAMs, VCFs, summary tables).
-- Data for **active projects** is kept in a hot tier (e.g. S3 Standard) to support fast analysis.
-- Old projects’ data may be archived to Glacier or deleted after a retention period.
+- Within the organisation, each project produces and stores its own sequencing and analysis results 
+(e.g. FASTQs, aligned BAMs, VCFs, summary tables).
+- Data for **active projects** is kept in a hot tier (e.g. S3 Standard) to support fast access.
+- Old projects' data may be archived to Glacier or deleted after a retention period.
 - Metadata, catalogues and logs are centralised in one account, usually in one region.
 
-**Typical storage growth**: roughly linear with the number of projects and time. For example, 50 projects each producing 100 GB of curated outputs yield about 5 TB of active data; if 50 new projects are added each year and everything is kept, this can grow into tens of TB over a few years.
+**Typical storage growth**: Assuming projects of similar size, total storage grows roughly linearly with the 
+number of projects and time. 
 
-**Storage cost shape**: relatively predictable. If you keep everything hot, cost grows steadily. If you archive after 1–2 years and delete intermediates, cost can plateau or grow only slowly.
-
-### Cross‑Organisation Sharing Platform
-
-A CSP regularly shares data with external partner organisations. Storage behaviour is often more complex:
-
-- Data needs to be available not only to the originating team, but also to external partners.
-- Datasets may be **replicated across regions or accounts** for resilience, compliance or performance.
-- Partners may request their own copies of datasets, creating multiple copies of the same bytes.
-- Audit and compliance requirements may mandate longer retention periods and additional catalogues.
-- Multi‑account architectures spread metadata and logs across several accounts.
-
-**Typical storage growth**: can be faster and less predictable. If partners regularly request copies of large datasets, storage can grow faster than in an ISP, even if per‑project output volumes are similar. Replication across regions and accounts multiplies at‑rest storage cost.
-
-**Storage cost shape**: more volatile. Sudden partner requests, new compliance rules or additional replication can create spikes. However, careful lifecycle and replication policies can keep storage costs under control.
+**Storage cost shape**: relatively predictable. If you keep everything hot, cost grows steadily.
+If you archive after 1–2 years and delete intermediates, cost can plateau or grow only slowly.
 
 
+
+### Cross‑Organisation Sharing Platform (CSP)
+
+A CSP will be characterised by **distributed, multi-region or multi-account storage** with complex replication 
+and governance requirements. Data must be accessible to external partners while meeting compliance and resilience standards:
+
+- **External access requirements**: data must be available to external partners, not just the originating team. 
+This often requires replication across regions or accounts for resilience, compliance, and performance.
+- **Multiple copies of data**: partners may request their own copies of datasets, creating redundant storage of 
+the same data across different locations or accounts.
+- **Stricter governance**: audit and compliance requirements mandate longer retention periods, additional catalogues,
+and detailed access logs. Multi‑account architectures spread metadata and logs across several accounts.
+
+
+**Typical storage growth**: faster and less predictable than ISP. Partner requests for dataset copies, replication 
+across regions and accounts, and compliance-driven retention all contribute to rapid growth. Storage can accumulate 
+quickly even if per-project output volumes are similar to an ISP.
+
+**Storage cost shape**: more volatile than ISP. Sudden partner requests, new compliance rules, or additional replication 
+can create cost spikes. Strict lifecycle policies and careful replication management are essential to keep costs under 
+control. See [Looking after data](../data-lifecycle/).
 
 
 
 
 ## Design choices
 
-Within this landscape, several design decisions have a strong effect on storage cost:
+There is significant room for design decisions in storage. Storage cost depends on several key architectural choices: 
+selecting storage classes that fit your access patterns, deciding what data to keep and for how long, and automating 
+those decisions. These choices will determine whether storage cost grows sustainably or spirals out of control.
 
-### Curated outputs vs “keep everything”
 
-A key choice is **which artefacts you keep**.
 
-**Keep everything**  
-Store raw inputs, scratch files, intermediate outputs and final results.
 
-- Pros: maximum reproducibility; easier to re‑run analyses exactly as before.
-- Cons: storage cost grows quickly; most intermediate artefacts are rarely accessed.
+### What to keep: curated outputs vs "keep everything"
 
-**Curated outputs only**  
-Store only curated, validated outputs (e.g. final BAM/CRAM, final VCFs, summary tables) and discard intermediates once results are accepted.
+A key choice is **which artefacts to keep**. This decision shapes both your storage footprint and your ability to reproduce or re-run analyses.
 
-- Pros: storage footprint is much smaller; easier to manage and audit; cost is significantly lower.
+**Keep everything**: store raw inputs, scratch files, intermediate outputs and final results.
+- Pros: maximum reproducibility; easier to re‑run analyses from any point.
+- Cons: storage cost grows quickly; most intermediates are rarely accessed after initial validation.
+
+**Curated outputs only**: store only validated outputs (e.g. final BAM/CRAM, VCFs, summary tables); discard intermediates once accepted.
+- Pros: much smaller footprint; easier to manage and audit; significantly lower cost.
 - Cons: complex re‑runs may require regenerating intermediates from raw data.
 
-For most genomics platforms, **curated outputs only** is the pragmatic choice for data‑sharing: raw sequencing data and scratch storage are usually handled separately, and curated outputs are the artefacts collaborators actually consume.
+The choice depends on your platform's priorities: how much reproducibility you need versus how aggressively you want to control costs, and whether raw sequencing data and scratch storage are managed separately from your data-sharing layer.
 
-### Hot vs cold storage
 
-Another lever is **where in S3 you keep data over time**.
 
-**Hot storage** (e.g. S3 Standard):
+### Where to keep it: storage class selection
 
-- Fast access; ideal for active projects and frequently accessed datasets.
-- Higher cost per GB per month.
+Another choice is **which storage class to use for different types of data**. This decision depends on 
+understanding your platform's access patterns and data characteristics.
 
-**Cold/archival storage** (e.g. Glacier, Deep Archive):
+You have several options across the spectrum:
 
-- Much lower cost per GB per month.
-- Retrieval takes minutes to hours; retrieval and early‑deletion fees may apply.
+**Frequently accessed data**: S3 Standard (millisecond access, highest cost) or S3 Standard-IA (millisecond access, 
+lower cost, but per-retrieval charges and 30-day minimum).
 
-**Hybrid approach**:
+**Archive data with occasional access**: S3 Glacier Instant Retrieval (millisecond 
+access if needed, significantly cheaper than Standard, 90-day minimum) or S3 Glacier Flexible Retrieval 
+(retrieval takes 1–5 minutes to 12+ hours depending on tier, very low cost, 90-day minimum).
 
-- Keep recent and frequently accessed data in hot storage.
-- Move older or rarely accessed data to Glacier classes.
-- Optionally delete data entirely after a defined retention period.
+**Long-term compliance or backup**: S3 Glacier Deep Archive (retrieval takes 12+ hours, lowest cost, 180-day minimum).
 
-This hybrid approach can dramatically reduce the average storage cost while keeping recent data fast.
+**Making the choice**: understand your platform's usage patterns:
+- Which datasets are queried regularly by users?
+- Which are accessed occasionally for validation or re-analysis?
+- Which are kept primarily for compliance or audit trails?
+- How quickly do different datasets need to be retrieved?
 
-### Lifecycle policies and automation
+Different datasets warrant different storage classes. A frequently shared reference dataset 
+might use Standard, while validated results from completed projects might use Glacier Instant, and 
+compliance archives might use Deep Archive.
 
-Lifecycle rules allow you to **encode storage decisions into S3** and let them run automatically, for example:
+Also consider that as datasets age, their access patterns may change, moving data between storage classes can
+ optimise cost. This is covered in detail in [Looking after data](../data-lifecycle/).
 
-- “Move objects to S3 Glacier Instant after 90 days; move to Deep Archive after 3 years; delete after 10 years.”
-- “Delete temporary or intermediate artefacts after 30 days.”
 
-Lifecycle policies:
+### Replication strategy
 
-- Reduce manual effort and risk of forgotten data.
-- Gradually shift cost from expensive hot storage to cheaper archival tiers.
-- Are essential for keeping long‑term storage cost sustainable.
+Multi‑region or multi‑account replication serves important purposes: ensuring datasets survive regional outages, 
+meeting jurisdictional data residency requirements, or serving geographically distributed users. Both ISPs and CSPs 
+may use replication, though CSPs often need it for external partner access and regulatory compliance.
 
-### Replication and multi‑region storage
+The cost of replication is significant: each additional region or account roughly doubles the at-rest storage cost 
+for replicated data, and introduces ongoing expenses for keeping copies in sync. 
 
-For CSPs, multi‑region or multi‑account storage can be necessary:
+The design challenge is deciding which datasets justify replication. For ISPs, replication might be limited to 
+critical datasets or backups. For CSPs, replication is often essential for partner access and compliance, making it 
+a necessary cost of "doing business".
 
-- **Resilience** – ensuring datasets survive regional failures.
-- **Compliance** – meeting jurisdictional requirements for data residency.
-- **Performance** – placing data closer to geographically distributed users.
-
-However, replication:
-
-- Doubles or triples storage cost for replicated datasets.
-- Introduces **ongoing cost** for keeping copies in sync.
-- Should be applied selectively, where the resilience or compliance benefits justify the cost.
-
-Thoughtful replication strategy is key to controlling CSP storage cost.
 
 
 
 ## Storage cost at a glance
 
-Storage cost is the part of the budget that grows visibly over time: as more analysis‑ready data is produced and retained, and as more copies are created for partners and resilience. The table below summarises indicative monthly storage cost ranges for an ISP and a CSP, broken down by main components. The underlying estimation details are described in the [Assumptions and estimates](#assumptions-and-estimates) section. Costs are shown in USD and are illustrative.
+Storage cost is the part of the budget that grows visibly over time: as more data is produced and retained, 
+and as more copies are created for partners and resilience. The table below summarises indicative monthly storage cost ranges 
+for an ISP and a CSP, broken down by main components. The underlying estimation details are described in
+ [Assumptions and estimates](#assumptions-and-estimates). Costs are shown in USD.
 
 <table>
   <tr>
@@ -232,9 +238,43 @@ Storage cost is the part of the budget that grows visibly over time: as more ana
     <td>\$50–100</td>
   </tr>
   <tr>
-    <td>Catalogue, logs & audit trail</td>
-    <td>\$20–50</td>
+    <td>Replication & multi‑region copies</td>
+    <td>\$0–50</td>
+    <td>\$100–300</td>
+  </tr>
+  <tr>
+    <td><strong>Total storage cost</strong></td>
+    <td><strong>~\$170–550</strong></td>
+    <td><strong>~\$450–1.3K</strong></td>
+  </tr>
+</table>
+
+
+
+## Storage cost at a glance
+
+Storage cost is the part of the budget that grows visibly over time: as more data is produced and retained, and as more copies are created for partners and resilience. The table below summarises indicative monthly storage cost ranges for an ISP and a CSP, broken down by main components. The underlying estimation details are described in [Assumptions and estimates](#assumptions-and-estimates). Costs are shown in USD.
+
+<table>
+  <tr>
+    <th> </th>
+    <th>Internal Sharing Platform (ISP)</th>
+    <th>Cross‑Organisation Sharing Platform (CSP)</th>
+  </tr>
+  <tr>
+    <td>Active curated outputs (hot storage)</td>
+    <td>\$100–300</td>
+    <td>\$200–600</td>
+  </tr>
+  <tr>
+    <td>Archived outputs (cold storage)</td>
     <td>\$50–150</td>
+    <td>\$100–300</td>
+  </tr>
+  <tr>
+    <td>Metadata & indexing</td>
+    <td>\$20–50</td>
+    <td>\$50–100</td>
   </tr>
   <tr>
     <td>Replication & multi‑region copies</td>
@@ -243,105 +283,79 @@ Storage cost is the part of the budget that grows visibly over time: as more ana
   </tr>
   <tr>
     <td><strong>Total storage cost</strong></td>
-    <td><strong>~\$190–600</strong></td>
-    <td><strong>~\$500–1.45K</strong></td>
+    <td><strong>~\$170–550</strong></td>
+    <td><strong>~\$450–1.3K</strong></td>
   </tr>
 </table>
 
-These ranges assume a moderate‑scale genomics platform with tens of projects and TB‑scale curated outputs. They are intended to show **orders of magnitude** rather than exact bills. Actual costs depend on data volumes, storage classes, lifecycle policies, replication strategy and region‑specific pricing.
-
-
 ### Assumptions and estimates
 
-Below, we describe representative setups we assumed for an ISP and a CSP, and the corresponding estimates for each of the five components.
+Below, we describe representative setups we assumed for an ISP and a CSP, and the corresponding estimates for each component.
 
 #### Active curated outputs (hot storage)
 
 **ISP**
 
-- Curated outputs for around 50 projects stored in S3 Standard.  
-- Approximate volume: 5–10 TB of BAM/CRAM, VCFs and summary tables.  
+- Curated outputs for around 50 projects stored in S3 Standard.
+- Approximate volume: 5–10 TB of BAM/CRAM, VCFs and summary tables.
 - Typical monthly cost: **\$100–300** for hot storage of these TB‑scale curated outputs.
 
 **CSP**
 
-- Similar curated outputs, but a larger active set due to ongoing collaborative work.  
-- Approximate volume: 10–20 TB of datasets kept hot to support partners.  
+- Similar curated outputs, but a larger active set due to ongoing collaborative work.
+- Approximate volume: 10–20 TB of datasets kept hot to support partners.
 - Typical monthly cost: **\$200–600**, reflecting higher TB volumes kept in hot storage.
 
 AWS pricing references:  
 [S3 storage classes](https://aws.amazon.com/s3/pricing/).
 
-
 #### Archived outputs (cold storage)
 
 **ISP**
 
-- Older curated outputs moved to Glacier or Deep Archive after a defined period (e.g. 12–24 months).  
-- Approximate volume: 10–30 TB of archived results across a few years of projects.  
+- Older curated outputs moved to Glacier or Deep Archive after a defined period (e.g. 12–24 months).
+- Approximate volume: 10–30 TB of archived results across a few years of projects.
 - Typical monthly cost: **\$50–150** for archival storage in Glacier classes.
 
 **CSP**
 
-- Larger archival footprint due to longer retention for cross‑organisational projects.  
-- Approximate volume: 20–60 TB of archived datasets, possibly across multiple regions or accounts.  
+- Larger archival footprint due to longer retention for cross‑organisational projects.
+- Approximate volume: 20–60 TB of archived datasets, possibly across multiple regions or accounts.
 - Typical monthly cost: **\$100–300**, depending on tier mix and retention length.
 
 AWS pricing references:  
 [S3 Glacier & Deep Archive](https://aws.amazon.com/s3/pricing/).
 
-
 #### Metadata and indexing
 
 **ISP**
 
-- A small number of metadata tables (e.g. DynamoDB or RDS) indexing datasets, projects and permissions.  
-- Overall size is modest compared to raw data (GB‑scale rather than TB‑scale).  
+- A small number of metadata tables (e.g. DynamoDB or RDS) indexing datasets, projects and permissions.
+- Overall size is modest compared to raw data (GB‑scale rather than TB‑scale).
 - Typical monthly cost: **\$20–50** for core metadata stores.
 
 **CSP**
 
-- More metadata tables and indexes, spread across multiple accounts and possibly regions.  
-- Additional catalogues to support partner‑specific views of datasets.  
+- More metadata tables and indexes, spread across multiple accounts and possibly regions.
+- Additional catalogues to support partner‑specific views of datasets.
 - Typical monthly cost: **\$50–100** for distributed metadata stores.
 
 AWS pricing references:  
 [DynamoDB](https://aws.amazon.com/dynamodb/pricing/), [RDS](https://aws.amazon.com/rds/pricing/).
 
-
-#### Catalogue, logs and audit trail
-
-**ISP**
-
-- S3 buckets and log stores for catalogues, application logs and moderate audit logs.  
-- Retention tuned to support internal operations (e.g. 3–12 months for most logs).  
-- Typical monthly cost: **\$20–50** for these catalogue and log footprints.
-
-**CSP**
-
-- Larger and more detailed log and audit footprint, spanning multiple accounts.  
-- Longer retention (e.g. several years) to meet cross‑organisational compliance expectations.  
-- Typical monthly cost: **\$50–150**, depending on retention and log volume.
-
-AWS pricing references:  
-[S3](https://aws.amazon.com/s3/pricing/), [CloudWatch Logs](https://aws.amazon.com/cloudwatch/pricing/).
-
-
 #### Replication and multi‑region copies
 
 **ISP**
 
-- Primarily single‑region storage; little or no cross‑region replication.  
-- Occasional copies for backup or special projects, but not routine.  
+- Primarily single‑region storage; little or no cross‑region replication.
+- Occasional copies for backup or special projects, but not routine.
 - Typical monthly cost: **\$0–50** for replication‑related storage.
 
 **CSP**
 
-- Routine replication of key datasets across regions or accounts for resilience and data residency.  
-- Partners may retain their own copies in their accounts.  
+- Routine replication of key datasets across regions or accounts for resilience and data residency.
+- Partners may retain their own copies in their accounts.
 - Typical monthly cost: **\$100–300** attributable to replicated copies and partner‑side storage.
 
 AWS pricing references:  
 [S3 replication and multi‑region storage](https://aws.amazon.com/s3/pricing/).
-
-

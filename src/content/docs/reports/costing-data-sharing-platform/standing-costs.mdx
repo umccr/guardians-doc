@@ -222,8 +222,8 @@ The underlying estimation details are described in the
   </tr>
   <tr>
     <td>[Monitoring & audit](#monitoring-and-audit)</td>
-    <td>\$100–200</td>
-    <td>\$500–1K</td>
+    <td>\$120–250</td>
+    <td>\$550–1.15K</td>
   </tr>
   <tr>
     <td>[Baseline compute](#baseline-compute)</td>
@@ -232,10 +232,11 @@ The underlying estimation details are described in the
   </tr>
   <tr>
     <td><strong>Total standing cost</strong></td>
-    <td><strong>~\$500–1.1K</strong></td>
-    <td><strong>~\$1.7–4.2K</strong></td>
+    <td><strong>~\$520–1.25K</strong></td>
+    <td><strong>~\$1.85–4.35K</strong></td>
   </tr>
 </table>
+
 
 
 ### Assumptions and estimates
@@ -305,18 +306,23 @@ AWS pricing references:
 
 **ISP**
 
-- CloudWatch metrics for core services (CPU, requests, errors) – around \$20–40/month for a modest number of custom metrics  
-- CloudWatch Logs for application and platform logs, with moderate retention (e.g. 30–90 days) – around \$50–150/month depending on GB ingested and stored  
-- Occasional use of dashboards and alarms – typically a small additional cost compared to metrics and logs  
+- CloudWatch metrics for core services (CPU, requests, errors) – around $20–40/month for a modest number of custom metrics
+- CloudWatch Logs for application and platform logs, with moderate retention (e.g. 30–90 days) – around $50–150/month depending on GB ingested and stored
+- CloudTrail trail recording management events – around $20–40/month for event recording and S3 log storage
+- S3 buckets for log aggregation and archival – around $20–50/month for catalogue and log storage
+- Occasional use of dashboards and alarms – typically a small additional cost compared to metrics and logs
+
 
 **CSP**
 
-- More CloudWatch metrics and log streams across multiple accounts and VPCs – together around \$200–500/month  
-- Longer log retention to meet cross‑organisational audit requirements – adding another \$300–500/month depending on volume  
+- More CloudWatch metrics and log streams across multiple accounts and VPCs – together around $200–500/month
+- Longer log retention to meet cross‑organisational audit requirements – adding another $300–500/month depending on volume
+- CloudTrail trails in 2–3 accounts, plus selected data events on key S3 buckets – together around $100–300/month depending on event volume and retention
+- S3 buckets for log aggregation and archival across multiple accounts – around $50–150/month for larger and more detailed log footprints
 - Optional security monitoring services (e.g. GuardDuty, Security Hub) – which can contribute additional tens to hundreds of dollars per month
 
 AWS pricing references:  
-[CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [GuardDuty](https://aws.amazon.com/guardduty/pricing/), [Security Hub](https://aws.amazon.com/security-hub/pricing/).
+[CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [S3](https://aws.amazon.com/s3/pricing/), [GuardDuty](https://aws.amazon.com/guardduty/pricing/), [Security Hub](https://aws.amazon.com/security-hub/pricing/).
 
 
 #### Baseline compute
