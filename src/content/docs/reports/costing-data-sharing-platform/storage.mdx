@@ -6,7 +6,6 @@ import ReportStickyHeader from '../../../../components/ReportStickyHeader.astro'
 
 <ReportStickyHeader title="Storing data" backHref="../costing-scrollytell/" />
 
-
 Storage cost is what you pay to keep analysis‑ready genomics data at rest in S3 buckets, 
 month after month. Unlike standing cost (which is fixed regardless of data volume),
  storage cost grows with how much data you keep and how long you keep it.
@@ -24,19 +23,15 @@ over time, while one with thoughtful archiving and deletion policies can keep co
 Here we will describe the cost of different storage classes and data volumes. 
 The strategies on managing storage cost over time through lifecycle policies are addressed in [Looking after data](../data-lifecycle/).
 
-
 <div style={{ textAlign: 'center', margin: '2rem 0' }}>
   <LinkButton href="#storage-cost-at-a-glance">
     Storage cost at a glance 
   </LinkButton>
 </div>
 
-
-
 ## Main cost components
 
 At a high level, storage cost breaks down into a few main contributors:
-
 
 ### S3 buckets and storage classes
 
@@ -45,7 +40,6 @@ and platform metadata are stored in S3 buckets. S3 pricing has two main dimensio
 
 - **Volume of data stored** (per GB per month) – the more data you keep, the more you pay.
 - **Storage class** (how the data is stored and how quickly it can be retrieved) – this is the biggest cost lever.
-
 
 **Storage classes** let you trade cost for access speed and retrieval flexibility. The main S3 classes are:
 
@@ -57,7 +51,6 @@ no retrieval charges, but 90-day minimum storage duration. Use for archive data 
 - **Glacier Flexible Retrieval** – retrieval takes 1–5 minutes (Standard option) to 12+ hours (Bulk option), very low cost, 90-day minimum storage duration. Use for rarely accessed long-term data where retrieval speed is not critical.
 - **Glacier Deep Archive** – retrieval takes 12+ hours, lowest cost, 180-day minimum storage duration. 
 Use for long-term compliance or backup where you almost never need to retrieve data.
-
 
 ### Metadata and indexing
 
@@ -71,8 +64,6 @@ Platforms typically maintain three types of metadata storage:
 
 These systems are usually much smaller than the raw data itself, but they accumulate over time and contribute a steady storage footprint to the platform's overall cost.
 
-
-
 ### Replication and multi‑region storage
 
 Data-sharing platforms often need to replicate data for two reasons: **resilience** (so data survives infrastructure failures) and **compliance** (to meet jurisdictional or regulatory requirements). Replication means keeping copies of data in multiple locations, which multiplies storage cost.
@@ -84,20 +75,14 @@ Platforms typically replicate data in two ways:
 
 Replication costs scale quickly. A dataset kept in two regions costs roughly twice as much at rest, even before considering the transfer charges for keeping the replicas in sync.
 
-
-
-
-
-
 ## Internal vs cross‑organisation platforms: different storage growth patterns
 
-Storage needs and growth patterns differ significantly between**internal sharing platform (ISP)** and a **cross‑organisation sharing platform (CSP)**. 
+Storage needs and growth patterns differ significantly between an **internal sharing platform (ISP)** and a **cross‑organisation sharing platform (CSP)**. 
 While both use the same storage components, how data accumulates and is managed over time varies considerably.
-
 
 ### Internal Sharing Platform
 
-A ISP will be characterised by **centralised, single-region storage** with
+An ISP is characterised by **centralised, single-region storage** with
  simpler replication needs. Data is stored and managed within a single organisation's AWS environment:
 
 - Within the organisation, each project produces and stores its own sequencing and analysis results 
@@ -112,11 +97,9 @@ number of projects and time.
 **Storage cost shape**: relatively predictable. If you keep everything hot, cost grows steadily.
 If you archive after 1–2 years and delete intermediates, cost can plateau or grow only slowly.
 
-
-
 ### Cross‑Organisation Sharing Platform (CSP)
 
-A CSP will be characterised by **distributed, multi-region or multi-account storage** with complex replication 
+A CSP is characterised by **distributed, multi-region or multi-account storage** with complex replication 
 and governance requirements. Data must be accessible to external partners while meeting compliance and resilience standards:
 
 - **External access requirements**: data must be available to external partners, not just the originating team. 
@@ -126,7 +109,6 @@ the same data across different locations or accounts.
 - **Stricter governance**: audit and compliance requirements mandate longer retention periods, additional catalogues,
 and detailed access logs. Multi‑account architectures spread metadata and logs across several accounts.
 
-
 **Typical storage growth**: faster and less predictable than ISP. Partner requests for dataset copies, replication 
 across regions and accounts, and compliance-driven retention all contribute to rapid growth. Storage can accumulate 
 quickly even if per-project output volumes are similar to an ISP.
@@ -135,17 +117,11 @@ quickly even if per-project output volumes are similar to an ISP.
 can create cost spikes. Strict lifecycle policies and careful replication management are essential to keep costs under 
 control. See [Looking after data](../data-lifecycle/).
 
-
-
-
 ## Design choices
 
 There is significant room for design decisions in storage. Storage cost depends on several key architectural choices: 
 selecting storage classes that fit your access patterns, deciding what data to keep and for how long, and automating 
 those decisions. These choices will determine whether storage cost grows sustainably or spirals out of control.
-
-
-
 
 ### What to keep: curated outputs vs "keep everything"
 
@@ -160,8 +136,6 @@ A key choice is **which artefacts to keep**. This decision shapes both your stor
 - Cons: complex re‑runs may require regenerating intermediates from raw data.
 
 The choice depends on your platform's priorities: how much reproducibility you need versus how aggressively you want to control costs, and whether raw sequencing data and scratch storage are managed separately from your data-sharing layer.
-
-
 
 ### Where to keep it: storage class selection
 
@@ -189,9 +163,8 @@ Different datasets warrant different storage classes. A frequently shared refere
 might use Standard, while validated results from completed projects might use Glacier Instant, and 
 compliance archives might use Deep Archive.
 
-Also consider that as datasets age, their access patterns may change, moving data between storage classes can
+Also consider that as datasets age, their access patterns may change. Moving data between storage classes can
  optimise cost. This is covered in detail in [Looking after data](../data-lifecycle/).
-
 
 ### Replication strategy
 
@@ -204,10 +177,7 @@ for replicated data, and introduces ongoing expenses for keeping copies in sync.
 
 The design challenge is deciding which datasets justify replication. For ISPs, replication might be limited to 
 critical datasets or backups. For CSPs, replication is often essential for partner access and compliance, making it 
-a necessary cost of "doing business".
-
-
-
+a necessary cost of doing business.
 
 ## Storage cost at a glance
 
@@ -215,45 +185,6 @@ Storage cost is the part of the budget that grows visibly over time: as more dat
 and as more copies are created for partners and resilience. The table below summarises indicative monthly storage cost ranges 
 for an ISP and a CSP, broken down by main components. The underlying estimation details are described in
  [Assumptions and estimates](#assumptions-and-estimates). Costs are shown in USD.
-
-<table>
-  <tr>
-    <th> </th>
-    <th>Internal Sharing Platform (ISP)</th>
-    <th>Cross‑Organisation Sharing Platform (CSP)</th>
-  </tr>
-  <tr>
-    <td>Active curated outputs (hot storage)</td>
-    <td>\$100–300</td>
-    <td>\$200–600</td>
-  </tr>
-  <tr>
-    <td>Archived outputs (cold storage)</td>
-    <td>\$50–150</td>
-    <td>\$100–300</td>
-  </tr>
-  <tr>
-    <td>Metadata & indexing</td>
-    <td>\$20–50</td>
-    <td>\$50–100</td>
-  </tr>
-  <tr>
-    <td>Replication & multi‑region copies</td>
-    <td>\$0–50</td>
-    <td>\$100–300</td>
-  </tr>
-  <tr>
-    <td><strong>Total storage cost</strong></td>
-    <td><strong>~\$170–550</strong></td>
-    <td><strong>~\$450–1.3K</strong></td>
-  </tr>
-</table>
-
-
-
-## Storage cost at a glance
-
-Storage cost is the part of the budget that grows visibly over time: as more data is produced and retained, and as more copies are created for partners and resilience. The table below summarises indicative monthly storage cost ranges for an ISP and a CSP, broken down by main components. The underlying estimation details are described in [Assumptions and estimates](#assumptions-and-estimates). Costs are shown in USD.
 
 <table>
   <tr>
