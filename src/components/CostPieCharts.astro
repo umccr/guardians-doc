@@ -29,12 +29,12 @@
 
   <script>
     (function () {
-      // Colors match SCENE_BLUES in gen_costing_svgs.py:
-      // #dbeafe · #93c5fd · #3b82f6 · #1e40af
+      // Blues chosen for clearer separation across 3 groups:
+      // #bfdbfe · #3b82f6 · #1e3a8a
       const CATEGORIES = [
         {
           name: 'Standing Costs',
-          color: '#dbeafe',
+          color: '#bfdbfe',
           items: [
             'Network & access',
             'Storage & metadata',
@@ -45,7 +45,7 @@
         },
         {
           name: 'Storage Costs',
-          color: '#93c5fd',
+          color: '#3b82f6',
           items: [
             'Active curated outputs (hot)',
             'Archived outputs (cold)',
@@ -56,7 +56,7 @@
         },
         {
           name: 'Data Movement',
-          color: '#3b82f6',
+          color: '#1e3a8a',
           items: [
             'Platform infrastructure',
             'Internal movement (same region)',
@@ -64,22 +64,12 @@
             'External egress',
           ],
         },
-        {
-          name: 'Data Lifecycle',
-          color: '#1e40af',
-          items: [
-            'Curated outputs (long-term)',
-            'Archived outputs (archival)',
-            'Intermediates & scratch',
-            'Logs & audit trail',
-          ],
-        },
       ];
 
       // Values per scenario: outer array = categories, inner = sub-items
       const SCENARIOS = {
-        ISP: [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]],
-        CSP: [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]],
+        ISP: [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]],
+        CSP: [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]],
       };
 
       function buildPaletteAndLabels() {

@@ -46,9 +46,9 @@ A **Cross‑Organisation Sharing Platform (CSP)** regularly shares data with ext
 
 ---
 
-## Four cost dimensions
+## Three cost dimensions
 
-The total cost of a data‑sharing platform breaks down into four dimensions. Scroll through each to understand what drives costs in that area.
+The total cost of a data‑sharing platform breaks down into three dimensions. Scroll through each to understand what drives costs in that area.
 
 
 <br />
@@ -159,46 +159,7 @@ export const sceneData = [
     image: '/diagrams/data-movement-egress.svg',
     link: '../data-movement-egress/',
     linkText: 'Explore data movement costs',
-  },
-  {
-    id: 'scene4',
-    title: 'Data Lifecycle Costs',
-    intro: 'The cumulative cost of managing data over years. Lifecycle decisions: retention, tiering, deletion.',
-    sections: [
-      {
-        heading: 'Retention strategies:',
-        items: [
-          'Keep forever: storage cost grows indefinitely',
-          'Fixed retention (e.g. 7 years): cost plateaus after retention period',
-          'Tiered retention: different data types have different lifespans',
-        ],
-      },
-      {
-        heading: 'Tiering strategies:',
-        items: [
-          'Move to Glacier after 1–2 years (~$0.004/GB/month)',
-          'Move to Deep Archive after 5 years (~$0.001/GB/month)',
-          'Reduces average storage cost significantly',
-        ],
-      },
-      {
-        heading: '5-year cost impact:',
-        items: [
-          'ISP, keep hot forever: ~$6,900',
-          'ISP, archive after 2 years: ~$6,500 (savings: ~$400)',
-          'CSP, multi-region hot forever: ~$32,500',
-          'CSP, multi-region + archiving: ~$9,000 (savings: ~$23,500)',
-        ],
-      },
-    ],
-    note: {
-      label: 'Key insight',
-      text: 'lifecycle policies can reduce long-term costs by 60–70%.',
-    },
-    image: '/diagrams/data-lifecycle.svg',
-    link: '../data-lifecycle/',
-    linkText: 'Explore data lifecycle costs',
-  },
+  }
 ];
 
 

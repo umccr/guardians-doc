@@ -7,13 +7,11 @@ from matplotlib.patches import FancyBboxPatch
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
 
-MAX_Y = 5000
-Y_TICKS = [0, 1000,  2000,  3000, 4000, 5000]
 W, H = 3.8, 5.0
 BAR_WIDTH = 0.9
 X_PAD = 0.02
 
-SCENE_BLUES = ["#dbeafe", "#93c5fd", "#3b82f6", "#1e40af"]
+SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
 
 SCENES = [
     {
@@ -37,13 +35,6 @@ SCENES = [
             {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]]},
         ],
     },
-    {
-        "id": "data-lifecycle",
-        "bars": [
-            {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25], [200, 100, 35, 35]]},
-            {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200], [350, 200, 75, 100]]},
-        ],
-    },
 ]
 
 def normalize_value_groups(values):
@@ -63,6 +54,15 @@ def format_total(value):
     if value >= 1000:
         return f"${value / 1000:.1f}k"
     return f"${value:.0f}"
+
+
+def total_for_bar(bar):
+    value_groups = normalize_value_groups(bar["values"])
+    return sum(sum(group_values) for group_values in value_groups)
+
+
+GLOBAL_MAX = max(total_for_bar(bar) for scene in SCENES for bar in scene["bars"])
+GLOBAL_Y_TOP = GLOBAL_MAX * 1
 
 
 for scene_index, scene in enumerate(SCENES):
@@ -97,8 +97,7 @@ for scene_index, scene in enumerate(SCENES):
 
         bar_totals.append(bottom)
 
-    scene_max = max(bar_totals) if bar_totals else MAX_Y
-    y_top = max(MAX_Y, scene_max) 
+    y_top = GLOBAL_Y_TOP
     ax.set_ylim(0, y_top)
     ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
     ax.set_yticks([])
