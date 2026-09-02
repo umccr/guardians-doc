@@ -183,60 +183,202 @@ The charts below show indicative monthly costs for each scenario, broken down by
 
 ---
 
-## Storage costs: data volume and retention
+## Data lifecycle cost evolution (7 years)
 
-Storage costs depend more on **what you keep and how long** than on whether you're an ISP or CSP:
+Monthly cost is only part of the story. Over a 7-year horizon, retention and deletion policy strongly changes total cost of ownership.
 
-- **ISP keeping everything hot**: 50 projects × 100 GB each = 5 TB in S3 Standard = ~$115/month. Over 5 years with no archiving: ~$6,900.
-- **ISP with archiving**: same data, but moved to Glacier after 2 years = ~$195/month average. Over 5 years: ~$6,500 (savings of ~$400).
-- **CSP with multi‑region replication**: 2 TB × 2 regions in S3 Standard = ~$92/month. Over 5 years: ~$5,500.
-- **CSP with multi‑region + archiving**: same data, but moved to Glacier after 1 year = ~$156/month average. Over 5 years: ~$9,360 (but with better resilience and compliance).
+The scrolly below compares three lifecycle strategies across all cost components (standing, storage, and data movement):
 
-The key insight: **aggressive archiving and deletion policies can reduce long‑term storage costs by 60–70%**, regardless of whether you're an ISP or CSP.
+- **Full retention**: minimal deletion, maximum retention.
+- **Balanced retention**: keep valuable curated outputs, archive or delete the rest.
+- **Lean retention**: remove temporary and low-value data quickly.
 
----
+export const lifecycleSceneData = [
+  {
+    id: 'lifecycle-scene1',
+    title: 'Scenario 1: Full Retention',
+    intro: 'Data is rarely deleted, so stored volume and associated costs keep increasing over time.',
+    sections: [
+      {
+        heading: 'Policy profile:',
+        items: [
+          'Retain most outputs and intermediates long-term',
+          'Limited archival and minimal deletion',
+          'Highest cumulative 7-year cost trajectory',
+        ],
+      },
+      {
+        heading: 'Cost behavior over time:',
+        items: [
+          'Standing costs remain mostly stable',
+          'Storage becomes the dominant long-term driver',
+          'Data movement varies with sharing activity but adds to growth',
+        ],
+      },
+    ],
+    note: {
+      label: 'Takeaway',
+      text: 'simple to operate, but usually the most expensive path over multiple years.',
+    },
+    image: '/diagrams/lifecycle-keep-everything-bars.svg',
+    imageSequence: ['/diagrams/lifecycle-keep-everything-bars.svg', '/diagrams/lifecycle-keep-everything.svg'],
+  },
+  {
+    id: 'lifecycle-scene2',
+    title: 'Scenario 2: Balanced Retention',
+    intro: 'High-value curated data is retained, while transient data is archived or deleted with clear rules.',
+    sections: [
+      {
+        heading: 'Policy profile:',
+        items: [
+          'Retain curated outputs for reuse and reproducibility',
+          'Archive older data and expire intermediates',
+          'Use lifecycle rules tuned by project and data class',
+        ],
+      },
+      {
+        heading: 'Cost behavior over time:',
+        items: [
+          'Standing costs remain mostly stable',
+          'Storage grows moderately, then slows',
+          'Middle-ground cumulative 7-year cost trajectory',
+        ],
+      },
+    ],
+    note: {
+      label: 'Takeaway',
+      text: 'pragmatic compromise between accessibility, compliance, and long-term cost control.',
+    },
+    image: '/diagrams/lifecycle-balanced-strategy-bars.svg',
+    imageSequence: ['/diagrams/lifecycle-balanced-strategy-bars.svg', '/diagrams/lifecycle-balanced-strategy.svg'],
+  },
+  {
+    id: 'lifecycle-scene3',
+    title: 'Scenario 3: Lean Retention',
+    intro: 'Temporary and low-value data is removed early to keep long-term storage growth low.',
+    sections: [
+      {
+        heading: 'Policy profile:',
+        items: [
+          'Short retention for intermediates and scratch data',
+          'Rapid transition to archive tiers where needed',
+          'Strict deletion windows enforced automatically',
+        ],
+      },
+      {
+        heading: 'Cost behavior over time:',
+        items: [
+          'Standing costs remain mostly stable',
+          'Storage curve flattens after initial growth',
+          'Lowest cumulative 7-year cost trajectory',
+        ],
+      },
+    ],
+    note: {
+      label: 'Takeaway',
+      text: 'lowest long-term cost, but requires discipline and strong governance.',
+    },
+    image: '/diagrams/lifecycle-aggressive-deleting-bars.svg',
+    imageSequence: ['/diagrams/lifecycle-aggressive-deleting-bars.svg', '/diagrams/lifecycle-aggressive-deleting.svg'],
+  },
+  {
+    id: 'lifecycle-scene4',
+    title: 'Scenario Comparison: Total Evolution Curves',
+    intro: 'This final view removes stacked bars and compares the three 7-year total cost trajectories directly.',
+    sections: [
+      {
+        heading: 'How to read it:',
+        items: [
+          'Solid lines show ISP totals; dashed lines show CSP totals',
+          'Darker blue indicates higher-retention strategy',
+          'Vertical separation reflects long-term cost impact of lifecycle policy',
+        ],
+      },
+    ],
+    note: {
+      label: 'Takeaway',
+      text: 'policy choice changes long-term cost trajectory more than short-term month-to-month noise.',
+    },
+    image: '/diagrams/lifecycle-scenario-comparison.svg',
+  },
+];
 
-## Total cost of ownership: 5‑year comparison
 
-**ISP scenario** (50 projects, curated outputs, aggressive archiving):
-- Standing costs: ~$600/month × 60 months = $36,000
-- Storage: ~$150/month average × 60 months = $9,000
-- Data movement: ~$50/month × 60 months = $3,000
-- **5‑year total: ~$48,000 (~$800/month average)**
+<br />
+<br />
+<br />
+<br />
 
-**CSP scenario** (20 projects, multi‑region, moderate archiving):
-- Standing costs: ~$2,500/month × 60 months = $150,000
-- Storage: ~$200/month average × 60 months = $12,000
-- Data movement: ~$300/month × 60 months = $18,000
-- **5‑year total: ~$180,000 (~$3,000/month average)**
+<ReportScrolly steps={lifecycleSceneData} compact />
 
-The CSP costs roughly **3–4× more** than the ISP, primarily due to higher standing costs and external data movement. However, the CSP provides external access, compliance, and resilience that the ISP does not.
+### 7-year cost evolution by lifecycle strategy (illustrative, USD)
 
----
+To keep this simple, the table is grouped into three scenario sections. Within each section, ISP and CSP are shown side-by-side with key timepoints.
 
-## Design choices that matter
+<table>
+  <tr>
+    <th>Platform</th>
+    <th>Year 1 (monthly)</th>
+    <th>Year 3 (monthly)</th>
+    <th>Year 7 (monthly)</th>
+    <th>7-year cumulative total</th>
+  </tr>
 
-Several architectural decisions significantly affect total cost:
+  <tr>
+    <td colspan="5"><strong>Scenario 1: Full Retention</strong> — minimal deletion, highest long-term growth</td>
+  </tr>
+  <tr>
+    <td>ISP: 50 projects</td>
+    <td>~\$1,050</td>
+    <td>~\$1,350</td>
+    <td>~\$2,050</td>
+    <td>~\$132,000</td>
+  </tr>
+  <tr>
+    <td>CSP: 20 projects, multi-region</td>
+    <td>~\$4,600</td>
+    <td>~\$5,450</td>
+    <td>~\$7,100</td>
+    <td>~\$512,000</td>
+  </tr>
 
-1. **Managed vs self‑managed services**: using serverless (Lambda, Step Functions) reduces standing cost but may increase per‑operation costs. Using self‑managed compute (EC2, Kubernetes) has higher standing cost but can be cheaper at scale.
+  <tr>
+    <td colspan="5"><strong>Scenario 2: Balanced Retention</strong> — archive + selective deletion</td>
+  </tr>
+  <tr>
+    <td>ISP: 50 projects</td>
+    <td>~\$1,000</td>
+    <td>~\$1,180</td>
+    <td>~\$1,380</td>
+    <td>~\$103,000</td>
+  </tr>
+  <tr>
+    <td>CSP: 20 projects, multi-region</td>
+    <td>~\$4,450</td>
+    <td>~\$4,900</td>
+    <td>~\$5,500</td>
+    <td>~\$418,000</td>
+  </tr>
 
-2. **Single vs multi‑account**: single‑account setups are simpler and cheaper. Multi‑account setups (common for CSPs) provide isolation and governance but multiply infrastructure costs.
+  <tr>
+    <td colspan="5"><strong>Scenario 3: Lean Retention</strong> — aggressive deletion of transient data</td>
+  </tr>
+  <tr>
+    <td>ISP: 50 projects</td>
+    <td>~\$980</td>
+    <td>~\$1,040</td>
+    <td>~\$1,050</td>
+    <td>~\$88,000</td>
+  </tr>
+  <tr>
+    <td>CSP: 20 projects, multi-region</td>
+    <td>~\$4,300</td>
+    <td>~\$4,500</td>
+    <td>~\$4,680</td>
+    <td>~\$356,000</td>
+  </tr>
+</table>
 
-3. **Storage strategy**: keeping only curated outputs vs everything, and archiving aggressively vs keeping everything hot, can change 5‑year costs by 60–70%.
+*Costs shown in USD. Illustrative synthetic data for scenario comparison only; not billing estimates.*
 
-4. **Data movement strategy**: caching shared data vs copying to each user, and using internal transfers vs external egress, can dramatically reduce costs.
-
-5. **Monitoring and audit depth**: detailed logging improves auditability but increases costs. Balancing compliance requirements against cost is essential.
-
----
-
-## Conclusion
-
-The cost of a data‑sharing platform is not fixed—it depends on design choices, data volume, retention policies, and how much data is shared externally. However, several principles apply to both ISPs and CSPs:
-
-- **Standing cost is non‑zero and significant**: even with no active users or data, a platform costs money to keep ready. This baseline is essential for sustainability planning.
-- **ISPs are cheaper but less resilient**: internal platforms have lower standing costs and simpler infrastructure, but provide no external access or multi‑region resilience.
-- **CSPs are more expensive but provide external access**: cross‑organisation platforms cost 2–4× more due to external infrastructure, federation, and audit, but enable data sharing with partners.
-- **Lifecycle management is critical**: aggressive archiving and deletion policies can reduce long‑term costs by 60–70%, making the difference between a sustainable and unsustainable platform.
-- **Data movement is expensive**: external egress costs dominate for CSPs. Caching, internal replication, and careful data movement strategies are essential for cost control.
 

@@ -24,12 +24,14 @@ type ScrollyStep = {
 	/** Highlighted callout rendered at the end, e.g. a "Key insight". */
 	note?: ScrollyNote;
 	image: string;
-	link: string;
-	linkText: string;
+	imageSequence?: string[];
+	link?: string;
+	linkText?: string;
 };
 
 interface Props {
 	steps: ScrollyStep[];
+	compact?: boolean;
 }
 
 /**
@@ -45,7 +47,7 @@ const splitLabel = (item: string) => {
 	return { label: item.slice(0, separatorIndex), rest: item.slice(separatorIndex + 1) };
 };
 
-const { steps = [] } = Astro.props;
+const { steps = [], compact = false } = Astro.props;
 
 const normalizeWithBase = (value: string) => {
 	if (!value) return value;
@@ -61,15 +63,19 @@ const normalizeWithBase = (value: string) => {
 const normalizedSteps = steps.map((step) => ({
 	...step,
 	image: normalizeWithBase(step.image),
+	imageSequence: step.imageSequence?.map((value) => normalizeWithBase(value)),
 }));
 ---
 
 <div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start" data-scrolly-root>
-	<div class="md:order-2 md:sticky md:top-20 md:self-start h-[60vh] md:h-[75vh]">
-		<div class="relative h-full w-full overflow-hidden rounded-2xl bg-slate-50 p-6">
+	<div class:list={[
+		'md:order-2 md:sticky md:top-20 md:self-start',
+		compact ? 'h-[42vh] md:h-[52vh]' : 'h-[60vh] md:h-[75vh]',
+	]}>
+		<div data-scrolly-visual class="relative h-full w-full overflow-hidden rounded-2xl bg-slate-50 p-6 opacity-0 transition-opacity duration-300">
 			<img
 				data-scrolly-image
-				src={normalizedSteps[0]?.image}
+				src={normalizedSteps[0]?.imageSequence?.[0] ?? normalizedSteps[0]?.image}
 				alt={normalizedSteps[0]?.title ?? ''}
 				loading="eager"
 				decoding="async"
@@ -86,6 +92,7 @@ const normalizedSteps = steps.map((step) => ({
 				data-scrolly-step
 				data-index={String(index)}
 				data-image={step.image}
+				data-image-sequence={step.imageSequence ? JSON.stringify(step.imageSequence) : ''}
 				data-title={step.title}
 				class="scrolly-step min-h-[24vh] md:min-h-[28vh] py-2 flex items-center"
 			>
@@ -122,9 +129,11 @@ const normalizedSteps = steps.map((step) => ({
 							<strong>{step.note.label}:</strong> {step.note.text}
 						</p>
 					)}
-					<LinkButton href={step.link}>
-						{step.linkText}
-					</LinkButton>
+					{step.link && step.linkText && (
+						<LinkButton href={step.link}>
+							{step.linkText}
+						</LinkButton>
+					)}
 				</div>
 			</section>
 		))}
@@ -138,13 +147,27 @@ const normalizedSteps = steps.map((step) => ({
 	for (const root of roots) {
 		const stepElements = Array.from(root.querySelectorAll('[data-scrolly-step]'));
 		const activeImage = root.querySelector('[data-scrolly-image]');
+		const visualElement = root.querySelector('[data-scrolly-visual]');
 		const copyElements = Array.from(root.querySelectorAll('[data-scrolly-copy]'));
 
 		if (stepElements.length === 0 || !activeImage) continue;
 
 		const preloadSources = new Set(
 			stepElements
-				.map((step) => step.getAttribute('data-image'))
+				.flatMap((step) => {
+					const sequenceRaw = step.getAttribute('data-image-sequence') || '';
+					const fallback = step.getAttribute('data-image');
+					let sequence = [];
+					if (sequenceRaw) {
+						try {
+							sequence = JSON.parse(sequenceRaw);
+						} catch {
+							sequence = [];
+						}
+					}
+					if (sequence.length > 0) return sequence;
+					return fallback ? [fallback] : [];
+				})
 				.filter(Boolean)
 		);
 		for (const src of preloadSources) {
@@ -153,15 +176,31 @@ const normalizedSteps = steps.map((step) => ({
 		}
 
 		let currentActiveIndex = -1;
+		let currentFrameIndex = -1;
 
-		const activate = (activeIndex) => {
-			if (activeIndex === currentActiveIndex) return;
+		const getStepImages = (step) => {
+			const sequenceRaw = step.getAttribute('data-image-sequence') || '';
+			const fallback = step.getAttribute('data-image') || '';
+			if (!sequenceRaw) return fallback ? [fallback] : [];
+			try {
+				const parsed = JSON.parse(sequenceRaw);
+				if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+			} catch {
+				return fallback ? [fallback] : [];
+			}
+			return fallback ? [fallback] : [];
+		};
+
+		const activate = (activeIndex, frameIndex) => {
+			if (activeIndex === currentActiveIndex && frameIndex === currentFrameIndex) return;
 			const targetStep = stepElements[activeIndex];
 			if (!targetStep) return;
 
 			currentActiveIndex = activeIndex;
+			currentFrameIndex = frameIndex;
 
-			const nextSrc = targetStep.getAttribute('data-image') || '';
+			const stepImages = getStepImages(targetStep);
+			const nextSrc = stepImages[frameIndex] || stepImages[0] || targetStep.getAttribute('data-image') || '';
 			const nextAlt = targetStep.getAttribute('data-title') || '';
 
 			if (activeImage.getAttribute('src') !== nextSrc) {
@@ -179,10 +218,20 @@ const normalizedSteps = steps.map((step) => ({
 				copy.classList.toggle('opacity-50', index !== activeIndex);
 				copy.classList.toggle('translate-y-4', index !== activeIndex);
 			});
+
+			visualElement?.classList.remove('opacity-0');
 		};
 
 		const getClosestStepIndexToActivationLine = () => {
 			const activationLine = window.innerHeight * 0.45;
+			const firstStep = stepElements[0];
+			if (firstStep) {
+				const firstRect = firstStep.getBoundingClientRect();
+				if (activationLine < firstRect.top) {
+					return -1;
+				}
+			}
+
 			let bestIndex = 0;
 			let bestDistance = Number.POSITIVE_INFINITY;
 
@@ -201,7 +250,26 @@ const normalizedSteps = steps.map((step) => ({
 
 		const syncActiveWithScroll = () => {
 			const activeIndex = getClosestStepIndexToActivationLine();
-			activate(activeIndex);
+			if (activeIndex < 0) {
+				currentActiveIndex = -1;
+				currentFrameIndex = -1;
+				visualElement?.classList.add('opacity-0');
+				return;
+			}
+			const activeStep = stepElements[activeIndex];
+			if (!activeStep) return;
+
+			const images = getStepImages(activeStep);
+			let frameIndex = 0;
+			if (images.length > 1) {
+				const rect = activeStep.getBoundingClientRect();
+				const activationLine = window.innerHeight * 0.45;
+				const rawProgress = (activationLine - rect.top) / Math.max(rect.height, 1);
+				const clampedProgress = Math.max(0, Math.min(0.999, rawProgress));
+				frameIndex = Math.min(images.length - 1, Math.floor(clampedProgress * images.length));
+			}
+
+			activate(activeIndex, frameIndex);
 		};
 
 		let scheduled = false;
