@@ -9,10 +9,10 @@ OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
 LIFECYCLE_ANIMATION_SUBDIR = "lifecycle-progression"
 LIFECYCLE_ANIMATION_DIR = os.path.join(OUT_DIR, LIFECYCLE_ANIMATION_SUBDIR)
 
-W, H = 3.8, 5.0
+W, H = 3.8, 6
 BAR_WIDTH = 0.9
 X_PAD = 0.02
-LIFECYCLE_W, LIFECYCLE_H = 6.2, 4.2
+LIFECYCLE_W, LIFECYCLE_H = 4.5, 4.2
 LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H = 9.6, 4.2
 LIFECYCLE_ANIMATION_FRAMES = 49
 
@@ -37,7 +37,7 @@ SCENES = [
         "id": "data-movement-egress",
         "bars": [
             {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]]},
-            {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]]},
+            {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 500]]},
         ],
     },
 ]
@@ -131,8 +131,6 @@ def total_for_bar(bar):
     return sum(sum(group_values) for group_values in value_groups)
 
 
-GLOBAL_MAX = max(total_for_bar(bar) for scene in SCENES for bar in scene["bars"])
-GLOBAL_Y_TOP = GLOBAL_MAX * 1
 
 
 def render_cost_dimension_bars():
@@ -168,18 +166,24 @@ def render_cost_dimension_bars():
 
             bar_totals.append(bottom)
 
-        y_top = GLOBAL_Y_TOP
+        scene_max = max(bar_totals) if bar_totals else 0
+        y_top =4850
         ax.set_ylim(0, y_top)
         ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
-        ax.set_yticks([])
-        ax.set_yticklabels([])
+        y_step = 750
+        y_ticks = np.arange(y_step, 4500 + y_step, y_step)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=10, color="#334155")
+        ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
+        ax.set_axisbelow(True)
         ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
         ax.set_ylabel("USD / month", labelpad=8, fontsize=10, color="#334155")
         ax.set_xlabel("")
         ax.set_xticks(x)
         ax.set_xticklabels([b["label"] for b in bars])
         ax.tick_params(axis="x", length=0)
-        ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=False)
+        ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=True)
 
         label_offset = y_top * 0.006
         for i, total in enumerate(bar_totals):
@@ -281,7 +285,7 @@ def style_lifecycle_axes(ax, x_positions, years, y_top):
     
     # Y-axis with rounder gridlines
     step = 1500
-    y_ticks = np.arange(0, y_top + step, step)
+    y_ticks = np.arange(step, y_top + step, step)
     ax.set_yticks(y_ticks)
     ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=11)
     ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
@@ -488,24 +492,24 @@ def render_lifecycle_total_evolution_figure(years, y_top):
 
     ax.text(
         0.02,
-        0.98,
+        0.95,
         "Cross-Organisation Sharing Platform",
         transform=ax.transAxes,
         ha="left",
         va="top",
-        fontsize=8.6,
+        fontsize=12,
         fontweight="bold",
         color="#1e293b",
     )
 
     ax.text(
         0.02,
-        0.4,
+        0.35,
         "Internal Sharing Platform",
         transform=ax.transAxes,
         ha="left",
         va="top",
-        fontsize=8.6,
+        fontsize=12,
         fontweight="bold",
         color="#1e293b",
     )
