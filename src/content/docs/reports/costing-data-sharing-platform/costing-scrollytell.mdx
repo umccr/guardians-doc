@@ -194,9 +194,10 @@ The scrolly below compares three lifecycle strategies across all cost components
 - **Lean retention**: remove temporary and low-value data quickly.
 
 export const lifecycleAnimationFrameCount = 49;
+export const lifecycleAnimationSubdir = 'lifecycle-progression';
 export const lifecycleAnimationFrames = (id) =>
   Array.from({ length: lifecycleAnimationFrameCount }, (_, index) =>
-    `/diagrams/${id}-anim-${String(index).padStart(2, '0')}.svg`
+    `/diagrams/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
   );
 
 export const lifecycleSceneData = [
@@ -226,7 +227,7 @@ export const lifecycleSceneData = [
       label: 'Takeaway',
       text: 'simple to operate, but usually the most expensive path over multiple years.',
     },
-    image: '/diagrams/lifecycle-keep-everything-anim-00.svg',
+    image: '/diagrams/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
   },
   {
@@ -255,7 +256,7 @@ export const lifecycleSceneData = [
       label: 'Takeaway',
       text: 'pragmatic compromise between accessibility, compliance, and long-term cost control.',
     },
-    image: '/diagrams/lifecycle-balanced-strategy-anim-00.svg',
+    image: '/diagrams/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
   },
   {
@@ -284,7 +285,7 @@ export const lifecycleSceneData = [
       label: 'Takeaway',
       text: 'lowest long-term cost, but requires discipline and strong governance.',
     },
-    image: '/diagrams/lifecycle-aggressive-deleting-anim-00.svg',
+    image: '/diagrams/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
   }
 ];

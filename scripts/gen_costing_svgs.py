@@ -6,6 +6,8 @@ from matplotlib.patches import FancyBboxPatch
 # Get the script directory and build the output path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
+LIFECYCLE_ANIMATION_SUBDIR = "lifecycle-progression"
+LIFECYCLE_ANIMATION_DIR = os.path.join(OUT_DIR, LIFECYCLE_ANIMATION_SUBDIR)
 
 W, H = 3.8, 5.0
 BAR_WIDTH = 0.9
@@ -228,6 +230,16 @@ def progress_values(values, progress, hide_future=False):
     return progressed
 
 
+def completed_values(values, progress):
+    completed = []
+    for year_index, value in enumerate(values):
+        if progress >= year_index + 1:
+            completed.append(value)
+        else:
+            completed.append(np.nan)
+    return completed
+
+
 def progressed_scenario_series(scenario, progress, hide_future=False):
     progressed = {}
     for platform_name, platform_series in scenario["series"].items():
@@ -247,6 +259,14 @@ def platform_totals_from_series(series_by_platform):
         component_arrays = [platform_series[component_name] for component_name, _ in LIFECYCLE_COMPONENTS]
         totals[platform_name] = [sum(values) for values in zip(*component_arrays)]
     return totals
+
+
+def completed_platform_totals(scenario, progress):
+    completed = {}
+    scenario_totals = scenario_platform_totals(scenario)
+    for platform_name, totals in scenario_totals.items():
+        completed[platform_name] = completed_values(totals, progress)
+    return completed
 
 
 def style_lifecycle_axes(ax, x_positions, years, y_top):
@@ -269,8 +289,7 @@ def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index
     for compared_index in scenario_indices:
         compared_scenario = LIFECYCLE_SCENARIOS[compared_index]
         if compared_index == current_index and year_progress is not None:
-            compared_series = progressed_scenario_series(compared_scenario, year_progress, hide_future=True)
-            compared_totals = platform_totals_from_series(compared_series)
+            compared_totals = completed_platform_totals(compared_scenario, year_progress)
         else:
             compared_totals = scenario_platform_totals(compared_scenario)
 
@@ -371,6 +390,7 @@ def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, t
 
 def render_lifecycle_progression_charts():
     years = np.arange(1, 8)
+    os.makedirs(LIFECYCLE_ANIMATION_DIR, exist_ok=True)
 
     all_totals = []
     for scenario in LIFECYCLE_SCENARIOS:
@@ -392,7 +412,7 @@ def render_lifecycle_progression_charts():
                 year_progress=year_progress,
             )
             animated_path = os.path.join(
-                OUT_DIR,
+                LIFECYCLE_ANIMATION_DIR,
                 f"{scenario['id']}-anim-{str(frame_index).zfill(frame_pad)}.svg",
             )
             animated_fig.savefig(animated_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
