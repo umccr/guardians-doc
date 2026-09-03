@@ -12,7 +12,7 @@ LIFECYCLE_ANIMATION_DIR = os.path.join(OUT_DIR, LIFECYCLE_ANIMATION_SUBDIR)
 W, H = 3.8, 5.0
 BAR_WIDTH = 0.9
 X_PAD = 0.02
-LIFECYCLE_W, LIFECYCLE_H = 5, 4.2
+LIFECYCLE_W, LIFECYCLE_H = 6.2, 4.2
 LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H = 9.6, 4.2
 LIFECYCLE_ANIMATION_FRAMES = 49
 
@@ -269,15 +269,32 @@ def completed_platform_totals(scenario, progress):
     return completed
 
 
+def ordinal(n):
+    suffixes = {1: "st", 2: "nd", 3: "rd"}
+    return str(n) + suffixes.get(n if n < 20 else n % 10, "th")
+
 def style_lifecycle_axes(ax, x_positions, years, y_top):
     ax.set_ylim(0, y_top)
-    ax.set_xlim(-0.8, len(years) - 0.2)
+    ax.set_xlim(-0.8, max(x_positions) + 0.8)
     ax.set_xticks(x_positions)
-    ax.set_xticklabels([f"Y{year}" for year in years], fontsize=9)
-    ax.set_yticks([])
-    ax.set_yticklabels([])
+    ax.set_xticklabels([ordinal(year) for year in years], fontsize=12)
+    
+    # Y-axis with rounder gridlines
+    step = 1500
+    y_ticks = np.arange(0, y_top + step, step)
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=11)
+    ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
+    
+    # Y-axis labels positioned on the right
+    ax.yaxis.set_label_position("right")
+    ax.yaxis.tick_right()
+    
+    # X-axis label
+    ax.set_xlabel("Year", fontsize=11, labelpad=8)
+    
     ax.tick_params(axis="x", length=0)
-    ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=False)
+    ax.tick_params(axis="y", left=False, right=False)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -339,8 +356,8 @@ def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, t
     fig.patch.set_alpha(0)
     ax.set_facecolor("none")
 
-    x_positions = np.arange(len(years))
-    bar_width = 0.32
+    x_positions = np.arange(len(years)) * 1.8
+    bar_width = 0.75
     offsets = {"ISP": -bar_width / 2, "CSP": bar_width / 2}
     # Total markers/lines sit on the inner bar edges so ISP and CSP totals align
     # to the same year x-position: ISP on the right edge, CSP on the left edge.
