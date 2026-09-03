@@ -10,7 +10,7 @@ OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
 W, H = 3.8, 5.0
 BAR_WIDTH = 0.9
 X_PAD = 0.02
-LIFECYCLE_W, LIFECYCLE_H = 6.0, 4.2
+LIFECYCLE_W, LIFECYCLE_H = 5, 4.2
 
 SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
 
@@ -96,9 +96,9 @@ LIFECYCLE_SCENARIOS = [
 ]
 
 LIFECYCLE_SCENARIO_LINE_COLORS = {
-    "lifecycle-keep-everything": "#1e3a8a",
-    "lifecycle-balanced-strategy": "#3b82f6",
-    "lifecycle-aggressive-deleting": "#bfdbfe",
+    "lifecycle-keep-everything": "#4c1d95",
+    "lifecycle-balanced-strategy": "#6d28d9",
+    "lifecycle-aggressive-deleting": "#8b5cf6",
 }
 
 def normalize_value_groups(values):
@@ -209,6 +209,113 @@ def scenario_platform_totals(scenario):
     return totals
 
 
+def style_lifecycle_axes(ax, x_positions, years, y_top):
+    ax.set_ylim(0, y_top)
+    ax.set_xlim(-0.8, len(years) - 0.2)
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels([f"Y{year}" for year in years], fontsize=9)
+    ax.set_yticks([])
+    ax.set_yticklabels([])
+    ax.tick_params(axis="x", length=0)
+    ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=False)
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
+
+def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index=None):
+    for compared_index in scenario_indices:
+        compared_scenario = LIFECYCLE_SCENARIOS[compared_index]
+        compared_totals = scenario_platform_totals(compared_scenario)
+
+        is_current = compared_index == current_index
+        strategy_color = LIFECYCLE_SCENARIO_LINE_COLORS[compared_scenario["id"]]
+        isp_color = strategy_color
+        csp_color = strategy_color
+        isp_style = "-"
+        csp_style = "-"
+        linewidth = 1.9 if is_current else 1.5
+        alpha = 0.95
+
+        ax.plot(
+            total_x_positions["ISP"],
+            compared_totals["ISP"],
+            color=isp_color,
+            linewidth=linewidth,
+            alpha=alpha,
+            linestyle=isp_style,
+            marker="o",
+            markersize=3.6,
+            markerfacecolor=isp_color,
+            markeredgewidth=0,
+        )
+        ax.plot(
+            total_x_positions["CSP"],
+            compared_totals["CSP"],
+            color=csp_color,
+            linewidth=linewidth,
+            alpha=alpha,
+            linestyle=csp_style,
+            marker="o",
+            markersize=3.6,
+            markerfacecolor=csp_color,
+            markeredgewidth=0,
+        )
+
+
+def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, total_line_indices=None):
+    if total_line_indices is None:
+        total_line_indices = []
+
+    fig, ax = plt.subplots(figsize=(LIFECYCLE_W, LIFECYCLE_H))
+    fig.patch.set_alpha(0)
+    ax.set_facecolor("none")
+
+    x_positions = np.arange(len(years))
+    bar_width = 0.32
+    offsets = {"ISP": -bar_width / 2, "CSP": bar_width / 2}
+    # Total markers/lines sit on the inner bar edges so ISP and CSP totals align
+    # to the same year x-position: ISP on the right edge, CSP on the left edge.
+    total_x_positions = {
+        "ISP": x_positions + offsets["ISP"] + bar_width / 2,
+        "CSP": x_positions + offsets["CSP"] - bar_width / 2,
+    }
+    platform_order = ["ISP", "CSP"]
+
+    if include_bars and scenario_index is not None:
+        scenario = LIFECYCLE_SCENARIOS[scenario_index]
+        for platform_name in platform_order:
+            platform_series = scenario["series"][platform_name]
+            bottom = np.zeros(len(years))
+
+            for component_name, color in LIFECYCLE_COMPONENTS:
+                values = np.array(platform_series[component_name])
+                ax.bar(
+                    x_positions + offsets[platform_name],
+                    values,
+                    width=bar_width,
+                    bottom=bottom,
+                    color=color,
+                    edgecolor="#f8fafc",
+                    linewidth=1.2,
+                )
+                bottom += values
+
+    if total_line_indices:
+        plot_lifecycle_totals(
+            ax,
+            total_x_positions,
+            total_line_indices,
+            current_index=scenario_index,
+        )
+
+    style_lifecycle_axes(ax, x_positions, years, y_top)
+    fig.subplots_adjust(left=0.03, right=0.97, bottom=0.09, top=0.97)
+    return fig
+
+
 def render_lifecycle_progression_charts():
     years = np.arange(1, 8)
 
@@ -220,157 +327,55 @@ def render_lifecycle_progression_charts():
     y_top = max(all_totals) * 1.02
 
     for scenario_index, scenario in enumerate(LIFECYCLE_SCENARIOS):
-        x_positions = np.arange(len(years))
-        bar_width = 0.32
-        platform_order = ["ISP", "CSP"]
-        offsets = {"ISP": -bar_width / 2, "CSP": bar_width / 2}
-        def draw_base_chart(total_line_indices=None, include_bars=True):
-            if total_line_indices is None:
-                total_line_indices = []
-            fig, ax = plt.subplots(figsize=(LIFECYCLE_W, LIFECYCLE_H))
-            fig.patch.set_alpha(0)
-            ax.set_facecolor("none")
-
-            if include_bars:
-                for platform_name in platform_order:
-                    platform_series = scenario["series"][platform_name]
-                    bottom = np.zeros(len(years))
-
-                    for component_name, color in LIFECYCLE_COMPONENTS:
-                        values = np.array(platform_series[component_name])
-                        ax.bar(
-                            x_positions + offsets[platform_name],
-                            values,
-                            width=bar_width,
-                            bottom=bottom,
-                            color=color,
-                            edgecolor="#f8fafc",
-                            linewidth=1.2,
-                        )
-                        bottom += values
-
-            if total_line_indices:
-                for compared_index in total_line_indices:
-                    compared_scenario = LIFECYCLE_SCENARIOS[compared_index]
-                    compared_totals = scenario_platform_totals(compared_scenario)
-
-                    is_current = compared_index == scenario_index
-                    age = scenario_index - compared_index
-                    alpha = 0.95 if is_current else max(0.35, 0.7 - age * 0.15)
-                    linewidth = 1.9 if is_current else 1.5
-
-                    ax.plot(
-                        x_positions + offsets["ISP"],
-                        compared_totals["ISP"],
-                        color="#1d4ed8",
-                        linewidth=linewidth,
-                        alpha=alpha,
-                    )
-                    ax.plot(
-                        x_positions + offsets["CSP"],
-                        compared_totals["CSP"],
-                        color="#1e3a8a",
-                        linewidth=linewidth,
-                        alpha=alpha,
-                    )
-
-            ax.set_ylim(0, y_top)
-            ax.set_xlim(-0.8, len(years) - 0.2)
-            ax.set_xticks(x_positions)
-            ax.set_xticklabels([f"Y{year}" for year in years], fontsize=9)
-            ax.set_yticks([])
-            ax.set_yticklabels([])
-            ax.tick_params(axis="x", length=0)
-            ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=False)
-
-            # ax.text(
-            #     0.02,
-            #     0.98,
-            #     "ISP",
-            #     transform=ax.transAxes,
-            #     ha="left",
-            #     va="top",
-            #     fontsize=9,
-            #     fontweight="bold",
-            #     color="#1d4ed8",
-            # )
-            # ax.text(
-            #     0.98,
-            #     0.98,
-            #     "CSP",
-            #     transform=ax.transAxes,
-            #     ha="right",
-            #     va="top",
-            #     fontsize=9,
-            #     fontweight="bold",
-            #     color="#1e3a8a",
-            # )
-
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            ax.spines["bottom"].set_visible(False)
-            ax.spines["left"].set_visible(False)
-
-            fig.subplots_adjust(left=0.03, right=0.97, bottom=0.09, top=0.97)
-            return fig
-
-        bars_only_fig = draw_base_chart(total_line_indices=list(range(scenario_index)))
+        bars_only_fig = draw_lifecycle_chart(
+            years,
+            y_top,
+            scenario_index=scenario_index,
+            include_bars=True,
+            total_line_indices=list(range(scenario_index)),
+        )
         bars_only_path = os.path.join(OUT_DIR, f"{scenario['id']}-bars.svg")
         bars_only_fig.savefig(bars_only_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
         plt.close(bars_only_fig)
         print(f"Saved {bars_only_path}")
 
-        with_total_fig = draw_base_chart(total_line_indices=list(range(scenario_index + 1)))
+        with_total_fig = draw_lifecycle_chart(
+            years,
+            y_top,
+            scenario_index=scenario_index,
+            include_bars=True,
+            total_line_indices=list(range(scenario_index + 1)),
+        )
         with_total_path = os.path.join(OUT_DIR, f"{scenario['id']}.svg")
         with_total_fig.savefig(with_total_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
         plt.close(with_total_fig)
         print(f"Saved {with_total_path}")
 
-        totals_only_fig = draw_base_chart(total_line_indices=list(range(scenario_index + 1)), include_bars=False)
+        totals_only_fig = draw_lifecycle_chart(
+            years,
+            y_top,
+            scenario_index=scenario_index,
+            include_bars=False,
+            total_line_indices=list(range(scenario_index + 1)),
+        )
         totals_only_path = os.path.join(OUT_DIR, f"{scenario['id']}-totals.svg")
         totals_only_fig.savefig(totals_only_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
         plt.close(totals_only_fig)
         print(f"Saved {totals_only_path}")
 
-    fig, ax = plt.subplots(figsize=(LIFECYCLE_W, LIFECYCLE_H))
-    fig.patch.set_alpha(0)
-    ax.set_facecolor("none")
-
-    x_positions = np.arange(len(years))
-
-    for scenario in LIFECYCLE_SCENARIOS:
-        totals = scenario_platform_totals(scenario)
-        line_color = LIFECYCLE_SCENARIO_LINE_COLORS[scenario["id"]]
-
-        ax.plot(
-            x_positions,
-            totals["ISP"],
-            color=line_color,
-            linewidth=2.2,
-            alpha=0.98,
-        )
-        ax.plot(
-            x_positions,
-            totals["CSP"],
-            color=line_color,
-            linewidth=2.2,
-            alpha=0.98,
-            linestyle="--",
-        )
-
-    ax.set_ylim(0, y_top)
-    ax.set_xlim(-0.8, len(years) - 0.2)
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels([f"Y{year}" for year in years], fontsize=9)
-    ax.set_yticks([])
-    ax.set_yticklabels([])
-    ax.tick_params(axis="x", length=0)
-    ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=False)
+    comparison_fig = draw_lifecycle_chart(
+        years,
+        y_top,
+        scenario_index=len(LIFECYCLE_SCENARIOS) - 1,
+        include_bars=False,
+        total_line_indices=list(range(len(LIFECYCLE_SCENARIOS))),
+    )
+    ax = comparison_fig.axes[0]
 
     ax.text(
         0.02,
         0.98,
-        "Solid = ISP · Dashed = CSP",
+        "Cross-Organisation Sharing Platform",
         transform=ax.transAxes,
         ha="left",
         va="top",
@@ -379,46 +384,21 @@ def render_lifecycle_progression_charts():
         color="#1e293b",
     )
 
-    ax.text(
-        0.02,
-        0.91,
-        "Full retention",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=8.5,
-        color=LIFECYCLE_SCENARIO_LINE_COLORS["lifecycle-keep-everything"],
-    )
-    ax.text(
-        0.02,
-        0.85,
-        "Balanced retention",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=8.5,
-        color=LIFECYCLE_SCENARIO_LINE_COLORS["lifecycle-balanced-strategy"],
-    )
-    ax.text(
-        0.02,
-        0.79,
-        "Lean retention",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=8.5,
-        color="#64748b",
-    )
-
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["bottom"].set_visible(False)
-    ax.spines["left"].set_visible(False)
-
-    fig.subplots_adjust(left=0.03, right=0.97, bottom=0.09, top=0.97)
     out_path = os.path.join(OUT_DIR, "lifecycle-scenario-comparison.svg")
-    fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
-    plt.close(fig)
+    ax.text(
+        0.02,
+        0.4,
+        "Internal Sharing Platform",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=8.6,
+        fontweight="bold",
+        color="#1e293b",
+    )
+
+    comparison_fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+    plt.close(comparison_fig)
     print(f"Saved {out_path}")
 
 
