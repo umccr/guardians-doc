@@ -12,6 +12,7 @@ BAR_WIDTH = 0.9
 X_PAD = 0.02
 LIFECYCLE_W, LIFECYCLE_H = 5, 4.2
 LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H = 9.6, 4.2
+LIFECYCLE_ANIMATION_FRAMES = 49
 
 SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
 
@@ -212,6 +213,42 @@ def scenario_platform_totals(scenario):
     return totals
 
 
+def year_fill_factor(year_index, progress):
+    return max(0.0, min(1.0, progress - year_index))
+
+
+def progress_values(values, progress, hide_future=False):
+    progressed = []
+    for year_index, value in enumerate(values):
+        factor = year_fill_factor(year_index, progress)
+        if hide_future and factor <= 0:
+            progressed.append(np.nan)
+        else:
+            progressed.append(value * factor)
+    return progressed
+
+
+def progressed_scenario_series(scenario, progress, hide_future=False):
+    progressed = {}
+    for platform_name, platform_series in scenario["series"].items():
+        progressed[platform_name] = {}
+        for component_name, _ in LIFECYCLE_COMPONENTS:
+            progressed[platform_name][component_name] = progress_values(
+                platform_series[component_name],
+                progress,
+                hide_future=hide_future,
+            )
+    return progressed
+
+
+def platform_totals_from_series(series_by_platform):
+    totals = {}
+    for platform_name, platform_series in series_by_platform.items():
+        component_arrays = [platform_series[component_name] for component_name, _ in LIFECYCLE_COMPONENTS]
+        totals[platform_name] = [sum(values) for values in zip(*component_arrays)]
+    return totals
+
+
 def style_lifecycle_axes(ax, x_positions, years, y_top):
     ax.set_ylim(0, y_top)
     ax.set_xlim(-0.8, len(years) - 0.2)
@@ -228,10 +265,14 @@ def style_lifecycle_axes(ax, x_positions, years, y_top):
     ax.spines["left"].set_visible(False)
 
 
-def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index=None):
+def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index=None, year_progress=None):
     for compared_index in scenario_indices:
         compared_scenario = LIFECYCLE_SCENARIOS[compared_index]
-        compared_totals = scenario_platform_totals(compared_scenario)
+        if compared_index == current_index and year_progress is not None:
+            compared_series = progressed_scenario_series(compared_scenario, year_progress, hide_future=True)
+            compared_totals = platform_totals_from_series(compared_series)
+        else:
+            compared_totals = scenario_platform_totals(compared_scenario)
 
         is_current = compared_index == current_index
         strategy_color = LIFECYCLE_SCENARIO_LINE_COLORS[compared_scenario["id"]]
@@ -268,7 +309,7 @@ def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index
         )
 
 
-def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, total_line_indices=None, figure_size=None):
+def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, total_line_indices=None, figure_size=None, year_progress=None):
     if total_line_indices is None:
         total_line_indices = []
 
@@ -292,8 +333,13 @@ def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, t
 
     if include_bars and scenario_index is not None:
         scenario = LIFECYCLE_SCENARIOS[scenario_index]
+        scenario_series = (
+            progressed_scenario_series(scenario, year_progress)
+            if year_progress is not None
+            else scenario["series"]
+        )
         for platform_name in platform_order:
-            platform_series = scenario["series"][platform_name]
+            platform_series = scenario_series[platform_name]
             bottom = np.zeros(len(years))
 
             for component_name, color in LIFECYCLE_COMPONENTS:
@@ -315,6 +361,7 @@ def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, t
             total_x_positions,
             total_line_indices,
             current_index=scenario_index,
+            year_progress=year_progress,
         )
 
     style_lifecycle_axes(ax, x_positions, years, y_top)
@@ -333,6 +380,25 @@ def render_lifecycle_progression_charts():
     y_top = max(all_totals) * 1.02
 
     for scenario_index, scenario in enumerate(LIFECYCLE_SCENARIOS):
+        frame_pad = len(str(LIFECYCLE_ANIMATION_FRAMES - 1))
+        for frame_index in range(LIFECYCLE_ANIMATION_FRAMES):
+            year_progress = (frame_index / (LIFECYCLE_ANIMATION_FRAMES - 1)) * len(years)
+            animated_fig = draw_lifecycle_chart(
+                years,
+                y_top,
+                scenario_index=scenario_index,
+                include_bars=True,
+                total_line_indices=list(range(scenario_index + 1)),
+                year_progress=year_progress,
+            )
+            animated_path = os.path.join(
+                OUT_DIR,
+                f"{scenario['id']}-anim-{str(frame_index).zfill(frame_pad)}.svg",
+            )
+            animated_fig.savefig(animated_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+            plt.close(animated_fig)
+            print(f"Saved {animated_path}")
+
         bars_only_fig = draw_lifecycle_chart(
             years,
             y_top,

@@ -32,6 +32,7 @@ type ScrollyStep = {
 interface Props {
 	steps: ScrollyStep[];
 	compact?: boolean;
+	sequenceCompleteBy?: number;
 }
 
 /**
@@ -47,7 +48,8 @@ const splitLabel = (item: string) => {
 	return { label: item.slice(0, separatorIndex), rest: item.slice(separatorIndex + 1) };
 };
 
-const { steps = [], compact = false } = Astro.props;
+const { steps = [], compact = false, sequenceCompleteBy = 1 } = Astro.props;
+const sequenceCompleteByClamped = Math.min(1, Math.max(0.2, sequenceCompleteBy));
 
 const normalizeWithBase = (value: string) => {
 	if (!value) return value;
@@ -93,6 +95,7 @@ const normalizedSteps = steps.map((step) => ({
 				data-index={String(index)}
 				data-image={step.image}
 				data-image-sequence={step.imageSequence ? JSON.stringify(step.imageSequence) : ''}
+				data-sequence-complete-by={String(sequenceCompleteByClamped)}
 				data-title={step.title}
 				class="scrolly-step min-h-[24vh] md:min-h-[28vh] py-2 flex items-center"
 			>
@@ -266,7 +269,9 @@ const normalizedSteps = steps.map((step) => ({
 				const rect = activeStep.getBoundingClientRect();
 				const activationLine = window.innerHeight * 0.45;
 				const rawProgress = (activationLine - rect.top) / Math.max(rect.height, 1);
-				const clampedProgress = Math.max(0, Math.min(0.999, rawProgress));
+				const completeBy = Number.parseFloat(activeStep.getAttribute('data-sequence-complete-by') || '1') || 1;
+				const accelerated = rawProgress / completeBy;
+				const clampedProgress = Math.max(0, Math.min(0.999, accelerated));
 				frameIndex = Math.min(images.length - 1, Math.floor(clampedProgress * images.length));
 			}
 

@@ -193,6 +193,12 @@ The scrolly below compares three lifecycle strategies across all cost components
 - **Balanced retention**: keep valuable curated outputs, archive or delete the rest.
 - **Lean retention**: remove temporary and low-value data quickly.
 
+export const lifecycleAnimationFrameCount = 49;
+export const lifecycleAnimationFrames = (id) =>
+  Array.from({ length: lifecycleAnimationFrameCount }, (_, index) =>
+    `/diagrams/${id}-anim-${String(index).padStart(2, '0')}.svg`
+  );
+
 export const lifecycleSceneData = [
   {
     id: 'lifecycle-scene1',
@@ -220,8 +226,8 @@ export const lifecycleSceneData = [
       label: 'Takeaway',
       text: 'simple to operate, but usually the most expensive path over multiple years.',
     },
-    image: '/diagrams/lifecycle-keep-everything-bars.svg',
-    imageSequence: ['/diagrams/lifecycle-keep-everything-bars.svg', '/diagrams/lifecycle-keep-everything.svg'],
+    image: '/diagrams/lifecycle-keep-everything-anim-00.svg',
+    imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
   },
   {
     id: 'lifecycle-scene2',
@@ -249,8 +255,8 @@ export const lifecycleSceneData = [
       label: 'Takeaway',
       text: 'pragmatic compromise between accessibility, compliance, and long-term cost control.',
     },
-    image: '/diagrams/lifecycle-balanced-strategy-bars.svg',
-    imageSequence: ['/diagrams/lifecycle-balanced-strategy-bars.svg', '/diagrams/lifecycle-balanced-strategy.svg'],
+    image: '/diagrams/lifecycle-balanced-strategy-anim-00.svg',
+    imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
   },
   {
     id: 'lifecycle-scene3',
@@ -278,8 +284,8 @@ export const lifecycleSceneData = [
       label: 'Takeaway',
       text: 'lowest long-term cost, but requires discipline and strong governance.',
     },
-    image: '/diagrams/lifecycle-aggressive-deleting-bars.svg',
-    imageSequence: ['/diagrams/lifecycle-aggressive-deleting-bars.svg', '/diagrams/lifecycle-aggressive-deleting.svg'],
+    image: '/diagrams/lifecycle-aggressive-deleting-anim-00.svg',
+    imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
   }
 ];
 
@@ -289,7 +295,7 @@ export const lifecycleSceneData = [
 <br />
 <br />
 
-<ReportScrolly steps={lifecycleSceneData} compact />
+<ReportScrolly steps={lifecycleSceneData} compact sequenceCompleteBy={0.58} />
 
 
 ### Total evolution curves
