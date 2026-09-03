@@ -11,6 +11,7 @@ W, H = 3.8, 5.0
 BAR_WIDTH = 0.9
 X_PAD = 0.02
 LIFECYCLE_W, LIFECYCLE_H = 5, 4.2
+LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H = 9.6, 4.2
 
 SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
 
@@ -100,6 +101,8 @@ LIFECYCLE_SCENARIO_LINE_COLORS = {
     "lifecycle-balanced-strategy": "#6d28d9",
     "lifecycle-aggressive-deleting": "#8b5cf6",
 }
+
+LIFECYCLE_COMPARISON_FIGURE_ID = "lifecycle-scenario-comparison"
 
 def normalize_value_groups(values):
     if not values:
@@ -265,11 +268,14 @@ def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index
         )
 
 
-def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, total_line_indices=None):
+def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, total_line_indices=None, figure_size=None):
     if total_line_indices is None:
         total_line_indices = []
 
-    fig, ax = plt.subplots(figsize=(LIFECYCLE_W, LIFECYCLE_H))
+    if figure_size is None:
+        figure_size = (LIFECYCLE_W, LIFECYCLE_H)
+
+    fig, ax = plt.subplots(figsize=figure_size)
     fig.patch.set_alpha(0)
     ax.set_facecolor("none")
 
@@ -363,12 +369,17 @@ def render_lifecycle_progression_charts():
         plt.close(totals_only_fig)
         print(f"Saved {totals_only_path}")
 
+    return years, y_top
+
+
+def render_lifecycle_total_evolution_figure(years, y_top):
     comparison_fig = draw_lifecycle_chart(
         years,
         y_top,
         scenario_index=len(LIFECYCLE_SCENARIOS) - 1,
         include_bars=False,
         total_line_indices=list(range(len(LIFECYCLE_SCENARIOS))),
+        figure_size=(LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H),
     )
     ax = comparison_fig.axes[0]
 
@@ -384,7 +395,6 @@ def render_lifecycle_progression_charts():
         color="#1e293b",
     )
 
-    out_path = os.path.join(OUT_DIR, "lifecycle-scenario-comparison.svg")
     ax.text(
         0.02,
         0.4,
@@ -397,10 +407,12 @@ def render_lifecycle_progression_charts():
         color="#1e293b",
     )
 
+    out_path = os.path.join(OUT_DIR, f"{LIFECYCLE_COMPARISON_FIGURE_ID}.svg")
     comparison_fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
     plt.close(comparison_fig)
     print(f"Saved {out_path}")
 
 
 render_cost_dimension_bars()
-render_lifecycle_progression_charts()
+lifecycle_years, lifecycle_y_top = render_lifecycle_progression_charts()
+render_lifecycle_total_evolution_figure(lifecycle_years, lifecycle_y_top)

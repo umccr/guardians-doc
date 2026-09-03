@@ -280,27 +280,7 @@ export const lifecycleSceneData = [
     },
     image: '/diagrams/lifecycle-aggressive-deleting-bars.svg',
     imageSequence: ['/diagrams/lifecycle-aggressive-deleting-bars.svg', '/diagrams/lifecycle-aggressive-deleting.svg'],
-  },
-  {
-    id: 'lifecycle-scene4',
-    title: 'Scenario Comparison: Total Evolution Curves',
-    intro: 'This final view removes stacked bars and compares the three 7-year total cost trajectories directly.',
-    sections: [
-      {
-        heading: 'How to read it:',
-        items: [
-          'Solid lines show ISP totals; dashed lines show CSP totals',
-          'Darker blue indicates higher-retention strategy',
-          'Vertical separation reflects long-term cost impact of lifecycle policy',
-        ],
-      },
-    ],
-    note: {
-      label: 'Takeaway',
-      text: 'policy choice changes long-term cost trajectory more than short-term month-to-month noise.',
-    },
-    image: '/diagrams/lifecycle-scenario-comparison.svg',
-  },
+  }
 ];
 
 
@@ -310,6 +290,21 @@ export const lifecycleSceneData = [
 <br />
 
 <ReportScrolly steps={lifecycleSceneData} compact />
+
+
+### Total evolution curves
+
+This view shows only the total monthly cost trajectories over 7 years for the three lifecycle strategies. It uses the same scale as the lifecycle scrolly so you can compare overall direction and separation clearly.
+
+<div class="not-prose" style={{ margin: '1rem 0 2rem' }}>
+  <img
+    src={`${import.meta.env.BASE_URL}diagrams/lifecycle-scenario-comparison.svg`}
+    alt="Total cost evolution curves over 7 years for full, balanced, and lean retention strategies"
+    style={{ width: '100%', display: 'block' }}
+  />
+</div>
+
+
 
 ### 7-year cost evolution by lifecycle strategy (illustrative, USD)
 
