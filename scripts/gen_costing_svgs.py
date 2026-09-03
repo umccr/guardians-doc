@@ -489,6 +489,47 @@ def render_lifecycle_total_evolution_figure(years, y_top):
         figure_size=(LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H),
     )
     ax = comparison_fig.axes[0]
+    x_min, x_max = ax.get_xlim()
+    ax.set_xlim(x_min, x_max + 3.0)
+    ax.yaxis.set_label_position("left")
+    ax.yaxis.tick_left()
+    ax.tick_params(axis="y", left=False, labelleft=True, right=False, labelright=False)
+
+    label_x = (len(years) - 1) * 1.8 + 0.2
+    ax.text(
+        label_x,
+        y_top * 1.1,
+        "7-year cumulative",
+        ha="left",
+        va="bottom",
+        fontsize=10,
+        fontweight="bold",
+        color="#1e293b",
+        clip_on=False,
+    )
+
+    for platform_name in ["CSP", "ISP"]:
+        for scenario in LIFECYCLE_SCENARIOS:
+            scenario_totals = scenario_platform_totals(scenario)
+            end_value = scenario_totals[platform_name][-1]
+            cumulative_7y = sum(scenario_totals[platform_name]) * 12
+            label_name = {
+                "lifecycle-keep-everything": "Full",
+                "lifecycle-balanced-strategy": "Balanced",
+                "lifecycle-aggressive-deleting": "Lean",
+            }.get(scenario["id"], scenario["title"])
+            label_text = f"{label_name}: {format_total(cumulative_7y)}"
+            line_color = LIFECYCLE_SCENARIO_LINE_COLORS[scenario["id"]]
+            ax.text(
+                label_x,
+                end_value,
+                label_text,
+                ha="left",
+                va="center",
+                fontsize=12,
+                color=line_color,
+                clip_on=False,
+            )
 
     ax.text(
         0.02,
