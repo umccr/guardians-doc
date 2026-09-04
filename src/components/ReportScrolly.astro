@@ -35,6 +35,7 @@ interface Props {
 	sequenceCompleteBy?: number;
 	playSequenceOnEnter?: boolean;
 	sequenceDurationMs?: number;
+	activationLineRatio?: number;
 }
 
 /**
@@ -56,9 +57,11 @@ const {
 	sequenceCompleteBy = 1,
 	playSequenceOnEnter = false,
 	sequenceDurationMs = 1700,
+	activationLineRatio = 0.38,
 } = Astro.props;
 const sequenceCompleteByClamped = Math.min(1, Math.max(0.2, sequenceCompleteBy));
 const sequenceDurationMsClamped = Math.max(300, sequenceDurationMs);
+const activationLineRatioClamped = Math.min(0.8, Math.max(0.2, activationLineRatio));
 
 const normalizeWithBase = (value: string) => {
 	if (!value) return value;
@@ -78,9 +81,9 @@ const normalizedSteps = steps.map((step) => ({
 }));
 ---
 
-<div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start" data-scrolly-root>
+<div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start md:-mb-56" data-scrolly-root>
 	<div class:list={[
-		'md:order-2 md:sticky md:top-20 md:self-start',
+		'md:order-2 md:sticky md:top-[55%] md:-translate-y-1/2 md:self-start',
 		compact ? 'h-[42vh] md:h-[52vh]' : 'h-[60vh] md:h-[75vh]',
 	]}>
 		<div data-scrolly-visual class="relative h-full w-full overflow-hidden rounded-2xl bg-slate-50 p-6 opacity-0 transition-opacity duration-300">
@@ -150,11 +153,16 @@ const normalizedSteps = steps.map((step) => ({
 				</div>
 			</section>
 		))}
-		<div class="h-0" aria-hidden="true"></div>
+		<div
+			class:list={[
+				compact ? 'h-[24vh] md:h-[30vh]' : 'h-[30vh] md:h-[38vh]',
+			]}
+			aria-hidden="true"
+		></div>
 	</div>
 </div>
 
-<script define:vars={{ playSequenceOnEnter, sequenceDurationMs: sequenceDurationMsClamped }}>
+<script define:vars={{ playSequenceOnEnter, sequenceDurationMs: sequenceDurationMsClamped, activationLineRatio: activationLineRatioClamped }}>
 	const roots = document.querySelectorAll('[data-scrolly-root]');
 
 	for (const root of roots) {
@@ -268,7 +276,7 @@ const normalizedSteps = steps.map((step) => ({
 		};
 
 		const getClosestStepIndexToActivationLine = () => {
-			const activationLine = window.innerHeight * 0.45;
+			const activationLine = window.innerHeight * activationLineRatio;
 			const firstStep = stepElements[0];
 			if (firstStep) {
 				const firstRect = firstStep.getBoundingClientRect();
@@ -328,7 +336,7 @@ const normalizedSteps = steps.map((step) => ({
 			let frameIndex = 0;
 			if (images.length > 1) {
 				const rect = activeStep.getBoundingClientRect();
-				const activationLine = window.innerHeight * 0.45;
+				const activationLine = window.innerHeight * activationLineRatio;
 				const rawProgress = (activationLine - rect.top) / Math.max(rect.height, 1);
 				const completeBy = Number.parseFloat(activeStep.getAttribute('data-sequence-complete-by') || '1') || 1;
 				const accelerated = rawProgress / completeBy;
