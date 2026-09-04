@@ -165,7 +165,7 @@ def render_cost_dimension_bars():
             bar_totals.append(bottom)
 
         scene_max = max(bar_totals) if bar_totals else 0
-        y_top = 4850
+        y_top = 5100
         ax.set_ylim(0, y_top)
         ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
         y_step = 750

@@ -172,18 +172,37 @@ export const sceneData = [
 <ReportScrolly steps={sceneData} activationLineRatio={0.33} />
 
 
-## Breaking down the costs
+## Total cost breakdown
 
-The total monthly cost of a data‑sharing platform is the sum of standing costs, storage costs, data movement costs, and lifecycle management costs.
+We can break down each cost dimension into its sub-components to see in more detail where the money is going. The balance between these components shifts depending on whether you're running an internal or cross-organisation platform, but we can identify a few common building blocks for each.
 
-- **Standing costs** are incurred simply by having the platform running, regardless of activity.
-- **Storage costs** scale with the volume of data kept and how long it is retained.
-- **Data movement costs** scale with how much data is transferred and where it goes (internal vs external).
-- **Lifecycle costs** are the long‑term cumulative effect of retention and archiving decisions.
 
-The charts below show indicative monthly costs for each scenario, broken down by component. Hover over any segment to see its dollar value and share of the total.
+**Standing costs** are made up of five building blocks:
+- **Networking infrastructure** – the systems that connect your platform and allow access
+- **Core storage and metadata systems** – databases that index and track your datasets
+- **Identity and security services** – systems that manage who can access what
+- **Monitoring and audit systems** – tools that track activity and maintain compliance records
+- **Baseline compute capacity** – the servers or processing power that keeps things running
 
-<CostPieCharts />
+These exist whether or not anyone is using your platform.
+
+**Storage costs** come from five sources:
+- **Hot storage** – keeping frequently accessed data fast and ready
+- **Cold storage** – archiving older data in cheaper, slower tiers
+- **Metadata and indexing** – systems that help users find and understand datasets
+- **Logs and audit trails** – records of access and activity for compliance
+- **Replication** – keeping copies of data across multiple locations
+
+**Data movement costs** arise from four areas:
+- **Orchestration infrastructure** – systems that coordinate data transfers and sharing
+- **Internal movement** – moving data within your platform (usually free)
+- **Cross-region movement** – moving data between geographic locations
+- **External egress** – moving data to external partners or systems outside the cloud
+
+
+The charts below show how these components combine for each scenario. Hover over any segment to see its exact cost and what percentage it represents. The two scenarios tell very different stories: the Internal platform is dominated by standing costs, while the Cross-Organisation platform spreads costs more evenly across all three dimensions with data movement becoming a major factor. Prices are per month and shown in USD.
+
+<CostPieCharts /> 
 
 ---
 
