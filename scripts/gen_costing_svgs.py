@@ -22,22 +22,22 @@ SCENES = [
     {
         "id": "standing-costs",
         "bars": [
-            {"label": "ISP", "values": [[150, 75, 75, 150, 350]]},
-            {"label": "CSP", "values": [[750, 150, 350, 750, 1000]]},
+            {"label": "ISP", "values": [780]},  # Standing total
+            {"label": "CSP", "values": [3600]},  # Standing total
         ],
     },
     {
         "id": "storage-costs",
         "bars": [
-            {"label": "ISP", "values": [[150, 75, 75, 150, 350],[200, 100, 35, 35, 25]]},
-            {"label": "CSP", "values": [[750, 150, 350, 750, 1000],[400, 200, 75, 100, 200]]},
+            {"label": "ISP", "values": [780, 395]},  # Standing total, Storage total
+            {"label": "CSP", "values": [3600, 875]},  # Standing total, Storage total
         ],
     },
     {
         "id": "data-movement-egress",
         "bars": [
-            {"label": "ISP", "values": [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]]},
-            {"label": "CSP", "values": [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 500]]},
+            {"label": "ISP", "values": [780, 395, 185]},  # Standing total, Storage total, Movement total
+            {"label": "CSP", "values": [3600, 875, 560]},  # Standing total, Storage total, Movement total
         ],
     },
 ]
@@ -145,29 +145,27 @@ def render_cost_dimension_bars():
 
         for i, bar in enumerate(bars):
             bottom = 0
-            value_groups = normalize_value_groups(bar["values"])
+            values = bar["values"]
 
-            for group_index, group_values in enumerate(value_groups):
-                group_color = SCENE_BLUES[group_index % len(SCENE_BLUES)]
-                segment_values = to_segment_thicknesses(group_values)
-                for value in segment_values:
-                    segment = FancyBboxPatch(
-                        (x[i] - BAR_WIDTH / 2, bottom),
-                        BAR_WIDTH,
-                        value,
-                        boxstyle="round,pad=0,rounding_size=0.06",
-                        facecolor=group_color,
-                        edgecolor="#f8fafc",
-                        linewidth=2,
-                        mutation_scale=8,
-                    )
-                    ax.add_patch(segment)
-                    bottom += value
+            for color_index, value in enumerate(values):
+                component_color = SCENE_BLUES[color_index % len(SCENE_BLUES)]
+                segment = FancyBboxPatch(
+                    (x[i] - BAR_WIDTH / 2, bottom),
+                    BAR_WIDTH,
+                    value,
+                    boxstyle="round,pad=0,rounding_size=0.06",
+                    facecolor=component_color,
+                    edgecolor="#f8fafc",
+                    linewidth=2,
+                    mutation_scale=8,
+                )
+                ax.add_patch(segment)
+                bottom += value
 
             bar_totals.append(bottom)
 
         scene_max = max(bar_totals) if bar_totals else 0
-        y_top =4850
+        y_top = 4850
         ax.set_ylim(0, y_top)
         ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
         y_step = 750

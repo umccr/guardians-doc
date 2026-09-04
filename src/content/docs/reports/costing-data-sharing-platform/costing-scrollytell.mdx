@@ -6,88 +6,91 @@ import ReportScrolly from '../../../../components/ReportScrolly.astro';
 import CostPieCharts from '../../../../components/CostPieCharts.astro';
 
 
-Running a data‑sharing platform in the cloud involves many cost components, and understanding them is essential for sustainability, funding conversations, and architectural decisions. This report breaks down the costs of operating a genomics data‑sharing platform on AWS, focusing on the period **after data analysis is complete**—when the platform's main job is to store, share, and manage analysis‑ready results.
+Running a data-sharing platform on cloud infrastructure costs money in ways that aren't always obvious. Beyond the data itself, you pay to keep infrastructure running, secure access working, and datasets available when needed. Understanding these costs is essential for sustainability, funding conversations, and making smart architectural choices.
 
-We do not cover the costs of raw data ingestion, sequencing, or analysis compute, as these are typically managed separately. Instead, we focus on the **platform infrastructure, storage, data movement, and lifecycle management** that keep analysis‑ready data accessible and shareable over time.
+This report breaks down the costs of operating a genomics data-sharing platform on **AWS** (Amazon Web Services) **after analysis is complete**—focusing on what it takes to store finished datasets, share them with your team or partners, and keep them accessible over time. We don't cover raw sequencing or analysis compute costs, which are typically managed separately. Instead, we focus on the costs of running and maintaining the sharing platform itself: the infrastructure, storage, access, and governance that make data discoverable and shareable.
 
-The costs vary significantly depending on how the platform is designed and used. To illustrate this, we examine two contrasting scenarios: an internal platform used within a single organisation, and a cross‑organisation platform that regularly shares data with external partners. Both have non‑zero standing costs, but they differ in complexity, governance requirements, and total cost of ownership.
+The total cost depends heavily on how you design your platform and who uses it. To show this, we compare two scenarios: an internal platform used by one organisation, and a shared platform that regularly exchanges data with external partners. Both incur baseline costs just to stay ready, but they differ significantly in complexity, governance needs, and total spending over time.
 
-## Two scenarios: Internal vs Cross‑Organisation
 
-### Internal Sharing Platform (ISP)
+## Two scenarios: Internal vs Cross-Organisation
 
-An **Internal Sharing Platform (ISP)** is used within a single organisation by one or more teams. Users are typically employees or collaborators within the same institution, and data sharing happens within a trusted, internal network.
+We use two scenarios throughout this report as bookends for cost comparison. They're not exhaustive, but they illustrate the key cost drivers and trade-offs you'll face when designing your platform.
 
-**Characteristics:**
-- Users access the platform via internal SSO or organisational identity providers.
-- Data is stored in a single AWS region (or a primary region with optional backup).
-- Networking is relatively simple: a single VPC, minimal external endpoints, internal-only data movement.
-- Audit and compliance requirements are lighter (internal governance standards).
-- Some platform components can scale down or be turned off during periods of low activity.
+### Internal Sharing Platform
 
-**Example use case**: a research institute maintains a central repository of analysis‑ready genomics datasets. Teams within the institute query and download datasets as needed, but data rarely leaves the organisation.
+An **internal platform** serves a single organisation. Users are a limited number of employees or trusted collaborators within the same institution. Data is managed centrally and rarely leaves the organisation. An internal platform has these characteristics:
 
-**Cost profile**: ISPs typically have lower standing costs and more flexible scaling, resulting in a baseline of **~$500–1,100/month** for a minimal platform.
+- Simpler access control: users authenticate via your organisation's existing systems.
+- Centralised data management: typically one primary location, with optional backup for resilience.
+- Internal governance: audit and compliance requirements are set by your organisation alone.
+- Flexible operations: platform components can scale down during low activity periods.
+- Limited external dependencies: no need to manage external partner access or cross-organisation agreements.
 
-### Cross‑Organisation Sharing Platform (CSP)
+Since all data and operations stay within your organisation and under your control, an internal platform can be designed for simplicity and cost efficiency. You make all the decisions about what data to keep, how long to retain it, and who can access it.
 
-A **Cross‑Organisation Sharing Platform (CSP)** regularly shares data with external partner organisations. Partners may be in different AWS accounts, different regions, or entirely outside AWS.
+### Cross-Organisation Sharing Platform
 
-**Characteristics:**
-- External partners access the platform via federated identity (e.g. AAF, external IdPs, or cross‑account IAM roles).
-- Data may be replicated across regions for resilience and compliance.
-- Networking is more complex: external endpoints (PrivateLink, public APIs), cross‑account access, possibly cross‑region replication.
-- Audit and compliance requirements are stringent: detailed access logs, immutable audit trails, longer retention periods.
-- Most platform components must stay ready 24/7 to serve external partners; scaling down is limited.
+A **cross-organisation platform** regularly shares data with external partners—other institutions, research groups, or collaborators outside your organisation. Partners may be in different locations, different cloud environments, or entirely outside the cloud.
 
-**Example use case**: a national genomics data repository shares curated datasets with research institutions across multiple countries. Partners access data via APIs or direct S3 access, and all access is logged for compliance.
+A cross-organisation platform has these characteristics:
 
-**Cost profile**: CSPs typically have higher standing costs due to external infrastructure, federation, and audit requirements, resulting in a baseline of **~$1,700–4,200/month** for a minimal platform.
+- Complex access control: you must manage multiple external login systems and establish trust relationships with partners.
+- Distributed data management: data may be replicated across multiple locations to meet compliance requirements or serve geographically distant partners.
+- Stringent governance: audit trails, access logs, and compliance requirements are often dictated by external agreements or regulations.
+- Always-on operations: the platform must remain ready 24/7 to serve external partners; scaling down is limited.
+- Multi-stakeholder coordination: decisions about data retention, access, and sharing involve multiple organisations with different needs.
+
+Because a cross-organisation platform must serve external partners reliably and meet stricter governance standards, it requires more infrastructure, more careful management, and more operational overhead.
+
+
 
 ---
+## Three main cost dimensions
 
-## Three cost dimensions
 
-The total cost of a data‑sharing platform breaks down into three dimensions. Scroll through each to understand what drives costs in that area.
+We identify three main components that contribute to a sharing platform costs. **Standing costs** are the baseline expenses of keeping your platform ready: networking, security, monitoring, and the core infrastructure that runs whether or not anyone is using it. **Storage costs** account for the month-to-month expenses of keeping data accessible and stored. **Data movement costs** are what you pay to move data—between users, between locations, or to external partners.
+
+Below, we explore how each component contributes to costs for both scenarios: an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). The bars show cumulative monthly costs as we move through each dimension, expressed in USD.
+
+For detailed documentation, assumptions, and calculations, follow the "Explore" buttons below.
 
 
 <br />
 <br />
-
 <br />
 <br />
-
 
 
 export const sceneData = [
   {
     id: 'scene1',
     title: 'Standing Costs',
-    intro: 'The baseline cost of keeping the platform ready, even with no active users or data.',
+    intro: 'The baseline cost of keeping your platform ready, even when no one is using it. These are the costs that exist simply because the platform exists.',
     sections: [
       {
-        heading: 'ISP (Internal Sharing Platform):',
+        heading: 'Internal Sharing Platform:',
         items: [
-          'Simpler, internal-only networking (single VPC, minimal endpoints)',
-          'Lighter audit and compliance requirements',
-          'Some components can scale down during low activity',
+          'Simpler networking: one location, minimal external access points',
+          'Lighter security and audit requirements',
+          'Platform components can scale down during quiet periods',
           'Typical cost: $500–1,100/month',
         ],
       },
       {
-        heading: 'CSP (Cross-Organisation Sharing Platform):',
+        heading: 'Cross-Organisation Sharing Platform:',
         items: [
-          'External endpoints (PrivateLink, public APIs) always ready',
-          'Complex identity federation with external partners',
-          'Detailed audit logging and longer retention',
-          'Services must stay ready 24/7 for external partners',
+          'More complex networking: external access points must stay ready 24/7',
+          'Complex security and identity management for external partners',
+          'Detailed audit logging and compliance tracking',
+          'Services must remain operational around the clock',
           'Typical cost: $1,700–4,200/month',
         ],
       },
     ],
     note: {
-      label: 'Key components',
-      text: 'networking, storage & metadata, identity & security, monitoring & audit, baseline compute.',
+      label: 'What makes up standing costs',
+      text: 'Networking infrastructure, core storage and metadata systems, identity and security services, monitoring and audit logging, and baseline compute capacity.',
     },
     image: '/diagrams/standing-costs.svg',
     link: '../standing-costs/',
@@ -96,29 +99,32 @@ export const sceneData = [
   {
     id: 'scene2',
     title: 'Storage Costs',
-    intro: 'The cost of keeping analysis‑ready data at rest in S3 buckets. Storage cost grows with data volume and retention time.',
+    intro: 'The cost of keeping analysis-ready data at rest. Storage costs grow with how much data you keep and how long you keep it.',
     sections: [
       {
-        heading: 'Key levers:',
+        heading: 'Internal Sharing Platform:',
         items: [
-          'What to keep: curated outputs only vs all intermediates',
-          'Storage class: hot (S3 Standard, ~$0.023/GB/month) vs cold (S3 Glacier, ~$0.004/GB/month)',
-          'Lifecycle policies: automatically archive or delete old data',
+          'Centralised storage: data in one location, managed by your team',
+          'Mix of hot storage (frequently accessed) and archived data (older projects)',
+          'Curated outputs kept; intermediates often deleted after validation',
+          'Optional backup to a second location for resilience',
+          'Typical cost: $170–550/month',
         ],
       },
       {
-        heading: 'Cost examples:',
+        heading: 'Cross-Organisation Sharing Platform:',
         items: [
-          'ISP, 50 projects, everything hot: ~$115/month',
-          'ISP, 50 projects, with archiving: ~$195/month average',
-          'CSP, 20 projects, multi-region: ~$92/month',
-          'CSP, multi-region + archiving: ~$156/month average',
+          'Distributed storage: data replicated across multiple locations for partners',
+          'More data kept hot to serve external partners quickly',
+          'Longer retention periods due to compliance and governance requirements',
+          'Multiple copies of datasets across regions and partner accounts',
+          'Typical cost: $450–1.3K/month',
         ],
       },
     ],
     note: {
-      label: 'Impact',
-      text: 'aggressive archiving can reduce 5-year costs by 60–70%.',
+      label: 'What drives storage costs',
+      text: 'The amount of data stored, which storage tier you use (fast and expensive vs slow and cheap), how long you keep data, and whether data is replicated across multiple locations.',
     },
     image: '/diagrams/storage-costs.svg',
     link: '../storage/',
@@ -127,36 +133,33 @@ export const sceneData = [
   {
     id: 'scene3',
     title: 'Data Movement Costs',
-    intro: 'The cost of moving data between users, projects, and organisations. Two components: platform infrastructure and per-GB egress.',
+    intro: 'The cost of moving data around—between users, between locations, or to external partners. Unlike storage, these costs spike when you make specific decisions.',
     sections: [
       {
-        heading: 'Transfer costs:',
+        heading: 'Internal Sharing Platform:',
         items: [
-          'Internal (same region): free',
-          'Cross-region: ~$0.02/GB',
-          'External (to internet): ~$0.09/GB',
+          'Most data movement stays within your organisation and one location: free or negligible',
+          'Simple infrastructure to coordinate data sharing and access',
+          'Occasional replication to a backup location for resilience',
+          'Minimal external downloads; data rarely leaves the organisation',
+          'Typical cost: $50–270/month',
         ],
       },
       {
-        heading: 'ISP (mostly internal):',
+        heading: 'Cross-Organisation Sharing Platform:',
         items: [
-          '2 TB/month internal transfers = $0',
-          'Platform infrastructure: ~$50/month',
-          'Total: ~$50/month',
-        ],
-      },
-      {
-        heading: 'CSP (external sharing):',
-        items: [
-          '500 GB/month external egress = ~$45/month',
-          'Platform infrastructure: ~$200/month',
-          'Total: ~$245–305/month',
+          'Data regularly moves to external partners across multiple locations',
+          'More complex infrastructure to orchestrate sharing and manage access',
+          'Routine replication of datasets to partner regions for compliance and performance',
+          'External downloads and transfers to partners (whether to other cloud providers or on-premises systems) become a significant cost driver',
+          'Data movement often becomes the dominant cost in cross-organisation platforms',
+          'Typical cost: $470–1.2K/month',
         ],
       },
     ],
     note: {
-      label: 'Key insight',
-      text: 'external egress dominates CSP costs. Caching and internal replication help reduce costs.',
+      label: 'What drives data movement costs',
+      text: 'Where data moves (internal, between regions, or out to external partners and systems outside the cloud), how often it moves, the infrastructure needed to coordinate transfers, and whether data is replicated across multiple locations.',
     },
     image: '/diagrams/data-movement-egress.svg',
     link: '../data-movement-egress/',
@@ -169,7 +172,7 @@ export const sceneData = [
 <ReportScrolly steps={sceneData} activationLineRatio={0.33} />
 
 
-## Total cost breakdown
+## Breaking down the costs
 
 The total monthly cost of a data‑sharing platform is the sum of standing costs, storage costs, data movement costs, and lifecycle management costs.
 
