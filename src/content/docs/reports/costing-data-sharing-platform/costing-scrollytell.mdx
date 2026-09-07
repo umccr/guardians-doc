@@ -205,16 +205,31 @@ The charts below show how these components combine for each scenario. Hover over
 <CostPieCharts /> 
 
 ---
+## Costs over time: the impact of lifecycle decisions
 
-## Data lifecycle cost evolution (7 years)
 
-Monthly cost is only part of the story. Over a 7-year horizon, retention and deletion policy strongly changes total cost of ownership.
+Platform costs don't stay static—they evolve as data accumulates, your platform grows, and requirements change. But one of the most powerful levers you control is **how you manage your data as it ages**. Data has a natural lifecycle: recently created data is highly accessible and frequently moved, but over time, some data becomes less relevant, less frequently accessed, or less valuable. How well you understand and manage this lifecycle is a key factor in determining your platform's long-term costs. Different retention strategies lead to dramatically different cost trajectories.
 
-The scrolly below compares three lifecycle strategies across all cost components (standing, storage, and data movement):
+In this section, we'll explore different retention strategies for internal and cross-organisation data-sharing platforms. We use a 7-year timeframe to illustrate how lifecycle decisions—what data to keep, what to archive, and what to delete—compound over time and reshape your total spending.
 
-- **Full retention**: minimal deletion, maximum retention.
-- **Balanced retention**: keep valuable curated outputs, archive or delete the rest.
-- **Lean retention**: remove temporary and low-value data quickly.
+For that, we compare three retention strategies:
+
+**Full retention** keeps most data indefinitely with minimal deletion. Maximises historical coverage and reproducibility, but costs the most over time.
+
+**Balanced retention** keeps valuable curated data long-term while archiving or deleting transient data. Balances accessibility, compliance, and cost control.
+
+**Lean retention** removes temporary and low-value data quickly, keeping only essential curated outputs. Minimises long-term costs but requires strict governance and clear data policies.
+
+Below, we explore the yearly cost evolution for each retention strategy. For each scenario, you'll see how the three cost dimensions (standing, storage, and data movement; described in [Three main cost dimensions](#breaking-down-the-costs-three-dimensions)) contribute to your yearly costs and how your total cost builds up over 7 years for both an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). Watch how the cost trajectories diverge as lifecycle decisions compound over time.
+
+
+
+<br />
+<br />
+<br />
+<br />
+
+
 
 export const lifecycleAnimationFrameCount = 49;
 export const lifecycleAnimationSubdir = 'lifecycle-progression';
@@ -313,10 +328,6 @@ export const lifecycleSceneData = [
   }
 ];
 
-<br />
-<br />
-<br />
-<br />
 
 <ReportScrolly steps={lifecycleSceneData} compact playSequenceOnEnter sequenceDurationMs={600} />
 
