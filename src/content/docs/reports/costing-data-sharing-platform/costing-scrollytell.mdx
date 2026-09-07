@@ -220,7 +220,7 @@ For that, we compare three retention strategies:
 
 **Lean retention** removes temporary and low-value data quickly, keeping only essential curated outputs. Minimises long-term costs but requires strict governance and clear data policies.
 
-Below, we explore the yearly cost evolution for each retention strategy. For each scenario, you'll see how the three cost dimensions (standing, storage, and data movement; described in [Three main cost dimensions](#breaking-down-the-costs-three-dimensions)) contribute to your yearly costs and how your total cost builds up over 7 years for both an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). Watch how the cost trajectories diverge as lifecycle decisions compound over time.
+Below, we explore the yearly cost evolution for each retention strategy. For each scenario, you'll see how the three cost dimensions (standing, storage, and data movement; described in [above](#three-main-cost-dimensions)) contribute to your yearly costs and how your total cost builds up over 7 years for both an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). Watch how the cost trajectories diverge as lifecycle decisions compound over time.
 
 
 
@@ -238,90 +238,93 @@ export const lifecycleAnimationFrames = (id) =>
     `/diagrams/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
   );
 
+
+
+
 export const lifecycleSceneData = [
   {
     id: 'lifecycle-scene1',
-    title: 'Scenario 1: Full Retention',
-    intro: 'Data is rarely deleted, so stored volume and associated costs keep increasing over time.',
+    title: 'Full Retention',
+    intro: 'Keep most data indefinitely. Storage grows continuously, making this the most expensive strategy over time.',
     sections: [
       {
-        heading: 'Policy profile:',
+        heading: 'What this means:',
         items: [
           'Retain most outputs and intermediates long-term',
           'Limited archival and minimal deletion',
-          'Highest cumulative 7-year cost trajectory',
+          'Data accumulates year after year',
         ],
       },
       {
-        heading: 'Cost behavior over time:',
+        heading: 'How costs evolve:',
         items: [
-          'Standing costs remain mostly stable',
-          'Storage becomes the dominant long-term driver',
-          'Data movement varies with sharing activity but adds to growth',
+          'Standing costs remain stable',
+          'Storage becomes the dominant cost driver',
+          'Total cost grows steadily each year',
         ],
       },
     ],
     note: {
-      label: 'Takeaway',
-      text: 'simple to operate, but usually the most expensive path over multiple years.',
+      label: 'Bottom line',
+      text: 'Simple to operate, but the most expensive path over 7 years.',
     },
     image: '/diagrams/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
   },
   {
     id: 'lifecycle-scene2',
-    title: 'Scenario 2: Balanced Retention',
-    intro: 'High-value curated data is retained, while transient data is archived or deleted with clear rules.',
+    title: 'Balanced Retention',
+    intro: 'Keep valuable curated data long-term while archiving or deleting transient data. A pragmatic middle ground.',
     sections: [
       {
-        heading: 'Policy profile:',
+        heading: 'What this means:',
         items: [
           'Retain curated outputs for reuse and reproducibility',
-          'Archive older data and expire intermediates',
-          'Use lifecycle rules tuned by project and data class',
+          'Archive older data and delete intermediates automatically',
+          'Apply lifecycle rules tuned by project and data type',
         ],
       },
       {
-        heading: 'Cost behavior over time:',
+        heading: 'How costs evolve:',
         items: [
-          'Standing costs remain mostly stable',
-          'Storage grows moderately, then slows',
-          'Middle-ground cumulative 7-year cost trajectory',
+          'Standing costs remain stable',
+          'Storage grows moderately, then plateaus',
+          'Total cost stabilises in later years',
         ],
       },
     ],
     note: {
-      label: 'Takeaway',
-      text: 'pragmatic compromise between accessibility, compliance, and long-term cost control.',
+      label: 'Bottom line',
+      text: 'Balances accessibility, compliance, and cost control.',
     },
     image: '/diagrams/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
   },
   {
     id: 'lifecycle-scene3',
-    title: 'Scenario 3: Lean Retention',
-    intro: 'Temporary and low-value data is removed early to keep long-term storage growth low.',
+    title: 'Lean Retention',
+    intro: 'Remove temporary and low-value data early. Keeps long-term storage growth minimal and costs lowest.',
     sections: [
       {
-        heading: 'Policy profile:',
+        heading: 'What this means:',
         items: [
-          'Short retention for intermediates and scratch data',
+          'Short retention windows for intermediates and scratch data',
           'Rapid transition to archive tiers where needed',
-          'Strict deletion windows enforced automatically',
+          'Strict, automated deletion policies',
         ],
       },
       {
-        heading: 'Cost behavior over time:',
+        heading: 'How costs evolve:',
         items: [
-          'Standing costs remain mostly stable',
-          'Storage curve flattens after initial growth',
-          'Lowest cumulative 7-year cost trajectory',
+          'Standing costs remain stable',
+          'Storage curve flattens quickly after initial growth',
+          'Total cost stabilises at the lowest level',
         ],
       },
     ],
     note: {
-      label: 'Takeaway',
-      text: 'lowest long-term cost, but requires discipline and strong governance.',
+      label: 'Bottom line',
+      text: 'Lowest long-term cost, but requires strong governance and clear data policies.',
     },
     image: '/diagrams/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
@@ -329,16 +332,19 @@ export const lifecycleSceneData = [
 ];
 
 
+
 <ReportScrolly steps={lifecycleSceneData} compact playSequenceOnEnter sequenceDurationMs={600} />
 
 <br />
 <br />
 
-### Total evolution curves
+## Cost trajectories: full view
 
-This view shows only the total monthly cost trajectories over 7 years for the three lifecycle strategies. End labels show the 7-year cumulative total for each curve, and the same scale as the lifecycle scrolly is used so you can compare direction and separation clearly.
+The chart below compares the complete 7-year cost picture for all three retention strategies. Each line represents a different strategy, and you can see how dramatically they diverge over time. The labels at the end of each line show the 7-year cumulative total—the total amount you'll spend over the entire period.
 
-<div class="not-prose" style={{ margin: '1rem 0 2rem', background: 'rgb(156, 163, 175, 0.08)', borderRadius: '0.5rem', padding: '1rem' }}>
+Notice the stark differences: Full retention costs grow continuously and end up being 50% more expensive than Lean retention for an ISP, and 44% more for a CSP. Even Balanced retention—the middle ground—saves significant money compared to keeping everything.
+
+<div class="not-prose" style={{ margin: '1rem 0 2rem', background: 'rgb(156, 163, 174, 0.08)', borderRadius: '0.5rem', padding: '1rem' }}>
   <img
     src={`${import.meta.env.BASE_URL}diagrams/lifecycle-scenario-comparison.svg`}
     alt="Total cost evolution curves over 7 years for full, balanced, and lean retention strategies"
@@ -346,11 +352,7 @@ This view shows only the total monthly cost trajectories over 7 years for the th
   />
 </div>
 
-
-
-### 7-year cost evolution by lifecycle strategy (illustrative, USD)
-
-To keep this simple, the table is grouped into three scenario sections. Within each section, ISP and CSP are shown side-by-side with key timepoints.
+The table below captures the same evolution shown in the plot, with snapshots at Year 1, Year 3, and Year 7. Notice how the strategies start similarly but diverge sharply by Year 7. Costs shown in USD. 
 
 <table>
   <tr>
@@ -358,64 +360,60 @@ To keep this simple, the table is grouped into three scenario sections. Within e
     <th>Year 1 (monthly)</th>
     <th>Year 3 (monthly)</th>
     <th>Year 7 (monthly)</th>
-    <th>7-year cumulative total</th>
+    <th>7-year total</th>
   </tr>
 
   <tr>
-    <td colspan="5"><strong>Scenario 1: Full Retention</strong> — minimal deletion, highest long-term growth</td>
+    <td colspan="5"><strong>Full Retention</strong> — keep most data indefinitely</td>
   </tr>
   <tr>
-    <td>ISP: 50 projects</td>
-    <td>~\$1,050</td>
-    <td>~\$1,350</td>
-    <td>~\$2,050</td>
-    <td>~\$132,000</td>
+    <td>ISP (50 projects)</td>
+    <td>~$1,050</td>
+    <td>~$1,350</td>
+    <td>~$2,050</td>
+    <td>~$132,000</td>
   </tr>
   <tr>
-    <td>CSP: 20 projects, multi-region</td>
-    <td>~\$4,600</td>
-    <td>~\$5,450</td>
-    <td>~\$7,100</td>
-    <td>~\$512,000</td>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Scenario 2: Balanced Retention</strong> — archive + selective deletion</td>
-  </tr>
-  <tr>
-    <td>ISP: 50 projects</td>
-    <td>~\$1,000</td>
-    <td>~\$1,180</td>
-    <td>~\$1,380</td>
-    <td>~\$103,000</td>
-  </tr>
-  <tr>
-    <td>CSP: 20 projects, multi-region</td>
-    <td>~\$4,450</td>
-    <td>~\$4,900</td>
-    <td>~\$5,500</td>
-    <td>~\$418,000</td>
+    <td>CSP (20 projects, multi-region)</td>
+    <td>~$4,600</td>
+    <td>~$5,450</td>
+    <td>~$7,100</td>
+    <td>~$512,000</td>
   </tr>
 
   <tr>
-    <td colspan="5"><strong>Scenario 3: Lean Retention</strong> — aggressive deletion of transient data</td>
+    <td colspan="5"><strong>Balanced Retention</strong> — archive and selectively delete</td>
   </tr>
   <tr>
-    <td>ISP: 50 projects</td>
-    <td>~\$980</td>
-    <td>~\$1,040</td>
-    <td>~\$1,050</td>
-    <td>~\$88,000</td>
+    <td>ISP (50 projects)</td>
+    <td>~$1,000</td>
+    <td>~$1,180</td>
+    <td>~$1,380</td>
+    <td>~$103,000</td>
   </tr>
   <tr>
-    <td>CSP: 20 projects, multi-region</td>
-    <td>~\$4,300</td>
-    <td>~\$4,500</td>
-    <td>~\$4,680</td>
-    <td>~\$356,000</td>
+    <td>CSP (20 projects, multi-region)</td>
+    <td>~$4,450</td>
+    <td>~$4,900</td>
+    <td>~$5,500</td>
+    <td>~$418,000</td>
+  </tr>
+
+  <tr>
+    <td colspan="5"><strong>Lean Retention</strong> — aggressive deletion of transient data</td>
+  </tr>
+  <tr>
+    <td>ISP (50 projects)</td>
+    <td>~$980</td>
+    <td>~$1,040</td>
+    <td>~$1,050</td>
+    <td>~$88,000</td>
+  </tr>
+  <tr>
+    <td>CSP (20 projects, multi-region)</td>
+    <td>~$4,300</td>
+    <td>~$4,500</td>
+    <td>~$4,680</td>
+    <td>~$356,000</td>
   </tr>
 </table>
-
-*Costs shown in USD. Illustrative synthetic data for scenario comparison only; not billing estimates.*
-
-

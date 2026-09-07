@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch
+from matplotlib.patches import FancyBboxPatch, Patch
 
 # Get the script directory and build the output path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -124,6 +124,26 @@ def format_total(value):
     if value >= 1000:
         return f"${value / 1000:.1f}k"
     return f"${value:.0f}"
+
+
+def add_component_legend(ax):
+    legend_handles = [
+        Patch(facecolor=color, edgecolor="none", label=label)
+        for label, color in LIFECYCLE_COMPONENTS
+    ]
+    ax.legend(
+        handles=legend_handles,
+        loc="upper left",
+        bbox_to_anchor=(0.02, 1.10),
+        frameon=False,
+        ncol=3,
+        fontsize=10.5,
+        handlelength=1.5,
+        handletextpad=0.6,
+        columnspacing=1.2,
+        borderaxespad=0.0,
+        labelspacing=0.25,
+    )
 
 
 def total_for_bar(bar):
@@ -347,7 +367,16 @@ def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index
         )
 
 
-def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, total_line_indices=None, figure_size=None, year_progress=None):
+def draw_lifecycle_chart(
+    years,
+    y_top,
+    scenario_index=None,
+    include_bars=True,
+    total_line_indices=None,
+    figure_size=None,
+    year_progress=None,
+    show_component_legend=True,
+):
     if total_line_indices is None:
         total_line_indices = []
 
@@ -402,6 +431,8 @@ def draw_lifecycle_chart(years, y_top, scenario_index=None, include_bars=True, t
             year_progress=year_progress,
         )
 
+    if show_component_legend:
+        add_component_legend(ax)
     style_lifecycle_axes(ax, x_positions, years, y_top)
     fig.subplots_adjust(left=0.03, right=0.97, bottom=0.09, top=0.97)
     return fig
@@ -485,6 +516,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
         include_bars=False,
         total_line_indices=list(range(len(LIFECYCLE_SCENARIOS))),
         figure_size=(LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H),
+        show_component_legend=False,
     )
     ax = comparison_fig.axes[0]
     x_min, x_max = ax.get_xlim()
