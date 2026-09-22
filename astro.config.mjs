@@ -131,8 +131,7 @@ export default defineConfig({
                 items: [
                     // "genomic-data-nodes/vision",
                     "genomic-data-nodes/architecture",
-                    "genomic-data-nodes/work-packages",
-                    "genomic-data-nodes/legal-trust-concepts"
+                    "genomic-data-nodes/work-packages"
                 ]
             },
             {
