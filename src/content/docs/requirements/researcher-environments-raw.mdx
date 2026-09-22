@@ -31,15 +31,21 @@ Do you disagree with that as a premise? Any clarifications?
 CL:
 100% agree. It's got to behave like AWS Batch or GCP PAPI v2 (or whatever that's called now)
 If it's HPC-backed, there's got to be something like ABLES that allows ad-hoc use
-In HPC world - how do we deal with this dynamism (me having never logged into a HPC)
-I commented on this above. For HPC, the resources have to be available through a scheme like ABLES, as opposed to a merit allocation scheme (apply 6 mos in advance)
-The institute itself statically decides on the size of the cluster.. but do the researchers get dynamic CPU/mem stuff for a single nextflow pipeline run?
-Or do they allocate out CPUS/mem to research groups (and essentially partition up the cluster)
+In HPC world
+
+AP:
+how do we deal with this dynamism
+
+CL:
+For HPC, the resources have to be available through a scheme like ABLES, as
+opposed to a merit allocation scheme (apply 6 mos in advance)
 
 #### Custom Compute
 
 CL:
-Large, fast (SSD) scratch is I think a pretty common ask. Some tools create heaps of temp files that you don't want to be writing to network disk.
+Large, fast (SSD) scratch is I think a pretty common ask. Some tools create heaps
+of temp files that you don't want to be writing to network disk.
+
 AP:
 Access to GPUs, FPGAs, weird scale machines..
 So not saying we are unique - but definitely need compute types that are not standard 2 CPU/8 GIB windows box

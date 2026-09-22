@@ -1,0 +1,37 @@
+---
+title: "🔶 2.6 Cyber Resilience"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Computing Technology and Information Security | Capability: 2.6
+
+
+<div class="not-content">
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 2.6.01 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should keep backups of data and research environments, provided that this is permitted by law.</p>
+  <p class="satre-context mb-2">Reduces impact of accidental deletion and data corruption.</p>
+  <p><strong>Genomics context:</strong> Stakeholders raised the cost/benefit tension: "What kind of data would be backed up — just results, or all input files and runs?" At genomics scale (100s of TB), backing up all input data may be prohibitively expensive and unnecessary if the source custodian retains the original. The backup strategy should distinguish between: (a) researcher-generated outputs and intermediate results (high backup priority), (b) ingressed reference datasets (re-obtainable, low backup priority), and (c) original participant data (held and backed up by the custodian at the data layer, not duplicated in the TRE).</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.6.02</strong> (Recommended) — You should build redundancy into infrastructure and storage.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.6.03</strong> (Recommended) — You should keep backups of infrastructure, applications and configurations.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.6.04</strong> (Mandatory) — You must have procedures in place for rapid incident response.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>2.6.05</strong> (Recommended) — You should test your incident response through simulation.</p>
+</div>
+
+</div>

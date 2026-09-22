@@ -1,0 +1,41 @@
+---
+title: "🔶 3.2 Identity and Access Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Data Management | Capability: 3.2
+
+
+<div class="not-content">
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.2.01</strong> (Mandatory) — You must not create user accounts for use by more than one person.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.2.02</strong> (Mandatory) — You must be reasonably convinced of the identity of each person being granted an account.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 3.2.03 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must restrict a user's access to only data required in their work.</p>
+  <p class="satre-context mb-2">Access may be assigned through roles or isolated project workspaces.</p>
+  <p><strong>Genomics context:</strong> Access granularity for genomics goes beyond "user has access to dataset." A researcher may be authorised to access only variant data (VCFs) but not raw reads (BAM/FASTQ) for the same participants (user story #2 in data-release). Access may be per-participant-subset based on consent scope — not all participants in a cohort may be available to a given project. The access model must support: per-data-type restrictions, per-participant-subset restrictions, and time-limited access with automatic expiry.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.2.04</strong> (Mandatory) — You must ensure that multi-factor authentication is enabled for all users.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.2.05</strong> (Optional) — You could use federated authentication or single sign-on (SSO) for user login.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>3.2.06</strong> (Optional) — You could restrict access to particular networks or physical locations.</p>
+</div>
+
+</div>

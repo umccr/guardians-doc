@@ -1,0 +1,53 @@
+---
+title: "🔶 4.4 Financial Management"
+---
+
+
+Source: [SATRE Specification v2.0](https://satre-specification.readthedocs.io/en/latest/)
+| Pillar: Supporting Capabilities | Capability: 4.4
+
+
+Financial management is one of the most significantly impacted capabilities for genomics. Costs at genomics scale are orders of magnitude larger than typical TRE workloads, and stakeholders specifically called this out as requiring more attention than SATRE provides.
+
+<div class="not-content">
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 4.4.01 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Mandatory):</strong> You must ensure all projects are aware of associated costs and able to pay them.</p>
+  <p class="satre-context mb-2">Costs may include infrastructure, additional resources, hardware, and support.</p>
+  <p><strong>Genomics context:</strong> Stakeholders emphasised this strongly: "these are not bills that might be $10 — genomics people can run up bills that might be $1000s or $10,000s." Costs are also unpredictable — a poorly configured pipeline, unexpected data volumes, or burst compute can generate surprising bills. The TRE must provide: (a) cost estimation tools before pipeline submission, (b) real-time cost monitoring during execution, (c) hard budget caps with automatic enforcement (stop jobs when limit reached). Data custodians specifically need to know "who is on the hook" for storage and compute costs.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 4.4.02 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should be able to track costs associated with each TRE project.</p>
+  <p class="satre-context mb-2">Knowing which costs are associated with which project, with appropriate charging.</p>
+  <p><strong>Genomics context:</strong> For genomics this should be elevated to <strong>Mandatory</strong>. Multiple cost models need to be supported simultaneously: BYO cloud account (researcher's institution pays directly), pre-paid with limit (grant-funded allocation), and invoicing/cost-recovery (subsidised operations with post-hoc billing). Per-pipeline cost attribution is needed — not just per-project — so researchers can understand which workflows are expensive and optimise accordingly.</p>
+</div>
+
+<div class="satre-unchanged">
+  <p><span>🟰</span> <strong>4.4.03</strong> (Recommended) — You should have a process to ensure TRE provision remains financially sustainable.</p>
+</div>
+
+<div class="satre-changed">
+  <div class="satre-title">
+    <span>🔶</span> 4.4.04 — Changed for Genomics
+  </div>
+  <p><strong>SATRE (Recommended):</strong> You should minimise the cost of your TRE infrastructure wherever possible.</p>
+  <p class="satre-context mb-2">Regular reviews and active work to bring down costs.</p>
+  <p><strong>Genomics context:</strong> Cost minimisation for genomics requires specific strategies: spot/preemptible instances for fault-tolerant pipeline stages, automatic shutdown of idle resources, cold storage tiering for infrequently accessed datasets, and right-sizing of compute nodes to pipeline requirements. The data copying requirements explicitly include a "cheap compute" option (DCREQ-14) and cost controllability (DCNF-5). The TRE should provide tooling that helps researchers trade off time for cost where their workloads can tolerate restarts.</p>
+</div>
+
+<div class="satre-new">
+  <div class="satre-title">
+    <span>🆕</span> NEW — Genomics-specific requirement
+  </div>
+  <p><strong>Proposed (Mandatory):</strong> The TRE must provide per-project budget caps with automatic enforcement — preventing compute or storage costs from exceeding an agreed limit without explicit approval to continue.</p>
+  <p class="satre-context">A single poorly configured genomics pipeline can consume thousands of dollars in hours. Unlike typical TRE workloads where costs accumulate slowly, a burst of dynamic compute can generate bills rapidly. Automatic enforcement (not just alerting) is necessary to prevent financial surprises for both researchers and the TRE operator.</p>
+</div>
+
+</div>
