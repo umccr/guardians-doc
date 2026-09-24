@@ -1,0 +1,213 @@
+---
+title: Legal and Trust Concepts for Genomic Infrastructure
+---
+
+import DrawioDiagram from '../../../components/DrawioDiagram.astro';
+
+## Overview
+
+Genomic data sharing today mostly works by **releasing** data from a custodian to a researcher under a Data Sharing Agreement. That model has a structural weakness: once the data leaves, the custodian's control is contractual only, with no way to technically enforce how the data is stored, accessed, or destroyed. This document works through an alternative — keeping data inside a **controlled environment** that the custodian never releases — and the legal and trust questions that alternative raises.
+
+We consider here the most interesting legal scenario which is where the controlled environment is run not by
+data custodians but by a separate **infrastructure provider** — the arrangement most likely to underpin genuinely national genomic infrastructure. From there the document examines two questions: how such a provider sits within Australian privacy law (arguing it should behave as a processor acting on the custodian's instruction, and using the OAIC's "use vs disclosure" guidance to keep the data within the custodian's effective control), and which legal vehicle is best suited to house an operator of national infrastructure.
+
+## Current state
+
+In Australia (and broadly internationally), genomic data sharing typically follows this pattern:
+
+1. A **data custodian** (hospital, biobank, research institute) holds genomic and associated clinical data under ethics approval and participant consent
+2. A **researcher** applies for access, submitting a proposal to a **Data Access Committee (DAC)** or equivalent governance body
+3. The DAC assesses the application against consent scope, scientific merit, and institutional policies
+4. If approved, a **Data Sharing Agreement (DSA)** or **Data Transfer Agreement (DTA)** is executed between the custodian and the researcher (or their institution)
+5. The data is **released** — typically transferred to the researcher's environment (institutional storage, cloud bucket, local compute)
+
+The agreement that governs this release does a lot of work on paper. A typical DSA covers:
+
+- Purpose limitation — the specific research use approved
+- Publication and attribution requirements
+- Re-identification prohibitions
+- Data destruction or return obligations at project end
+- Security requirements for storage and handling
+- Restrictions on onward sharing or linkage
+- Liability and indemnity clauses
+- Breach notification procedures
+- IP and commercialisation terms (often heavily negotiated)
+
+<DrawioDiagram src="diagrams/legal-release.drawio.svg" />
+
+The critical weakness of this model is that once data is released to a researcher, practical control
+ by the custodian effectively ends. The DSA is a legal instrument — it creates contractual
+ obligations — but it does not provide any technical enforcement:
+
+- The custodian cannot verify that the data is stored securely at the recipient's end
+- The custodian cannot verify that only authorised personnel access the data
+- The custodian cannot enforce data destruction at project end — they can require it contractually, but cannot confirm it happened
+- The custodian has no visibility into whether the data has been copied, moved to unapproved environments, or linked with other datasets
+- If consent is withdrawn by a participant, the custodian has no mechanism to reach into the researcher's systems and effect deletion
+
+In practice, compliance relies on trust, attestation, and the threat of contractual remedies after the fact. 
+
+## Controlled environments
+
+The key move that dissolves this problem is to change where the data is released to. Releasing data to a researcher hands it to a person (or their institution) who takes possession. Instead we can release the data to a controlled environment where the custodian retains technical control: access can be revoked, boundaries enforced, and usage audited in real time. 
+
+The controlled environment could simply be run by the data custodian themselves — or by their host institution. The custodian stands up a secure environment, admits authorised researchers to it, and never lets the data leave.
+
+This base case however is not particularly legally interesting. The custodian already holds the data and already carries the obligations that attach to holding it; running the environment in-house introduces no new party, no new data-holding relationship, and no new agreement to analyse. Whatever consent, ethics approval, and privacy obligations already governed the data continue to govern it, unchanged. It is certainly a viable model for some
+institutes and had many benefits over full release model.
+
+The catch is capacity. Running a controlled environment well — secure compute, controlled egress, identity and access management, audit, incident response, certification — is a substantial and ongoing undertaking. Not every data custodian has the technical capacity, expertise, or resources to run one successfully, and expecting each to do so will probably result in a proliferation of under-resourced environments that are "controlled" in name only.
+
+The legally interesting case, and the one that will be discussed in the rest of this document, is one where the controlled environment is run by an **infrastructure provider** — a party distinct from both the custodian and the researcher. Here the custodian delegates the operation of the environment to a third party while retaining governance authority over the data. This appears to be the most likely case were we to propose true national genomic
+infrastructure - as there is no obvious data custodian (i.e. a significant medical research institute) that is
+going to be willing to run a controlled environment for _other_ institutes.
+
+## Who does the controlling?
+
+An infrastructure provider that holds data on a custodian's behalf maps naturally to the GDPR's distinction between a **data controller** (the entity that determines the purposes and means of processing personal data) and a **data processor** (the entity that processes data on behalf of and under the instruction of the controller). Under this framing, an infrastructure provider is clearly a processor: it does not decide _why_ or _for what purpose_ genomic data is processed — it simply provides the environment in which custodians and authorised researchers do so.
+
+However, Australian privacy law does not currently draw this distinction in statute. The _Privacy Act 1988_ (Cth) and the Australian Privacy Principles (APPs) apply to "APP entities" that _hold_ personal information. Similar
+provisions apply to state based privacy laws, were an infrastructure provider to fall under those provisions (for the purposes of this document we will limit analysis to Commonwealth privacy principles). There is no formal processor/controller split — if you hold the data, even transiently on infrastructure you operate, you are potentially an APP entity with direct obligations.
+
+This means an infrastructure provider cannot simply declare itself a processor and shed some 
+of its privacy obligations. Under current law, it likely holds obligations to:
+- Take reasonable steps to protect personal information from misuse, interference, and loss (APP 11)
+- Ensure overseas disclosure requirements are met if data traverses international boundaries (APP 8)
+- Respond to data breach notification obligations under the Notifiable Data Breaches scheme
+
+Australia may in time follow the lead of jurisdictions such as the EU (under the GDPR) and introduce a formal controller/processor distinction. If it does, the position of an infrastructure provider becomes significantly cleaner: the provider would have a legislatively recognised role with bounded obligations (primarily security and confidentiality), rather than needing to manage the full suite of APPs as if it were making decisions about the data.
+
+To make best of the situation as it currently is in Australia, an infrastructure provider therefore should:
+
+1. **Contractually define the relationship** — service agreements with data custodians should make clear that the provider acts only on instruction, does not access data for its own purposes, and does not determine the purpose of processing. This mirrors what a processor agreement would look like under the GDPR, and establishes the factual basis for a reduced compliance position.
+
+2. **Rely on the "use vs disclosure" distinction** — the OAIC's guidance on the APPs supports treating provision of data to a service provider as a *use* by the custodian rather than a *disclosure* to the provider, provided the custodian keeps the data within its effective control. The OAIC gives the cloud storage arrangement as its example, and sets out the conditions that must hold:
+
+   > In limited circumstances, providing personal information to a contractor to perform services on behalf of the APP entity may be a use, rather than a disclosure... This occurs where the entity does not release the subsequent handling of personal information from its effective control. For example, if an entity provides personal information to a cloud service provider for the limited purpose of performing the services of storing and ensuring the entity may access the personal information, this may be a 'use' by the entity in the following circumstances:
+   >
+   > - a binding contract between the entity and the provider requires the provider only to handle the personal information for these limited purposes
+   > - the contract requires any subcontractors to agree to the same obligations, and
+   > - the contract gives the entity effective control of how the information is handled by the provider. Issues to consider include whether the entity retains the right or power to access, change or retrieve the information, who else will be able to access the information and for what purposes, the security measures that will be used for the storage and management of the personal information (see also APP 11.1, Chapter 11) and whether the information can be retrieved or permanently deleted by the entity when no longer required or at the end of the contract.
+   >
+   > — OAIC, [Australian Privacy Principles guidelines](https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines), Chapter B, [B.147]
+
+   This is the closest thing current Australian law offers to a processor safe harbour, and it maps almost exactly onto an infrastructure provider model: a binding service agreement confining the provider to storage and access provision, flow-down obligations to any subcontractors, and the custodian retaining the right to access, change, retrieve, and delete its data. Meeting these conditions keeps the arrangement a "use" by the custodian rather than a "disclosure", which materially narrows the provider's own exposure under the APPs.
+
+3. **Implement strong technical controls** — encryption at rest and in transit, access logging, inability for provider staff to access research data without explicit authorisation — to reinforce the position that the provider does not meaningfully "hold" accessible personal information.
+
+4. **Comply with APP 11 (security) and the Notifiable Data Breaches scheme** — even a processor-like entity has breach notification obligations if it holds data. 
+
+## Choosing a legal vehicle for an infrastructure provider
+
+By making an infrastructure provider's role as thin as possible, the legal vehicle chosen to be an infrastructure
+provider  does not need to solve all the governance problems of genomic data sharing. It only needs to:
+
+1. Hold service agreements with participating institutions (data custodians)
+2. Employ, contract or manage the secondment of technical staff
+3. Manage operational funding
+4. Provide sufficient governance for participating institutions to trust the platform
+5. Maintain a clear, enforceable position that it claims no IP and acts only as a service provider
+
+{/*
+<DrawioDiagram src="diagrams/legal-infrastructure-provider.drawio.svg" />
+*/}
+
+This dramatically simplifies the choice of vehicle. In the Australian context, several vehicles are available, but not all are fit for purpose. Keep in mind that our overall objective here is to provide a model for
+national infrastructure.
+
+### Vehicles unlikely to be suitable
+
+The following vehicles can be quickly set aside for a nationally-scoped, enduring infrastructure service:
+
+- **Incorporated Association (state-based)** — Governed by state legislation which varies across jurisdictions. Generally limited to small-scale, non-trading activities. A national genomics infrastructure service operating across multiple states, holding significant service contracts, and managing non-trivial funds would outgrow this vehicle quickly.
+
+- **Unincorporated Joint Venture / Consortium Agreement** — A contractual arrangement between institutions without creating a separate legal entity. While fast to stand up, it has no separate legal personality (one party must act as "lead" for contracts and employment), liability allocation is fragile and contestable, and any party can exit.
+
+- **Trust (Purpose Trust or Unit Trust)** — Strong asset protection but complex to administer, with governance that is inherently less transparent and less collaborative than membership-based entities. The trustee structure does not naturally support the multi-institutional, member-driven governance that data custodians would expect from infrastructure they are entrusting with their data. A poor cultural fit for this sector.
+
+### Vehicles worth serious consideration
+
+#### Hosted by an Existing National Facility (NCI, Pawsey, or other NCRIS infrastructure)
+
+Rather than establishing a new entity, the infrastructure provider role is taken on by an existing national research facility — a national compute facility such as NCI or Pawsey, or another NCRIS-funded body. Strictly this is a variant of the auspice model below rather than a distinct legal form, but it is worth treating separately because some stakeholders will argue it is the obvious answer: the national infrastructure already exists, so why build another operator?
+
+**Pros**
+- No new entity to establish — the facility already exists, is funded, and is operating
+- Mature operational capability — secure compute, storage at scale, network, and security operations are already in place, directly addressing the capacity problem that rules out most individual custodians
+- Existing NCRIS funding relationships and government recognition as national infrastructure
+- Likely already holds relevant security certification and assurance credentials
+- Neutral in the sense that a compute facility is not itself a data custodian competing with the institutes it would serve
+
+**Cons**
+- Genomics governance is not their core mission — these facilities are built around compute and storage provision, not the consent-, ethics-, and DAC-aware data governance that genomic custodians require
+- The processor posture may be harder to maintain if the facility's standard terms, funding conditions, or usage policies assume it is operating as a general-purpose service rather than acting purely on a custodian's instruction
+- Custodian trust is not automatic — a facility known for HPC is not necessarily one that hospitals and biobanks will readily entrust with identifiable clinical-genomic data
+- Governance representation for participating custodians is unlikely to be built in; they would be customers of the facility, not members with a seat at the table
+- Priorities, funding, and eligibility rules are set by the facility and its NCRIS remit, which may not align with the needs of genomic custodians over time
+- Genomic-specific tooling (catalogue, access brokering, audit meaningful to ethics committees) would still need to be built and maintained on top
+
+**Assessment**: Attractive on capacity and cost grounds, and a serious option that should not be dismissed — the operational maturity these facilities bring is exactly what individual custodians lack. The open question is governance fit: whether a facility whose mission is compute and storage can credibly hold the consent- and ethics-aware trust relationship that genomic custodians need, and whether custodians will get genuine governance representation rather than a customer relationship. A plausible middle path is a partnership in which an existing facility provides the underlying secure infrastructure while a purpose-built governance layer (in one of the vehicles below) holds the custodian relationships and access decisions.
+
+#### University-Hosted (Existing Institution as Auspice)
+
+The infrastructure service operates within an existing university or research institute, governed by that institution's policies and ABN.
+
+**Pros**
+- No new entity to establish — fast to stand up
+- Leverages existing procurement, HR, finance, and legal functions
+- Tax-exempt status (if the host is a university or registered research institution)
+- Clear accountability — the host institution bears ultimate responsibility
+
+**Cons**
+- Governance asymmetry — other participating institutions have limited formal say
+- Host institution bears disproportionate risk and liability
+- Subject to the host's internal politics, restructures, and priorities
+- IP ownership defaults to the host unless explicitly negotiated
+- Can be difficult to sustain if key champions leave the host institution
+- Funding bodies may see it as "belonging" to one institution rather than the sector
+
+**Assessment**: A pragmatic starting point — particularly for a pilot or early-stage service. Many successful Australian research infrastructure projects have started as university-hosted initiatives before transitioning to independent entities once scale and multi-party commitment justify the overhead. The key risk is that governance asymmetry erodes trust from participating custodians over time.
+
+#### Company Limited by Guarantee (CLG)
+
+A not-for-profit company under the _Corporations Act 2001_ (Cth), where members guarantee a nominal amount rather than holding shares. Common for national research infrastructure (e.g. AARNet, ARDC, Bioplatforms Australia).
+
+**Pros**
+- Well-established and understood vehicle for national research infrastructure
+- Federal jurisdiction — consistent rules across Australia
+- Members' liability limited to the guarantee amount (typically $10–$100)
+- Can apply for DGR (Deductible Gift Recipient) and TCC (Tax Concession Charity) status
+- Strong governance frameworks (ACNC + Corporations Act)
+- Board and membership can represent multiple institutions equitably
+- Attractive to government and philanthropic funders
+
+**Cons**
+- More complex and costly to establish than hosting within an existing institution
+- Ongoing compliance obligations (ASIC, ACNC, annual reporting)
+- Board members have directors' duties under Corporations Act
+- Slower decision-making if membership/board is large and diverse
+- Requires genuine charitable or research purpose to maintain NFP status
+
+**Assessment**: The natural long-term vehicle for this type of service. Every major piece of Australian research infrastructure that has achieved sector-wide trust and longevity operates as a CLG. The compliance overhead is manageable and is itself a feature — it signals institutional maturity to custodians who need to trust the operator with their data. The main question is whether the service has reached sufficient scale and commitment to justify the establishment cost.
+
+#### Cooperative (Co-operative National Law)
+
+A mutual enterprise under the _Co-operatives National Law_, where members are both users and owners of the service.
+
+**Pros**
+- Democratic, member-driven governance (one member, one vote)
+- Designed for shared services — members use what they collectively own
+- Profits returned to members or reinvested (not extracted)
+- National law provides cross-jurisdictional consistency
+
+**Cons**
+- Less familiar in the research sector — may confuse stakeholders
+- Active membership requirements can be administratively heavy
+- Limited access to some funding mechanisms designed for charities/research bodies
+- Smaller pool of legal/accounting expertise compared to CLGs
+
+**Assessment**: Philosophically well-aligned with a shared infrastructure model — members are the custodians who use the service, and governance is inherently democratic. However, the unfamiliarity of the cooperative form in the research sector is a real barrier. Funders, government, and institutional legal teams are far more comfortable with CLGs. Worth considering if the service has a strong community identity and member engagement, but likely harder to sell than a CLG.
+
+### Summary
+
+The likely trajectory for this type of service is: **start university-hosted** (for speed and pragmatism), **transition to a CLG** once the service has demonstrated value, attracted multiple custodians, and secured ongoing funding. The cooperative model remains an interesting alternative if the community prefers a more explicitly mutual structure.

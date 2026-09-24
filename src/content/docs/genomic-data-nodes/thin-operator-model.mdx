@@ -1,0 +1,176 @@
+---
+title: The Thin Infrastructure Operator Model
+---
+
+# The Thin Infrastructure Operator Model
+
+## Overview
+
+_Working document — our proposal for operating genomic data infrastructure as a thin, neutral data layer._
+
+This document builds directly on the [Legal and Trust Concepts for Genomic Infrastructure](/genomic-data-nodes/legal-trust-concepts/) analysis. That document establishes _why_ releasing data to an infrastructure provider (a TRE or a genomic data node) is preferable to releasing it to a researcher, and why per-institution provision does not scale. This document sets out _how_ we propose such an infrastructure provider be built and operated — as a thin, shared data layer rather than a full-service environment run by every custodian.
+
+---
+
+## From problem to proposal: shared infrastructure
+
+The re-siloisation problem shows that per-institution infrastructure providers re-create the very data silos they were meant to dissolve. A model where multiple custodians can place data into a **shared, neutral infrastructure layer** — each retaining governance authority over their own data, but enabling authorised researchers to perform joint analyses within a single controlled environment — avoids this trap. The infrastructure enables joining without requiring release. The custodians remain in control. The silos dissolve without the data moving to uncontrolled locations.
+
+This is precisely why the thin infrastructure operator model matters. Rather than asking every custodian to run their own infrastructure provider, the sector benefits from a **small number of professionally operated, shared infrastructure services** that custodians can choose to use — retaining their governance role (who gets access, for what purpose) while delegating the hard operational problem (running secure, scalable compute) to a dedicated service provider.
+
+The custodian remains the decision-maker. The infrastructure operator provides the environment. The researcher gets access within that environment under the custodian's terms. No data is released to a person.
+
+This shifts the question from "can each custodian afford to run their own infrastructure provider?" to "can the sector sustain a small number of well-run shared services?" — which is a much more tractable problem. There does not need to be a single national service — multiple shared infrastructure providers could coexist, potentially serving different communities, jurisdictions, or data types. What matters is that the number is **few rather than many**: a handful of well-resourced, professionally secured services is categorically better than dozens of under-resourced institutional attempts.
+
+Our proposal is to operate one such service — seeking agreement from data custodians to use our infrastructure. Others could operate similar services. The key insight is not monopoly but consolidation: concentrating operational expertise and investment into a small number of providers that can achieve and maintain the security, compliance, and operational maturity that individual institutions cannot.
+
+This is the pattern already proven by organisations like AARNet (networking), NCI (compute), and ARDC (data infrastructure) — none of which are the only provider in their space, but all of which demonstrate that shared, sector-funded infrastructure works better than fragmented institutional provision.
+
+---
+
+## The layered model
+
+A key insight is that a genomic data infrastructure service can be operated as a **thin, minimal layer** — but even thinner than "providing TREs." Our proposal separates the stack into distinct layers:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Researchers                                         │
+│  (interact with TREs, not with the data layer)       │
+├─────────────────────────────────────────────────────┤
+│  TRE Providers                                       │
+│  (compute environments, notebooks, pipelines,        │
+│   help desks, researcher support)                    │
+│  — multiple, competing on quality and capability     │
+├─────────────────────────────────────────────────────┤
+│  Data Layer (the thin operator)                      │
+│  (governance, access control, data plane,            │
+│   audit, identity, catalogue)                        │
+│  — one or few, operating as neutral infrastructure   │
+├─────────────────────────────────────────────────────┤
+│  Data Custodians                                     │
+│  (hospitals, biobanks, research institutes —          │
+│   retain governance authority over their data)       │
+└─────────────────────────────────────────────────────┘
+```
+
+The **data layer** — our thin operator — does not provide TREs. It does not interact with researchers directly. It acts purely as a **data plane with governance and access control**: a layer that data custodians trust to hold and manage access to their data, and that TRE providers connect to in order to serve researchers.
+
+### What the data layer does
+
+- Stores or indexes genomic data on behalf of custodians
+- Enforces access decisions made by custodians / DACs
+- Provides identity and authentication services
+- Maintains audit trails of all data access
+- Exposes APIs that authorised TRE providers can connect to
+- Catalogues available datasets and their access conditions
+
+### What the data layer does NOT do
+
+- Run compute environments for researchers
+- Provide notebooks, pipeline engines, or analysis tools
+- Operate a researcher-facing help desk or support service
+- Make access decisions — it enforces them
+- Interact with researchers directly — TRE providers are the interface
+
+### TRE providers sit on top
+
+TRE providers — which could be universities, cloud-based platforms, national facilities like NCI, or commercial providers — connect to the data layer and offer researchers compute environments with access to the datasets they've been authorised to use. These TRE providers:
+
+- Compete on quality of researcher experience, tool availability, and cost
+- Handle researcher onboarding, support, and training
+- Provide the actual compute (notebooks, workflow engines, visualisation)
+- Are responsible for ensuring their environments meet security standards required by the data layer
+- May specialise (e.g. one optimised for large-scale variant calling, another for clinical interpretation, another for machine learning workloads)
+
+### Why this separation matters
+
+This architecture **thins the middle layer even further** and brings significant advantages:
+
+1. **The data layer's legal and operational surface area is minimal** — it doesn't need a researcher-facing help desk, doesn't need to support diverse analytical workflows, doesn't need to stay current with bioinformatics tooling. Its job is narrow: store data, enforce access, log everything.
+
+2. **TRE provision becomes a competitive market** — rather than a single monolithic service trying to be all things to all researchers, multiple providers can innovate on the researcher experience. Bad TREs lose users. Good ones thrive. The data layer is indifferent.
+
+3. **Data custodians get a single trust relationship** — they trust the data layer to hold and govern their data. They don't need to individually assess and approve every TRE provider; the data layer can maintain a registry of approved TRE environments that meet baseline security requirements.
+
+4. **The re-siloisation problem is solved at the data layer** — because multiple custodians place data into the same governance layer, joint analysis is possible without federation. A TRE provider connecting to the data layer can (with appropriate authorisation) access datasets from multiple custodians within a single environment.
+
+5. **Cost is distributed appropriately** — the data layer (thin, shared, few operators) is funded as infrastructure. TRE provision (expensive, diverse, many possible providers) is funded by researchers, grants, or institutions — the people who directly benefit from the compute.
+
+### The cloud provider analogy
+
+This is structurally similar to how object storage (S3, GCS) relates to compute services in the cloud world. The storage layer holds data with access policies. Many different compute services — EC2 instances, Lambda functions, SageMaker notebooks, third-party SaaS tools — can access that data if authorised. The storage layer doesn't care what compute is used. The compute layer doesn't need to manage the storage. They interact through well-defined APIs with clear security boundaries.
+
+Our proposal is to build the equivalent of that storage/governance layer for Australian genomic data — and let the TRE/compute market develop on top of it.
+
+---
+
+## Critical Assessment: Strengths and Risks
+
+The layered data-plane model is architecturally sound, but it is not without risks. This section attempts an honest assessment of both.
+
+### What's strong
+
+**The abstraction is clean and proven.** Separating the data governance layer from the compute/TRE layer mirrors successful infrastructure patterns: cloud storage vs compute, DNS vs web hosting, AARNet vs the services that run over it. These separations endure because they let each layer evolve independently, reduce coupling, and allow competition where it matters (the researcher-facing layer) while providing stability where it's needed (the data layer).
+
+**The IP disclaimer removes the biggest friction point.** By explicitly taking no position on intellectual property, the data layer avoids becoming a party to the most contentious part of data sharing negotiations. This is the correct posture — and one that would be difficult to maintain if the operator also ran TREs (because the line between "providing infrastructure" and "contributing to the research" blurs when you provide the compute environment).
+
+**The legal surface area is genuinely minimal.** The data layer doesn't interact with researchers, doesn't provide analytical tools, doesn't interpret consent, doesn't make access decisions. Each of these "does not" removes a category of legal risk. The operator's obligations reduce to: store securely, enforce access policies faithfully, log everything, and comply with the Privacy Act as a processor-like entity.
+
+**The separation makes the cost conversation tractable.** Funding a narrow, shared data governance layer is a different (and easier) conversation than funding a full-service TRE. The data layer is infrastructure — analogous to what NCRIS funds. TRE provision is a service — fundable through grants, institutional budgets, or even commercial models. Conflating the two makes both harder to fund.
+
+### Risks and challenges
+
+#### 1. "Thin" is legally thin — operationally it's still substantial
+
+Storing genomics-scale data, maintaining access control across potentially hundreds of datasets with different consent scopes, running identity federation, keeping audit logs, maintaining security certifications — this is a substantial engineering and operational challenge. The legal entity is thin. The actual service is not trivial.
+
+There is a risk of underselling the operational commitment to funders or custodians by emphasising "thin" too heavily. The data layer needs skilled engineers, security operations, incident response capability, and ongoing funding. It just doesn't need bioinformaticians, help desk staff, or researcher support — which is a meaningful reduction, but not a reduction to near-zero.
+
+#### 2. The cold-start / two-sided marketplace problem
+
+The layered model has a classic chicken-and-egg dynamic:
+
+- TRE providers won't build integrations with the data layer unless there's enough data to attract researchers
+- Data custodians won't deposit data unless there are TRE providers offering good researcher experiences
+- Researchers won't use TREs connected to the data layer unless datasets they need are available there
+
+Bootstrapping this requires a deliberate strategy — likely starting with a small number of foundation custodians and one or two TRE providers who commit early, demonstrating the model before expecting broad adoption.
+
+#### 3. Political invisibility
+
+The data layer deliberately does not interact with researchers. This is an operational strength but a political vulnerability. Researchers are the vocal constituency in Australian research funding. They write grants, they lobby, they sit on advisory committees. If they only see the TRE (because that's what they interact with), the data layer becomes invisible to the people who influence funding decisions.
+
+This means the service needs **custodian champions** rather than researcher champions — which is a less common funding narrative. Custodians (hospitals, biobanks) are typically not the ones advocating for infrastructure funding. The case for the data layer needs to be made in terms that resonate with institutional leadership and government funders: risk reduction, compliance, efficiency, and national capability — not researcher convenience.
+
+#### 4. Custodian trust is the whole game
+
+Everything in this document — the layered architecture, the IP disclaimer, the processor framing, the choice of legal vehicle — is ultimately in service of one question: **will custodians trust a third-party data layer with their data?**
+
+General arguments about neutrality and governance are necessary but may not be sufficient. Custodians will likely need specific, concrete assurances:
+
+- Independent security audits and certification (ISO 27001, or sector-specific equivalents)
+- Contractual liability caps and indemnities
+- Data sovereignty guarantees (data remains in Australia, on infrastructure the custodian can inspect)
+- Right to withdraw data at any time
+- Transparency about who has accessed what
+- Governance representation — a seat at the table, not just a service agreement
+
+The choice of legal vehicle (CLG with custodian membership) directly addresses this — but the assurances need to be made explicit and concrete, not just structural.
+
+#### 5. "Why not just use a cloud provider?"
+
+A sceptic will ask: if the data layer is analogous to S3 with access policies, why not just use S3 with IAM policies? Every institution already has AWS or Azure accounts.
+
+The answer is that the data layer provides things that raw cloud infrastructure does not:
+
+- **Governance that understands consent** — not just "does this IAM role have access?" but "does this researcher have approval from the relevant DAC for this specific dataset under these conditions?"
+- **Audit trails meaningful to ethics committees** — not CloudTrail logs, but records that map to ethics-committee-level concepts (who accessed what, for what approved purpose, under which consent scope)
+- **A trust framework custodians can engage with in their own language** — hospitals and biobanks do not speak IAM policies. They speak data sharing agreements, ethics approvals, and institutional governance.
+- **Neutrality** — no single institution controls the policies. A shared governance layer is different from one institution's cloud account with other people's data in it.
+- **Cross-custodian integration** — S3 buckets in different accounts don't naturally enable authorised joint analysis. The data layer does.
+
+This distinction needs to be made explicitly when pitching to technically sophisticated stakeholders who might otherwise dismiss the data layer as "just another cloud wrapper."
+
+---
+
+The legal and trust framing that sits underneath this proposal — how an infrastructure provider relates to Australian privacy law (the processor/controller analogy), and which legal vehicle should house the operator — is covered in [Legal and Trust Concepts for Genomic Infrastructure](/genomic-data-nodes/legal-trust-concepts/).
