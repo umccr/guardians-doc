@@ -93,7 +93,7 @@ export const sceneData = [
       label: 'What makes up standing costs',
       text: 'Networking infrastructure, core storage and metadata systems, identity and security services, monitoring and audit logging, and baseline compute capacity.',
     },
-    image: '/diagrams/standing-costs.svg',
+    image: '/plots/costing-data-sharing/standing-costs.svg',
     link: '../standing-costs/',
     linkText: 'Explore standing costs',
   },
@@ -127,7 +127,7 @@ export const sceneData = [
       label: 'What drives storage costs',
       text: 'The amount of data stored, which storage tier you use (fast and expensive vs slow and cheap), how long you keep data, and whether data is replicated across multiple locations.',
     },
-    image: '/diagrams/storage-costs.svg',
+    image: '/plots/costing-data-sharing/storage-costs.svg',
     link: '../storage/',
     linkText: 'Explore storage costs',
   },
@@ -162,7 +162,7 @@ export const sceneData = [
       label: 'What drives data movement costs',
       text: 'Where data moves (within or between regions, or outside the cloud; AWS charges egress fees in some scenarios), how often it moves, the infrastructure needed to coordinate transfers, and whether data is replicated across multiple locations.',
     },
-    image: '/diagrams/data-movement-egress.svg',
+    image: '/plots/costing-data-sharing/data-movement-egress.svg',
     link: '../data-movement-egress/',
     linkText: 'Explore data movement costs',
   }
@@ -236,7 +236,7 @@ export const lifecycleAnimationFrameCount = 49;
 export const lifecycleAnimationSubdir = 'lifecycle-progression';
 export const lifecycleAnimationFrames = (id) =>
   Array.from({ length: lifecycleAnimationFrameCount }, (_, index) =>
-    `/diagrams/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
+    `/plots/costing-data-sharing/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
   );
 
 
@@ -269,7 +269,7 @@ export const lifecycleSceneData = [
       label: 'Bottom line',
       text: 'Simple to operate, but the most expensive path over 7 years.',
     },
-    image: '/diagrams/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
   },
   {
@@ -298,7 +298,7 @@ export const lifecycleSceneData = [
       label: 'Bottom line',
       text: 'Balances accessibility, compliance, and cost control.',
     },
-    image: '/diagrams/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
   },
   {
@@ -327,7 +327,7 @@ export const lifecycleSceneData = [
       label: 'Bottom line',
       text: 'Lowest long-term cost, but requires strong governance and clear data policies.',
     },
-    image: '/diagrams/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
   }
 ];
@@ -347,7 +347,7 @@ Notice the stark differences: Full retention costs grow continuously and end up 
 
 <div class="not-prose" style={{ margin: '1rem 0 2rem', background: 'rgb(156, 163, 174, 0.08)', borderRadius: '0.5rem', padding: '1rem' }}>
   <img
-    src={`${import.meta.env.BASE_URL}/diagrams/lifecycle-scenario-comparison.svg`}
+    src={`${import.meta.env.BASE_URL}/plots/costing-data-sharing/lifecycle-scenario-comparison.svg`}
     alt="Total cost evolution curves over 7 years for full, balanced, and lean retention strategies"
     style={{ width: '100%', display: 'block' }}
   />
