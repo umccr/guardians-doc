@@ -1,0 +1,596 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Patch
+
+# Get the script directory and build the output path
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "diagrams")
+LIFECYCLE_ANIMATION_SUBDIR = "lifecycle-progression"
+LIFECYCLE_ANIMATION_DIR = os.path.join(OUT_DIR, LIFECYCLE_ANIMATION_SUBDIR)
+
+W, H = 3.8, 6
+BAR_WIDTH = 0.9
+X_PAD = 0.02
+LIFECYCLE_W, LIFECYCLE_H = 4.5, 4.2
+LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H = 9.6, 4.2
+LIFECYCLE_ANIMATION_FRAMES = 49
+
+SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
+
+SCENES = [
+    {
+        "id": "standing-costs",
+        "bars": [
+            {"label": "ISP", "values": [780]},  # Standing total
+            {"label": "CSP", "values": [3600]},  # Standing total
+        ],
+    },
+    {
+        "id": "storage-costs",
+        "bars": [
+            {"label": "ISP", "values": [780, 395]},  # Standing total, Storage total
+            {"label": "CSP", "values": [3600, 875]},  # Standing total, Storage total
+        ],
+    },
+    {
+        "id": "data-movement-egress",
+        "bars": [
+            {"label": "ISP", "values": [780, 395, 185]},  # Standing total, Storage total, Movement total
+            {"label": "CSP", "values": [3600, 875, 560]},  # Standing total, Storage total, Movement total
+        ],
+    },
+]
+
+LIFECYCLE_COMPONENTS = [
+    ("Standing", "#bfdbfe"),
+    ("Storage", "#3b82f6"),
+    ("Movement", "#1e3a8a"),
+]
+
+LIFECYCLE_SCENARIOS = [
+    {
+        "id": "lifecycle-keep-everything",
+        "title": "Full retention",
+        "series": {
+            "ISP": {
+                "Standing": [700, 700, 700, 700, 700, 700, 700],
+                "Storage": [300, 450, 600, 760, 940, 1120, 1300],
+                "Movement": [50, 50, 50, 50, 50, 50, 50],
+            },
+            "CSP": {
+                "Standing": [3200, 3200, 3200, 3200, 3200, 3200, 3200],
+                "Storage": [1200, 1650, 2100, 2450, 2850, 3250, 3600],
+                "Movement": [200, 220, 250, 260, 270, 290, 300],
+            },
+        },
+    },
+    {
+        "id": "lifecycle-balanced-strategy",
+        "title": "Balanced retention",
+        "series": {
+            "ISP": {
+                "Standing": [700, 700, 700, 700, 700, 700, 700],
+                "Storage": [250, 350, 420, 500, 550, 590, 620],
+                "Movement": [50, 55, 60, 60, 60, 60, 60],
+            },
+            "CSP": {
+                "Standing": [3200, 3200, 3200, 3200, 3200, 3200, 3200],
+                "Storage": [1050, 1300, 1450, 1650, 1800, 1900, 2000],
+                "Movement": [200, 230, 250, 260, 270, 290, 300],
+            },
+        },
+    },
+    {
+        "id": "lifecycle-aggressive-deleting",
+        "title": "Lean retention",
+        "series": {
+            "ISP": {
+                "Standing": [700, 700, 700, 700, 700, 700, 700],
+                "Storage": [230, 260, 280, 290, 295, 292, 290],
+                "Movement": [50, 55, 60, 60, 60, 60, 60],
+            },
+            "CSP": {
+                "Standing": [3200, 3200, 3200, 3200, 3200, 3200, 3200],
+                "Storage": [900, 980, 1050, 1120, 1150, 1170, 1180],
+                "Movement": [200, 220, 250, 260, 270, 285, 300],
+            },
+        },
+    },
+]
+
+LIFECYCLE_SCENARIO_LINE_COLORS = {
+    "lifecycle-keep-everything": "#4c1d95",
+    "lifecycle-balanced-strategy": "#6d28d9",
+    "lifecycle-aggressive-deleting": "#8b5cf6",
+}
+
+LIFECYCLE_COMPARISON_FIGURE_ID = "lifecycle-scenario-comparison"
+
+def normalize_value_groups(values):
+    if not values:
+        return []
+    if isinstance(values[0], list):
+        return values
+    return [values]
+
+
+def to_segment_thicknesses(values):
+    """Return actual segment costs as-is."""
+    return values
+
+
+def format_total(value):
+    if value >= 1000:
+        return f"${value / 1000:.1f}k"
+    return f"${value:.0f}"
+
+
+def add_component_legend(ax):
+    legend_handles = [
+        Patch(facecolor=color, edgecolor="none", label=label)
+        for label, color in LIFECYCLE_COMPONENTS
+    ]
+    ax.legend(
+        handles=legend_handles,
+        loc="upper left",
+        bbox_to_anchor=(0.02, 1.10),
+        frameon=False,
+        ncol=3,
+        fontsize=10.5,
+        handlelength=1.5,
+        handletextpad=0.6,
+        columnspacing=1.2,
+        borderaxespad=0.0,
+        labelspacing=0.25,
+    )
+
+
+def total_for_bar(bar):
+    value_groups = normalize_value_groups(bar["values"])
+    return sum(sum(group_values) for group_values in value_groups)
+
+
+
+
+def render_cost_dimension_bars():
+    for scene in SCENES:
+        fig, ax = plt.subplots(figsize=(W, H))
+        fig.patch.set_alpha(0)
+        ax.set_facecolor("none")
+
+        bars = scene["bars"]
+        x = np.arange(len(bars))
+        bar_totals = []
+
+        for i, bar in enumerate(bars):
+            bottom = 0
+            values = bar["values"]
+
+            for color_index, value in enumerate(values):
+                component_color = SCENE_BLUES[color_index % len(SCENE_BLUES)]
+                segment = FancyBboxPatch(
+                    (x[i] - BAR_WIDTH / 2, bottom),
+                    BAR_WIDTH,
+                    value,
+                    boxstyle="round,pad=0,rounding_size=0.06",
+                    facecolor=component_color,
+                    edgecolor="#f8fafc",
+                    linewidth=2,
+                    mutation_scale=8,
+                )
+                ax.add_patch(segment)
+                bottom += value
+
+            bar_totals.append(bottom)
+
+        scene_max = max(bar_totals) if bar_totals else 0
+        y_top = 5100
+        ax.set_ylim(0, y_top)
+        ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
+        y_step = 750
+        y_ticks = np.arange(y_step, 4500 + y_step, y_step)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=10, color="#334155")
+        ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
+        ax.set_axisbelow(True)
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
+        ax.set_ylabel("USD / month", labelpad=8, fontsize=10, color="#334155")
+        ax.set_xlabel("")
+        ax.set_xticks(x)
+        ax.set_xticklabels([b["label"] for b in bars])
+        ax.tick_params(axis="x", length=0)
+        ax.tick_params(axis="y", left=False, labelleft=False, right=False, labelright=True)
+
+        label_offset = y_top * 0.006
+        for i, total in enumerate(bar_totals):
+            ax.text(
+                x[i],
+                total + label_offset,
+                format_total(total),
+                ha="center",
+                va="bottom",
+                fontsize=11.5,
+                fontweight="bold",
+                fontfamily="DejaVu Sans",
+                color="#0f172a",
+            )
+
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+
+        fig.subplots_adjust(left=0.03, right=0.97, bottom=0.05, top=0.998)
+        out_path = os.path.join(OUT_DIR, f"{scene['id']}.svg")
+        fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        plt.close(fig)
+        print(f"Saved {out_path}")
+
+
+def scenario_platform_totals(scenario):
+    totals = {}
+    for platform_name, platform_series in scenario["series"].items():
+        component_arrays = [platform_series[component_name] for component_name, _ in LIFECYCLE_COMPONENTS]
+        totals[platform_name] = [sum(values) for values in zip(*component_arrays)]
+    return totals
+
+
+def year_fill_factor(year_index, progress):
+    return max(0.0, min(1.0, progress - year_index))
+
+
+def progress_values(values, progress, hide_future=False):
+    progressed = []
+    for year_index, value in enumerate(values):
+        factor = year_fill_factor(year_index, progress)
+        if hide_future and factor <= 0:
+            progressed.append(np.nan)
+        else:
+            progressed.append(value * factor)
+    return progressed
+
+
+def completed_values(values, progress):
+    completed = []
+    for year_index, value in enumerate(values):
+        if progress >= year_index + 1:
+            completed.append(value)
+        else:
+            completed.append(np.nan)
+    return completed
+
+
+def progressed_scenario_series(scenario, progress, hide_future=False):
+    progressed = {}
+    for platform_name, platform_series in scenario["series"].items():
+        progressed[platform_name] = {}
+        for component_name, _ in LIFECYCLE_COMPONENTS:
+            progressed[platform_name][component_name] = progress_values(
+                platform_series[component_name],
+                progress,
+                hide_future=hide_future,
+            )
+    return progressed
+
+
+def platform_totals_from_series(series_by_platform):
+    totals = {}
+    for platform_name, platform_series in series_by_platform.items():
+        component_arrays = [platform_series[component_name] for component_name, _ in LIFECYCLE_COMPONENTS]
+        totals[platform_name] = [sum(values) for values in zip(*component_arrays)]
+    return totals
+
+
+def completed_platform_totals(scenario, progress):
+    completed = {}
+    scenario_totals = scenario_platform_totals(scenario)
+    for platform_name, totals in scenario_totals.items():
+        completed[platform_name] = completed_values(totals, progress)
+    return completed
+
+
+def ordinal(n):
+    suffixes = {1: "st", 2: "nd", 3: "rd"}
+    return str(n) + suffixes.get(n if n < 20 else n % 10, "th")
+
+def style_lifecycle_axes(ax, x_positions, years, y_top):
+    ax.set_ylim(0, y_top)
+    ax.set_xlim(-0.8, max(x_positions) + 0.8)
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels([ordinal(year) for year in years], fontsize=12)
+    
+    # Y-axis with rounder gridlines
+    step = 1500
+    y_ticks = np.arange(step, y_top + step, step)
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=11)
+    ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
+    
+    # Y-axis labels positioned on the right
+    ax.yaxis.set_label_position("right")
+    ax.yaxis.tick_right()
+    
+    # X-axis label
+    ax.set_xlabel("Year", fontsize=11, labelpad=8)
+    
+    ax.tick_params(axis="x", length=0)
+    ax.tick_params(axis="y", left=False, right=False)
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+
+
+def plot_lifecycle_totals(ax, total_x_positions, scenario_indices, current_index=None, year_progress=None):
+    for compared_index in scenario_indices:
+        compared_scenario = LIFECYCLE_SCENARIOS[compared_index]
+        if compared_index == current_index and year_progress is not None:
+            compared_totals = completed_platform_totals(compared_scenario, year_progress)
+        else:
+            compared_totals = scenario_platform_totals(compared_scenario)
+
+        is_current = compared_index == current_index
+        strategy_color = LIFECYCLE_SCENARIO_LINE_COLORS[compared_scenario["id"]]
+        isp_color = strategy_color
+        csp_color = strategy_color
+        isp_style = "-"
+        csp_style = "-"
+        linewidth = 1.9 if is_current else 1.5
+        alpha = 0.95
+
+        ax.plot(
+            total_x_positions["ISP"],
+            compared_totals["ISP"],
+            color=isp_color,
+            linewidth=linewidth,
+            alpha=alpha,
+            linestyle=isp_style,
+            marker="o",
+            markersize=3.6,
+            markerfacecolor=isp_color,
+            markeredgewidth=0,
+        )
+        ax.plot(
+            total_x_positions["CSP"],
+            compared_totals["CSP"],
+            color=csp_color,
+            linewidth=linewidth,
+            alpha=alpha,
+            linestyle=csp_style,
+            marker="o",
+            markersize=3.6,
+            markerfacecolor=csp_color,
+            markeredgewidth=0,
+        )
+
+
+def draw_lifecycle_chart(
+    years,
+    y_top,
+    scenario_index=None,
+    include_bars=True,
+    total_line_indices=None,
+    figure_size=None,
+    year_progress=None,
+    show_component_legend=True,
+):
+    if total_line_indices is None:
+        total_line_indices = []
+
+    if figure_size is None:
+        figure_size = (LIFECYCLE_W, LIFECYCLE_H)
+
+    fig, ax = plt.subplots(figsize=figure_size)
+    fig.patch.set_alpha(0)
+    ax.set_facecolor("none")
+
+    x_positions = np.arange(len(years)) * 1.8
+    bar_width = 0.75
+    offsets = {"ISP": -bar_width / 2, "CSP": bar_width / 2}
+    # Total markers/lines sit on the inner bar edges so ISP and CSP totals align
+    # to the same year x-position: ISP on the right edge, CSP on the left edge.
+    total_x_positions = {
+        "ISP": x_positions + offsets["ISP"] + bar_width / 2,
+        "CSP": x_positions + offsets["CSP"] - bar_width / 2,
+    }
+    platform_order = ["ISP", "CSP"]
+
+    if include_bars and scenario_index is not None:
+        scenario = LIFECYCLE_SCENARIOS[scenario_index]
+        scenario_series = (
+            progressed_scenario_series(scenario, year_progress)
+            if year_progress is not None
+            else scenario["series"]
+        )
+        for platform_name in platform_order:
+            platform_series = scenario_series[platform_name]
+            bottom = np.zeros(len(years))
+
+            for component_name, color in LIFECYCLE_COMPONENTS:
+                values = np.array(platform_series[component_name])
+                ax.bar(
+                    x_positions + offsets[platform_name],
+                    values,
+                    width=bar_width,
+                    bottom=bottom,
+                    color=color,
+                    edgecolor="#f8fafc",
+                    linewidth=1.2,
+                )
+                bottom += values
+
+    if total_line_indices:
+        plot_lifecycle_totals(
+            ax,
+            total_x_positions,
+            total_line_indices,
+            current_index=scenario_index,
+            year_progress=year_progress,
+        )
+
+    if show_component_legend:
+        add_component_legend(ax)
+    style_lifecycle_axes(ax, x_positions, years, y_top)
+    fig.subplots_adjust(left=0.03, right=0.97, bottom=0.09, top=0.97)
+    return fig
+
+
+def render_lifecycle_progression_charts():
+    years = np.arange(1, 8)
+    os.makedirs(LIFECYCLE_ANIMATION_DIR, exist_ok=True)
+
+    all_totals = []
+    for scenario in LIFECYCLE_SCENARIOS:
+        platform_totals = scenario_platform_totals(scenario)
+        for total_series in platform_totals.values():
+            all_totals.extend(total_series)
+    y_top = max(all_totals) * 1.02
+
+    for scenario_index, scenario in enumerate(LIFECYCLE_SCENARIOS):
+        frame_pad = len(str(LIFECYCLE_ANIMATION_FRAMES - 1))
+        for frame_index in range(LIFECYCLE_ANIMATION_FRAMES):
+            year_progress = (frame_index / (LIFECYCLE_ANIMATION_FRAMES - 1)) * len(years)
+            animated_fig = draw_lifecycle_chart(
+                years,
+                y_top,
+                scenario_index=scenario_index,
+                include_bars=True,
+                total_line_indices=list(range(scenario_index + 1)),
+                year_progress=year_progress,
+            )
+            animated_path = os.path.join(
+                LIFECYCLE_ANIMATION_DIR,
+                f"{scenario['id']}-anim-{str(frame_index).zfill(frame_pad)}.svg",
+            )
+            animated_fig.savefig(animated_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+            plt.close(animated_fig)
+            print(f"Saved {animated_path}")
+
+        bars_only_fig = draw_lifecycle_chart(
+            years,
+            y_top,
+            scenario_index=scenario_index,
+            include_bars=True,
+            total_line_indices=list(range(scenario_index)),
+        )
+        bars_only_path = os.path.join(OUT_DIR, f"{scenario['id']}-bars.svg")
+        bars_only_fig.savefig(bars_only_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        plt.close(bars_only_fig)
+        print(f"Saved {bars_only_path}")
+
+        with_total_fig = draw_lifecycle_chart(
+            years,
+            y_top,
+            scenario_index=scenario_index,
+            include_bars=True,
+            total_line_indices=list(range(scenario_index + 1)),
+        )
+        with_total_path = os.path.join(OUT_DIR, f"{scenario['id']}.svg")
+        with_total_fig.savefig(with_total_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        plt.close(with_total_fig)
+        print(f"Saved {with_total_path}")
+
+        totals_only_fig = draw_lifecycle_chart(
+            years,
+            y_top,
+            scenario_index=scenario_index,
+            include_bars=False,
+            total_line_indices=list(range(scenario_index + 1)),
+        )
+        totals_only_path = os.path.join(OUT_DIR, f"{scenario['id']}-totals.svg")
+        totals_only_fig.savefig(totals_only_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        plt.close(totals_only_fig)
+        print(f"Saved {totals_only_path}")
+
+    return years, y_top
+
+
+def render_lifecycle_total_evolution_figure(years, y_top):
+    comparison_fig = draw_lifecycle_chart(
+        years,
+        y_top,
+        scenario_index=len(LIFECYCLE_SCENARIOS) - 1,
+        include_bars=False,
+        total_line_indices=list(range(len(LIFECYCLE_SCENARIOS))),
+        figure_size=(LIFECYCLE_COMPARISON_W, LIFECYCLE_COMPARISON_H),
+        show_component_legend=False,
+    )
+    ax = comparison_fig.axes[0]
+    x_min, x_max = ax.get_xlim()
+    ax.set_xlim(x_min, x_max + 3.0)
+    ax.yaxis.set_label_position("left")
+    ax.yaxis.tick_left()
+    ax.tick_params(axis="y", left=False, labelleft=True, right=False, labelright=False)
+
+    label_x = (len(years) - 1) * 1.8 + 0.2
+    ax.text(
+        label_x,
+        y_top * 1.1,
+        "7-year cumulative",
+        ha="left",
+        va="bottom",
+        fontsize=10,
+        fontweight="bold",
+        color="#1e293b",
+        clip_on=False,
+    )
+
+    for platform_name in ["CSP", "ISP"]:
+        for scenario in LIFECYCLE_SCENARIOS:
+            scenario_totals = scenario_platform_totals(scenario)
+            end_value = scenario_totals[platform_name][-1]
+            cumulative_7y = sum(scenario_totals[platform_name]) * 12
+            label_name = {
+                "lifecycle-keep-everything": "Full",
+                "lifecycle-balanced-strategy": "Balanced",
+                "lifecycle-aggressive-deleting": "Lean",
+            }.get(scenario["id"], scenario["title"])
+            label_text = f"{label_name}: {format_total(cumulative_7y)}"
+            line_color = LIFECYCLE_SCENARIO_LINE_COLORS[scenario["id"]]
+            ax.text(
+                label_x,
+                end_value,
+                label_text,
+                ha="left",
+                va="center",
+                fontsize=12,
+                color=line_color,
+                clip_on=False,
+            )
+
+    ax.text(
+        0.02,
+        0.95,
+        "Cross-Organisation Sharing Platform",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=12,
+        fontweight="bold",
+        color="#1e293b",
+    )
+
+    ax.text(
+        0.02,
+        0.35,
+        "Internal Sharing Platform",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=12,
+        fontweight="bold",
+        color="#1e293b",
+    )
+
+    out_path = os.path.join(OUT_DIR, f"{LIFECYCLE_COMPARISON_FIGURE_ID}.svg")
+    comparison_fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+    plt.close(comparison_fig)
+    print(f"Saved {out_path}")
+
+
+render_cost_dimension_bars()
+lifecycle_years, lifecycle_y_top = render_lifecycle_progression_charts()
+render_lifecycle_total_evolution_figure(lifecycle_years, lifecycle_y_top)

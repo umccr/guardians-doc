@@ -1,0 +1,364 @@
+---
+import { LinkButton } from '@astrojs/starlight/components';
+
+type ScrollySection = {
+	heading?: string;
+	paragraph?: string;
+	items?: string[];
+};
+
+type ScrollyNote = {
+	label: string;
+	text: string;
+};
+
+type ScrollyStep = {
+	id?: string;
+	title: string;
+	/** Simple, plain-text lead-in. Prefer `intro` for new content. */
+	text?: string;
+	/** Plain-text lead-in paragraph rendered before any sections. */
+	intro?: string;
+	/** Structured sub-sections, each with an optional heading and bullet list. */
+	sections?: ScrollySection[];
+	/** Highlighted callout rendered at the end, e.g. a "Key insight". */
+	note?: ScrollyNote;
+	image: string;
+	imageSequence?: string[];
+	link?: string;
+	linkText?: string;
+};
+
+interface Props {
+	steps: ScrollyStep[];
+	compact?: boolean;
+	sequenceCompleteBy?: number;
+	playSequenceOnEnter?: boolean;
+	sequenceDurationMs?: number;
+	activationLineRatio?: number;
+}
+
+/**
+ * Splits a bullet item like "Storage class: hot vs cold" into a bold label
+ * and the remaining text, so authors can write plain strings in content
+ * files instead of embedding Markdown (which this component does not parse).
+ */
+const splitLabel = (item: string) => {
+	const separatorIndex = item.indexOf(': ');
+	if (separatorIndex === -1 || separatorIndex > 60) {
+		return { label: null, rest: item };
+	}
+	return { label: item.slice(0, separatorIndex), rest: item.slice(separatorIndex + 1) };
+};
+
+const {
+	steps = [],
+	compact = false,
+	sequenceCompleteBy = 1,
+	playSequenceOnEnter = false,
+	sequenceDurationMs = 1700,
+	activationLineRatio = 0.38,
+} = Astro.props;
+const sequenceCompleteByClamped = Math.min(1, Math.max(0.2, sequenceCompleteBy));
+const sequenceDurationMsClamped = Math.max(300, sequenceDurationMs);
+const activationLineRatioClamped = Math.min(0.8, Math.max(0.2, activationLineRatio));
+
+const normalizeWithBase = (value: string) => {
+	if (!value) return value;
+	if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) {
+		return value;
+	}
+	if (value.startsWith('/')) {
+		return `${import.meta.env.BASE_URL}${value.slice(1)}`;
+	}
+	return value;
+};
+
+const normalizedSteps = steps.map((step) => ({
+	...step,
+	image: normalizeWithBase(step.image),
+	imageSequence: step.imageSequence?.map((value) => normalizeWithBase(value)),
+}));
+---
+
+<div class="not-prose scrolly-root grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start md:-mb-56" data-scrolly-root>
+	<div class:list={[
+		'md:order-2 md:sticky md:top-[55%] md:-translate-y-1/2 md:self-start',
+		compact ? 'h-[42vh] md:h-[52vh]' : 'h-[60vh] md:h-[75vh]',
+	]}>
+		<div data-scrolly-visual class="relative h-full w-full overflow-hidden rounded-2xl bg-slate-50 p-6 opacity-0 transition-opacity duration-300">
+			<img
+				data-scrolly-image
+				src={normalizedSteps[0]?.imageSequence?.[0] ?? normalizedSteps[0]?.image}
+				alt={normalizedSteps[0]?.title ?? ''}
+				loading="eager"
+				decoding="async"
+				class="h-full w-full object-contain object-bottom transition-all duration-500 ease-out"
+			/>
+		</div>
+	</div>
+
+	<div class="md:order-1">
+		<div class="-mt-16 h-0" aria-hidden="true"></div>
+		{normalizedSteps.map((step, index) => (
+			<section
+				id={step.id}
+				data-scrolly-step
+				data-index={String(index)}
+				data-image={step.image}
+				data-image-sequence={step.imageSequence ? JSON.stringify(step.imageSequence) : ''}
+				data-sequence-complete-by={String(sequenceCompleteByClamped)}
+				data-title={step.title}
+				class="scrolly-step min-h-[24vh] md:min-h-[28vh] py-2 flex items-center"
+			>
+				<div
+					data-scrolly-copy
+					class:list={[
+						'space-y-4 transition-all duration-300',
+						'max-w-prose',
+						index === 0 ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-4',
+					]}
+				>
+					<h3 class="text-2xl font-semibold">{step.title}</h3>
+					{step.intro && <p>{step.intro}</p>}
+					{!step.intro && step.text && <p>{step.text}</p>}
+					{step.sections?.map((section) => (
+						<div class="scrolly-section space-y-1.5">
+							{section.heading && <p class="font-semibold">{section.heading}</p>}
+							{section.paragraph && <p>{section.paragraph}</p>}
+							{section.items && (
+								<ul class="list-disc space-y-1 pl-5">
+									{section.items.map((item) => {
+										const { label, rest } = splitLabel(item);
+										return (
+											<li>
+												{label ? <><strong>{label}:</strong>{rest}</> : rest}
+											</li>
+										);
+									})}
+								</ul>
+							)}
+						</div>
+					))}
+					{step.note && (
+						<p class="scrolly-note border-l-2 border-sky-400/60 pl-3 text-sm italic">
+							<strong>{step.note.label}:</strong> {step.note.text}
+						</p>
+					)}
+					{step.link && step.linkText && (
+						<LinkButton href={step.link}>
+							{step.linkText}
+						</LinkButton>
+					)}
+				</div>
+			</section>
+		))}
+		<div
+			class:list={[
+				compact ? 'h-[24vh] md:h-[30vh]' : 'h-[30vh] md:h-[38vh]',
+			]}
+			aria-hidden="true"
+		></div>
+	</div>
+</div>
+
+<script define:vars={{ playSequenceOnEnter, sequenceDurationMs: sequenceDurationMsClamped, activationLineRatio: activationLineRatioClamped }}>
+	const roots = document.querySelectorAll('[data-scrolly-root]');
+
+	for (const root of roots) {
+		const stepElements = Array.from(root.querySelectorAll('[data-scrolly-step]'));
+		const activeImage = root.querySelector('[data-scrolly-image]');
+		const visualElement = root.querySelector('[data-scrolly-visual]');
+		const copyElements = Array.from(root.querySelectorAll('[data-scrolly-copy]'));
+
+		if (stepElements.length === 0 || !activeImage) continue;
+
+		const preloadSources = new Set(
+			stepElements
+				.flatMap((step) => {
+					const sequenceRaw = step.getAttribute('data-image-sequence') || '';
+					const fallback = step.getAttribute('data-image');
+					let sequence = [];
+					if (sequenceRaw) {
+						try {
+							sequence = JSON.parse(sequenceRaw);
+						} catch {
+							sequence = [];
+						}
+					}
+					if (sequence.length > 0) return sequence;
+					return fallback ? [fallback] : [];
+				})
+				.filter(Boolean)
+		);
+		for (const src of preloadSources) {
+			const image = new Image();
+			image.src = src;
+		}
+
+		let currentActiveIndex = -1;
+		let currentFrameIndex = -1;
+		let activeAnimationToken = null;
+		const playedSequenceSteps = new Set();
+
+		const getStepImages = (step) => {
+			const sequenceRaw = step.getAttribute('data-image-sequence') || '';
+			const fallback = step.getAttribute('data-image') || '';
+			if (!sequenceRaw) return fallback ? [fallback] : [];
+			try {
+				const parsed = JSON.parse(sequenceRaw);
+				if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+			} catch {
+				return fallback ? [fallback] : [];
+			}
+			return fallback ? [fallback] : [];
+		};
+
+		const activate = (activeIndex, frameIndex) => {
+			if (activeIndex === currentActiveIndex && frameIndex === currentFrameIndex) return;
+			const targetStep = stepElements[activeIndex];
+			if (!targetStep) return;
+
+			currentActiveIndex = activeIndex;
+			currentFrameIndex = frameIndex;
+
+			const stepImages = getStepImages(targetStep);
+			const nextSrc = stepImages[frameIndex] || stepImages[0] || targetStep.getAttribute('data-image') || '';
+			const nextAlt = targetStep.getAttribute('data-title') || '';
+
+			if (activeImage.getAttribute('src') !== nextSrc) {
+				activeImage.classList.add('opacity-90', 'scale-[0.995]');
+				activeImage.setAttribute('src', nextSrc);
+				activeImage.setAttribute('alt', nextAlt);
+				requestAnimationFrame(() => {
+					activeImage.classList.remove('opacity-90', 'scale-[0.995]');
+				});
+			}
+
+			copyElements.forEach((copy, index) => {
+				copy.classList.toggle('opacity-100', index === activeIndex);
+				copy.classList.toggle('translate-y-0', index === activeIndex);
+				copy.classList.toggle('opacity-50', index !== activeIndex);
+				copy.classList.toggle('translate-y-4', index !== activeIndex);
+			});
+
+			visualElement?.classList.remove('opacity-0');
+		};
+
+		const playStepSequence = (activeIndex, images) => {
+			const token = Symbol('sequence-play');
+			activeAnimationToken = token;
+			const totalFrames = images.length;
+			const startAt = performance.now();
+
+			const tick = (now) => {
+				if (activeAnimationToken !== token) return;
+				if (currentActiveIndex !== activeIndex) return;
+
+				const elapsed = now - startAt;
+				const progress = Math.max(0, Math.min(1, elapsed / sequenceDurationMs));
+				const frameIndex = Math.min(totalFrames - 1, Math.floor(progress * totalFrames));
+				activate(activeIndex, frameIndex);
+
+				if (progress >= 1) {
+					activate(activeIndex, totalFrames - 1);
+					playedSequenceSteps.add(activeIndex);
+					if (activeAnimationToken === token) {
+						activeAnimationToken = null;
+					}
+					return;
+				}
+
+				requestAnimationFrame(tick);
+			};
+
+			requestAnimationFrame(tick);
+		};
+
+		const getClosestStepIndexToActivationLine = () => {
+			const activationLine = window.innerHeight * activationLineRatio;
+			const firstStep = stepElements[0];
+			if (firstStep) {
+				const firstRect = firstStep.getBoundingClientRect();
+				if (activationLine < firstRect.top) {
+					return -1;
+				}
+			}
+
+			let bestIndex = 0;
+			let bestDistance = Number.POSITIVE_INFINITY;
+
+			stepElements.forEach((step, index) => {
+				const rect = step.getBoundingClientRect();
+				const stepCenter = rect.top + rect.height / 2;
+				const distance = Math.abs(stepCenter - activationLine);
+				if (distance < bestDistance) {
+					bestDistance = distance;
+					bestIndex = index;
+				}
+			});
+
+			return bestIndex;
+		};
+
+		const syncActiveWithScroll = () => {
+			const activeIndex = getClosestStepIndexToActivationLine();
+			if (currentActiveIndex !== activeIndex) {
+				if (playSequenceOnEnter && currentActiveIndex >= 0) {
+					playedSequenceSteps.delete(currentActiveIndex);
+				}
+				activeAnimationToken = null;
+			}
+
+			if (activeIndex < 0) {
+				currentActiveIndex = -1;
+				currentFrameIndex = -1;
+				visualElement?.classList.add('opacity-0');
+				activeAnimationToken = null;
+				return;
+			}
+			const activeStep = stepElements[activeIndex];
+			if (!activeStep) return;
+
+			const images = getStepImages(activeStep);
+			if (playSequenceOnEnter && images.length > 1) {
+				if (!playedSequenceSteps.has(activeIndex)) {
+					if (!activeAnimationToken) {
+						activate(activeIndex, 0);
+						playStepSequence(activeIndex, images);
+					}
+					return;
+				}
+				activate(activeIndex, images.length - 1);
+				return;
+			}
+
+			let frameIndex = 0;
+			if (images.length > 1) {
+				const rect = activeStep.getBoundingClientRect();
+				const activationLine = window.innerHeight * activationLineRatio;
+				const rawProgress = (activationLine - rect.top) / Math.max(rect.height, 1);
+				const completeBy = Number.parseFloat(activeStep.getAttribute('data-sequence-complete-by') || '1') || 1;
+				const accelerated = rawProgress / completeBy;
+				const clampedProgress = Math.max(0, Math.min(0.999, accelerated));
+				frameIndex = Math.min(images.length - 1, Math.floor(clampedProgress * images.length));
+			}
+
+			activate(activeIndex, frameIndex);
+		};
+
+		let scheduled = false;
+		const onScroll = () => {
+			if (scheduled) return;
+			scheduled = true;
+			requestAnimationFrame(() => {
+				syncActiveWithScroll();
+				scheduled = false;
+			});
+		};
+
+		syncActiveWithScroll();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll);
+	}
+</script>

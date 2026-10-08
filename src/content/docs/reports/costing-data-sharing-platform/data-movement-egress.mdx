@@ -1,0 +1,339 @@
+---
+title: Data movement & egress 
+---
+import { LinkButton } from '@astrojs/starlight/components';
+import ReportStickyHeader from '../../../../components/ReportStickyHeader.astro';
+
+<ReportStickyHeader title="Data movement & egress" backHref="../costing-scrollytell/" />
+
+
+Data movement cost is what you pay to move data around. In the data-sharing platform we are costing, analysis is already done, 
+so data movement is about getting finished data to teams, external partners, and different storage tiers—not shuffling it between analysis stages.
+
+We can consider data movement as two main contributions:
+
+
+- **Platform infrastructure cost** – the services that enable data movement (e.g. custom orchestration stacks, APIs, access control, logging,
+ or intermediate storage for data staging).
+
+- **Egress cost** – the cost imposed by the provider for moving the bytes themselves (per GB). This varies depending on where data moves: 
+within a region, across regions, or out to the internet.
+
+In general, there is a key asymmetry: **uploading data into AWS is free; moving data out costs money.** This asymmetry applies not just 
+to external egress, but also to movement between storage tiers, where moving data out of a lower-tier storage class can incur significant charges 
+(see [Looking after data](../data-lifecycle/) for details).
+
+Unlike storage cost (which grows gradually with data volume), data movement cost is **event-driven**: sudden spikes occur when datasets are 
+shared with new partners, replicated to additional regions, moved between storage tiers, or accessed at scale.
+
+
+<div style={{ textAlign: 'center', margin: '2rem 0' }}>
+  <LinkButton href="#data-movement-cost-at-a-glance">
+    Data movement cost at a glance 
+  </LinkButton>
+</div>
+
+
+
+## Main cost components
+
+To understand where data movement costs come from, it helps to follow the journey of a dataset: first, the infrastructure that orchestrates its movement, 
+then the actual cost of moving the bytes themselves—which varies dramatically depending on where they go.
+
+### Platform infrastructure
+
+The services that orchestrate data movement incur both standing and usage-dependent costs:
+
+- **Orchestration services** coordinate copy jobs, handle approvals, and manage workflows. This can be custom-built using Step Functions and Lambda 
+(charging per state transition and invocation), or use AWS managed services like 
+[DataSync](https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html). For cross-institutional or federated data sharing, 
+platforms like [Globus](https://www.globus.org/) provide managed orchestration and transfer services with their own pricing models. 
+The orchestration choice significantly affects this cost component and is discussed in [Design choices](#design-choices).
+
+
+- **APIs and access control** expose datasets and enforce permissions. Beyond the baseline standing cost, API Gateway charges per request, 
+which can become significant for high-volume access patterns. While IAM policy evaluation itself is free (cost of high access is not expected here), 
+audit logging (CloudWatch Logs, CloudTrail) tracks who accessed what, when, and under what policy; charges scale with event volume and retention period.
+
+
+- **Intermediate storage** (working buckets, staging areas) holds temporary artifacts during sharing orchestration—job manifests, 
+thaw requests, copy instructions—and working buckets needed for data operations: S3 buckets for staging data before moving, 
+or hot buckets for thawing objects from cold storage tiers before transfer. While artifact buckets are normally small, they are persistent and generate request charges from frequent reads/writes during orchestration. 
+Staging buckets, by contrast, are ephemeral—created and deleted as needed—but can accumulate significant costs if data movement volume is high.
+
+
+These services incur both standing and usage-dependent costs. The baseline cost is covered in [Standing costs](../standing-costs/);
+ the usage-dependent component grows with the number of copy jobs, API requests, audit events, and data movement volume. In most platforms, 
+ infrastructure cost is modest compared to egress, unless request volumes, logging detail, or staging activity are very high.
+
+
+### Egress cost: where bytes travel
+
+The cost of moving bytes depends entirely on where data goes. AWS charges per-GB rates that vary by pathway, from free (internal) 
+to expensive (external). Understanding each pathway helps you anticipate costs and design accordingly.
+
+- **Internal transfers (same account, same AWS region)**: Reads from S3 to compute, writes back to S3, and internal S3 copies all 
+incur no data transfer charges—only S3 request charges. Note that moving data between storage classes within the same region 
+(e.g. retrieving archived data from Glacier before sharing) also incurs no egress charges, but can have associated retrieval and request fees. 
+These internal movements rarely dominate the bill.
+
+
+- **Cross-account transfers (same AWS region)**: Cross-account transfers can bse implemented via bucket policies or VPC endpoints at negligible egress cost. 
+This is significantly cheaper than moving data across regions.
+
+- **Cross-region transfers**: Cross-region transfers incur per-GB charges (typically of the order of ~$0.02/GB, varying by region pair). These costs 
+matter most when replicating large datasets for resilience, compliance, or performance. Cross-region transfers are often the first clear source of 
+non-trivial data movement cost.
+
+- **External egress (out of AWS)**: External egress is the most expensive pathway. Data leaving AWS to the public internet, on-premises environments 
+(via VPN or Direct Connect), or other cloud providers all incur per-GB charges. Internet egress typically costs $0.09–0.12/GB depending on region. 
+External egress can easily becomes the dominant movement cost.
+
+
+
+## Internal vs cross‑organisation platforms: different movement patterns
+
+Data movement patterns differ significantly between ISP and CSP, shaping how costs accumulate over time.
+
+### Internal Sharing Platform (ISP)
+
+An ISP shares data **within a single organisation**, typically within one AWS region:
+
+- Users and projects live in the same account or a small set of linked accounts.
+- Most data movement is internal (same region), with negligible egress cost.
+- Sharing is "pull" – users fetch data from central buckets – rather than "push" to external systems.
+- Audit logging is tuned to internal compliance requirements.
+
+**Typical movement pattern**:
+
+- 50 active projects, each team accessing shared reference datasets and analysis results several times per month.
+- Per access, data volumes are tens of GB, but movement is internal (negligible egress cost).
+- Cross‑region replication may exist for resilience, but is not routine.
+
+**Data movement cost shape**:
+
+- Infrastructure cost is modest.
+- Internal movement cost is negligible.
+- Cross‑region cost appears only where resilience is required.
+- External egress is low or absent.
+
+### Cross‑Organisation Sharing Platform (CSP)
+
+A CSP regularly shares data with **external partners**, often across regions and organisations:
+
+- Partners are in different AWS accounts, different organisations, and sometimes different regions.
+- Sharing is both "pull" (partners fetch from your buckets) and "push" (platform copies into partner accounts or systems).
+- Data is often replicated across regions to meet data residency requirements or provide low-latency access.
+- Audit logging is detailed and retention is long to meet cross‑organisational governance standards.
+
+**Typical movement pattern**:
+
+- 20 internal projects plus 10 external partners.
+- Partners regularly request copies of datasets (100 GB to 1 TB per request), either downloaded to their systems or replicated into 
+their AWS accounts in different regions.
+- Some partners access data via APIs for federated queries.
+- Replication to 2–3 regions is routine for compliance and resilience.
+
+**Data movement cost shape**:
+
+- Infrastructure cost grows with the number of partners, API endpoints, and policy complexity.
+- Cross‑region movement cost grows steadily as datasets are replicated to multiple regions.
+- External egress becomes the dominant cost driver, especially when partners download large datasets.
+- Caching and strategic replication become critical levers for cost control.
+
+
+## Design choices
+
+Data movement cost is where design choices have the most immediate impact. A thoughtful architecture keeps costs predictable and 
+controllable; poor choices can turn data movement into your largest and most volatile cost line item. Here are the key decisions that shape 
+your cost trajectory.
+
+### Custom orchestration vs AWS managed services
+
+Platforms can implement data sharing orchestration using:
+
+**Custom orchestration** (e.g. Step Functions and Lambda coordinating S3 copies)
+
+- Pros: tailored to your data characteristics (large objects, cold storage retrieval, cross-account patterns); can optimise movement 
+patterns and caching for cost.
+- Cons: requires development and ongoing maintenance; needs careful design for scale and robustness.
+
+**AWS managed services** (e.g. S3 Batch Operations, DataSync, Transfer Family)
+
+- Pros: lower operational burden; built-in scalability and reliability.
+- Cons: less tailored to specific workloads; have higher per-GB or per-operation costs.
+
+A lightweight custom service built on core AWS primitives often strikes a good balance (see e.g. [Steps S3 Copy](/guardians-doc/technology/steps-s3-copy))
+ However, understanding the cost trade-offs between custom and managed approaches is essential for your platform's long-term sustainability.
+ 
+
+### Movement pathway: designing for cost
+
+How you route data through your infrastructure is one of the most powerful levers for controlling cost. Keep data in one region where possible.
+ Replicate selectively—only datasets that justify the cost, only to regions where partners operate. Encourage federated access via APIs rather than
+  direct downloads. Active monitoring and governance of data pathways are essential to prevent unplanned replication and cost drift. The key is 
+  intentionality: every copy, every region, every external download should serve a purpose.
+
+
+### Sharing strategy: copying vs caching
+
+How do you handle repeated access to the same dataset? 
+
+**Full copying** – each partner receives their own complete copy
+
+- Pros: simple; each partner has full control.
+- Cons: multiplies storage and egress costs.
+
+**Caching and shared access** – frequently accessed datasets are cached or accessed via controlled central buckets
+
+- Pros: avoids redundant copies; reduces repeated egress and cross-region movement.
+- Cons: requires cache design and management; access policies must be carefully maintained.
+
+For most data-sharing platforms, **caching and reuse** are preferable to unconstrained copying, both for cost and for maintaining coherence of 
+shared datasets. Consider which datasets justify full copies (e.g. long-term partner collaborations) versus which should be cached or accessed on-demand.
+
+
+### Region strategy: hub vs distributed
+
+Where you store data and where your partners access it from determines both latency and cost.
+
+**Single region** – all data in one region, partners access remotely. 
+- Pros: simple, cheap. 
+- Cons: poor latency for distant partners.
+
+**Multi-region reference data** – replicate reference datasets to a second region where partners operate. 
+- Pros: fast local access, avoids repeated egress. 
+-Cons: higher transfer cost.
+
+**On-demand replication** – replicate project outputs only when partners request them.
+- Pros: balances cost and flexibility. 
+- Cons: requires coordination and delays.
+
+
+
+## Data movement cost at a glance
+
+Data movement cost is event-driven, not gradual. Unlike storage, which grows steadily with data volume,
+ data movement spikes when you make architectural choices—replicate to a new region, let partners download freely, or scale to new collaborators. 
+ This makes data movement both easier to control and easier to get wrong.
+ 
+ The table below summarises indicative monthly data movement cost ranges for an ISP and a CSP. The underlying estimation details are described in the [Assumptions and estimates](#assumptions-and-estimates) section. Costs are shown in USD .
+
+<table>
+  <tr>
+    <th> </th>
+    <th>Internal Sharing Platform (ISP)</th>
+    <th>Cross‑Organisation Sharing Platform (CSP)</th>
+  </tr>
+  <tr>
+    <td>Platform infrastructure (orchestration, APIs, logging, intermediate storage)</td>
+    <td>\$50–150</td>
+    <td>\$150–350</td>
+  </tr>
+  <tr>
+    <td>Internal transfers (same region)</td>
+    <td>\$0–20</td>
+    <td>\$20–50</td>
+  </tr>
+  <tr>
+    <td>Cross‑region transfers</td>
+    <td>\$0–50</td>
+    <td>\$100–300</td>
+  </tr>
+  <tr>
+    <td>External egress (internet, on‑premises, other clouds)</td>
+    <td>\$0–50</td>
+    <td>\$200–500</td>
+  </tr>
+  <tr>
+    <td><strong>Total data movement cost</strong></td>
+    <td><strong>~\$50–270</strong></td>
+    <td><strong>~\$470–1.2K</strong></td>
+  </tr>
+</table>
+
+These ranges assume a moderate‑scale platform with tens of projects, a few TB of active datasets, and several partners.
+
+### Assumptions and estimates
+
+Below, we describe representative setups we assumed for an ISP and a CSP, and the corresponding estimates for each component.
+
+#### Platform infrastructure (orchestration, APIs, logging, intermediate storage)
+
+**ISP**
+
+- Custom orchestration using Step Functions and Lambda for internal copy jobs.
+- Core API endpoints for internal users.
+- CloudWatch logging tuned to internal compliance needs.
+- Small working buckets for staging and thawing.
+- Typical monthly cost: **\$50–150** for these shared services.
+
+**CSP**
+
+- Custom orchestration using Step Functions and Lambda for internal and partner transfers.
+- Additional APIs for partner access and federated queries.
+- Detailed logging and longer retention for cross‑organisational audit.
+- Larger staging and working buckets due to higher partner activity.
+- Typical monthly cost: **\$150–350**, reflecting broader use and higher logging needs.
+
+
+
+*Note: costs for external orchestration services (e.g. Globus) are not included and should be evaluated separately.*
+
+AWS pricing references:  
+[API Gateway](https://aws.amazon.com/api-gateway/pricing/), [Lambda](https://aws.amazon.com/lambda/pricing/), [Step Functions](https://aws.amazon.com/step-functions/pricing/), [CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [S3](https://aws.amazon.com/s3/pricing/).
+
+
+#### Internal transfers (same region)
+
+**ISP**
+
+- Datasets accessed by internal projects within the same region.
+- Movement is reads from S3 to compute and writes back, with negligible egress cost.
+- Occasional intra‑bucket copies and storage class transitions.
+- Typical monthly cost: **\$0–20**, primarily S3 request charges.
+
+**CSP**
+
+- Similar internal usage within each account, plus cross‑account movement via bucket policies and VPC endpoints.
+- Internal movement costs remain low, but logging and orchestration add small overhead.
+- Typical monthly cost: **\$20–50**, including logging and request charges.
+
+AWS pricing references:  
+[S3](https://aws.amazon.com/s3/pricing/), [EC2 data transfer](https://aws.amazon.com/ec2/pricing/).
+
+#### Cross‑region transfers
+
+**ISP**
+
+- Occasional replication of key datasets to a secondary region for resilience.
+- Typical pattern: TB‑scale per month at most.
+- Typical monthly cost: **\$0–50**, depending on replication frequency.
+
+**CSP**
+
+- Routine replication of reference datasets (genome builds, annotations) to partner regions.
+- Project outputs replicated on demand when partners request them.
+- Movement may be tens of GB to a few TB per month across regions.
+- Typical monthly cost: **\$100–300**, depending on the volume of cross‑region transfers.
+
+AWS pricing references:  
+[S3 replication and multi‑region storage](https://aws.amazon.com/s3/pricing/).
+
+#### External egress (internet, on‑premises, other clouds)
+
+**ISP**
+
+- Internal sharing with minimal external egress; analysts work within the platform.
+- Occasional external downloads of smaller datasets for local work.
+- Typical monthly cost: **\$0–50** for external egress.
+
+**CSP**
+
+- Regular downloads by partners to on‑premises systems or other clouds.
+- Egress to the internet or via Direct Connect becomes a significant line item.
+- Partners may download 100 GB to 1 TB per month depending on project activity.
+- Typical monthly cost: **\$200–500**, depending on partner behaviour and dataset sizes.
+
+AWS pricing references:  
+[EC2 / S3 data transfer out](https://aws.amazon.com/ec2/pricing/), [Direct Connect](https://aws.amazon.com/directconnect/pricing/).
