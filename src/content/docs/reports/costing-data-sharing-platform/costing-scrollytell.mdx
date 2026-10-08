@@ -8,7 +8,7 @@ import CostPieCharts from '../../../../components/CostPieCharts.astro';
 
 Running a data-sharing platform on cloud infrastructure costs money in ways that aren't always obvious. Beyond the data itself, you pay to keep infrastructure running, secure access working, and datasets available when needed. Understanding these costs is essential for sustainability, funding conversations, and making smart architectural choices.
 
-This report breaks down the costs of operating a genomics data-sharing platform on **AWS** (Amazon Web Services) **after analysis is complete**—focusing on what it takes to store finished datasets, share them with your team or partners, and keep them accessible over time. We don't cover raw sequencing or analysis compute costs, which are typically managed separately. Instead, we focus on the costs of running and maintaining the sharing platform itself: the infrastructure, storage, access, and governance that make data discoverable and shareable.
+This report breaks down the costs of operating a genomics data-sharing platform on **AWS** (Amazon Web Services) **after primary analysis is complete**—focusing on what it takes to store finished datasets, share them with your team or partners, and keep them accessible over time. We don't cover raw sequencing or analysis compute costs, which are typically managed separately. Instead, we focus on the costs of running and maintaining the sharing platform itself: the infrastructure, storage, access, and governance that make data discoverable and shareable.
 
 The total cost depends heavily on how you design your platform and who uses it. To show this, we compare two scenarios: an internal platform used by one organisation, and a shared platform that regularly exchanges data with external partners. Both incur baseline costs just to stay ready, but they differ significantly in complexity, governance needs, and total spending over time.
 
@@ -38,7 +38,7 @@ A cross-organisation platform has these characteristics:
 - Complex access control: you must manage multiple external login systems and establish trust relationships with partners.
 - Distributed data management: data may be replicated across multiple locations to meet compliance requirements or serve geographically distant partners.
 - Stringent governance: audit trails, access logs, and compliance requirements are often dictated by external agreements or regulations.
-- Always-on operations: the platform must remain ready 24/7 to serve external partners; scaling down is limited.
+- Need for higher availability: external sharing is often asynchronous, so you have less control over when data is accessed and transfers are completed. Some data and sharing infrastructure (e.g. a Globus endpoint or staging data in a hot S3 bucket) may therefore need to remain available and the ability to scale down them is limited.
 - Multi-stakeholder coordination: decisions about data retention, access, and sharing involve multiple organisations with different needs.
 
 Because a cross-organisation platform must serve external partners reliably and meet stricter governance standards, it requires more infrastructure, more careful management, and more operational overhead.
@@ -48,12 +48,13 @@ Because a cross-organisation platform must serve external partners reliably and 
 ---
 ## Three main cost dimensions
 
+We identify three main components that contribute to the cost of a sharing platform. **Standing costs** are the baseline expenses of keeping your platform ready: networking, security, monitoring, and the core infrastructure that runs whether or not anyone is using it. **Storage costs** cover the month-to-month expense of keeping data accessible. **Data movement costs** arise when data is transferred between users, locations, or external partners. Unlike many HPC and on-premises environments, cloud providers may charge for data transfers in certain circumstances.
 
-We identify three main components that contribute to a sharing platform costs. **Standing costs** are the baseline expenses of keeping your platform ready: networking, security, monitoring, and the core infrastructure that runs whether or not anyone is using it. **Storage costs** account for the month-to-month expenses of keeping data accessible and stored. **Data movement costs** are what you pay to move data—between users, between locations, or to external partners.
+These estimates do not include staffing costs. Operating and supporting a platform—including administration, user support, security, governance, and partner coordination—can be a significant expense that grows with the platform. This report focuses on cloud infrastructure and related services.
 
-Below, we explore how each component contributes to costs for both scenarios: an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). The bars show cumulative monthly costs as we move through each dimension, expressed in USD.
+Below, we explore how these three components contribute to costs for both scenarios: an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). The bars show cumulative monthly costs across the three dimensions, in USD.
 
-For detailed documentation, assumptions, and calculations, follow the "Explore" buttons below.
+For detailed documentation, assumptions, and calculations, follow the “Explore” buttons below.
 
 
 <br />
@@ -80,7 +81,7 @@ export const sceneData = [
       {
         heading: 'Cross-Organisation Sharing Platform:',
         items: [
-          'More complex networking: external access points must stay ready 24/7',
+          'More complex networking: highly available external access points',
           'Complex security and identity management for external partners',
           'Detailed audit logging and compliance tracking',
           'Services must remain operational around the clock',
@@ -159,7 +160,7 @@ export const sceneData = [
     ],
     note: {
       label: 'What drives data movement costs',
-      text: 'Where data moves (internal, between regions, or out to external partners and systems outside the cloud), how often it moves, the infrastructure needed to coordinate transfers, and whether data is replicated across multiple locations.',
+      text: 'Where data moves (within or between regions, or outside the cloud; AWS charges egress fees in some scenarios), how often it moves, the infrastructure needed to coordinate transfers, and whether data is replicated across multiple locations.',
     },
     image: '/diagrams/data-movement-egress.svg',
     link: '../data-movement-egress/',
