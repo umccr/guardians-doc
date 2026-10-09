@@ -69,24 +69,25 @@ export const sceneData = [
     id: 'scene1',
     title: 'Standing Costs',
     intro: 'The baseline cost of keeping your platform ready, even when no one is using it. These are the costs that exist simply because the platform exists.',
+    costTable: 'standing',
     sections: [
       {
         heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
         items: [
           'Simpler networking: one location, minimal external access points',
           'Lighter security and audit requirements',
           'Platform components can scale down during quiet periods',
-          'Typical cost: $500–1,100/month',
         ],
       },
       {
         heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
         items: [
           'More complex networking: highly available external access points',
           'Complex security and identity management for external partners',
           'Detailed audit logging and compliance tracking',
           'Services must remain operational around the clock',
-          'Typical cost: $1,700–4,200/month',
         ],
       },
     ],
@@ -102,25 +103,26 @@ export const sceneData = [
     id: 'scene2',
     title: 'Storage Costs',
     intro: 'The cost of keeping analysis-ready data at rest. Storage costs grow with how much data you keep and how long you keep it.',
+    costTable: 'storage',
     sections: [
       {
         heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
         items: [
           'Centralised storage: data in one location, managed by your team',
           'Mix of hot storage (frequently accessed) and archived data (older projects)',
           'Curated outputs kept; intermediates often deleted after validation',
           'Optional backup to a second location for resilience',
-          'Typical cost: $170–550/month',
         ],
       },
       {
         heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
         items: [
           'Distributed storage: data replicated across multiple locations for partners',
           'More data kept hot to serve external partners quickly',
           'Longer retention periods due to compliance and governance requirements',
           'Multiple copies of datasets across regions and partner accounts',
-          'Typical cost: $450–1.3K/month',
         ],
       },
     ],
@@ -136,26 +138,27 @@ export const sceneData = [
     id: 'scene3',
     title: 'Data Movement Costs',
     intro: 'The cost of moving data around—between users, between locations, or to external partners. Unlike storage, these costs spike when you make specific decisions.',
+    costTable: 'data-movement',
     sections: [
       {
         heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
         items: [
           'Most data movement stays within your organisation and one location: free or negligible',
           'Simple infrastructure to coordinate data sharing and access',
           'Occasional replication to a backup location for resilience',
           'Minimal external downloads; data rarely leaves the organisation',
-          'Typical cost: $50–270/month',
         ],
       },
       {
         heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
         items: [
           'Data regularly moves to external partners across multiple locations',
           'More complex infrastructure to orchestrate sharing and manage access',
           'Routine replication of datasets to partner regions for compliance and performance',
           'External downloads and transfers to partners (whether to other cloud providers or on-premises systems) become a significant cost driver',
           'Data movement often becomes the dominant cost in cross-organisation platforms',
-          'Typical cost: $470–1.2K/month',
         ],
       },
     ],

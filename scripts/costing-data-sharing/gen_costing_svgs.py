@@ -1,3 +1,4 @@
+import csv
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,29 +19,45 @@ LIFECYCLE_ANIMATION_FRAMES = 49
 
 SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
 
-SCENES = [
-    {
-        "id": "standing-costs",
-        "bars": [
-            {"label": "ISP", "values": [780]},  # Standing total
-            {"label": "CSP", "values": [3600]},  # Standing total
-        ],
-    },
-    {
-        "id": "storage-costs",
-        "bars": [
-            {"label": "ISP", "values": [780, 395]},  # Standing total, Storage total
-            {"label": "CSP", "values": [3600, 875]},  # Standing total, Storage total
-        ],
-    },
-    {
-        "id": "data-movement-egress",
-        "bars": [
-            {"label": "ISP", "values": [780, 395, 185]},  # Standing total, Storage total, Movement total
-            {"label": "CSP", "values": [3600, 875, 560]},  # Standing total, Storage total, Movement total
-        ],
-    },
-]
+COST_TABLES_CSV = os.path.join(SCRIPT_DIR, "cost_tables.csv")
+
+
+def load_total_midpoints(path=COST_TABLES_CSV):
+    """Midpoint of the total row's min-max range, as {table: {platform: value}}."""
+    totals = {}
+    with open(path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row["total"] != "1" or row["table"] == "lifecycle":
+                continue
+            platform = "ISP" if "(ISP)" in row["column"] else "CSP"
+            midpoint = (float(row["min"]) + float(row["max"])) / 2
+            totals.setdefault(row["table"], {})[platform] = midpoint
+    return totals
+
+
+def build_scenes(totals):
+    # Each scene stacks one more cost dimension on top of the previous one.
+    stack = [["standing"], ["standing", "storage"], ["standing", "storage", "data-movement"]]
+    ids = ["standing-costs", "storage-costs", "data-movement-egress"]
+    return [
+        {
+            "id": scene_id,
+            "bars": [
+                {"label": platform, "values": [totals[t][platform] for t in tables]}
+                for platform in ("ISP", "CSP")
+            ],
+        }
+        for scene_id, tables in zip(ids, stack)
+    ]
+
+
+SCENES = build_scenes(load_total_midpoints())
+
+# Shared by all scene plots so the bars keep one scale as they grow
+SCENES_MAX_TOTAL = max(sum(bar["values"]) for scene in SCENES for bar in scene["bars"])
+Y_HEADROOM = 1.06
+NICE_STEPS = [50, 100, 250, 500, 750, 1000, 1500, 2000, 2500, 5000]
+Y_STEP = next(step for step in NICE_STEPS if step >= SCENES_MAX_TOTAL / 6)
 
 LIFECYCLE_COMPONENTS = [
     ("Standing", "#bfdbfe"),
@@ -185,11 +202,10 @@ def render_cost_dimension_bars():
             bar_totals.append(bottom)
 
         scene_max = max(bar_totals) if bar_totals else 0
-        y_top = 5100
+        y_top = SCENES_MAX_TOTAL * Y_HEADROOM
         ax.set_ylim(0, y_top)
         ax.set_xlim(-0.5 + X_PAD, len(bars) - 0.5 - X_PAD)
-        y_step = 750
-        y_ticks = np.arange(y_step, 4500 + y_step, y_step)
+        y_ticks = np.arange(Y_STEP, y_top, Y_STEP)
         ax.set_yticks(y_ticks)
         ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=10, color="#334155")
         ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
