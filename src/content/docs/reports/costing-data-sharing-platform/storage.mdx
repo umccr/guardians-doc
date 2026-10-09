@@ -2,7 +2,8 @@
 title: Storing data 
 ---
 import { LinkButton } from '@astrojs/starlight/components';
-import ReportStickyHeader from '../../../../components/ReportStickyHeader.astro';
+import ReportStickyHeader from '../../../../components/costing-data-sharing/ReportStickyHeader.astro';
+import CostTable from '../../../../components/costing-data-sharing/CostTable.astro';
 
 <ReportStickyHeader title="Storing data" backHref="../costing-scrollytell/" />
 
@@ -186,38 +187,7 @@ and as more copies are created for partners and resilience. The table below summ
 for an ISP and a CSP, broken down by main components. The underlying estimation details are described in
  [Assumptions and estimates](#assumptions-and-estimates). Costs are shown in USD.
 
-<table>
-  <tr>
-    <th> </th>
-    <th>Internal Sharing Platform (ISP)</th>
-    <th>Cross‑Organisation Sharing Platform (CSP)</th>
-  </tr>
-  <tr>
-    <td>Active curated outputs (hot storage)</td>
-    <td>\$100–300</td>
-    <td>\$200–600</td>
-  </tr>
-  <tr>
-    <td>Archived outputs (cold storage)</td>
-    <td>\$50–150</td>
-    <td>\$100–300</td>
-  </tr>
-  <tr>
-    <td>Metadata & indexing</td>
-    <td>\$20–50</td>
-    <td>\$50–100</td>
-  </tr>
-  <tr>
-    <td>Replication & multi‑region copies</td>
-    <td>\$0–50</td>
-    <td>\$100–300</td>
-  </tr>
-  <tr>
-    <td><strong>Total storage cost</strong></td>
-    <td><strong>~\$170–550</strong></td>
-    <td><strong>~\$450–1.3K</strong></td>
-  </tr>
-</table>
+<CostTable table="storage" />
 
 ### Assumptions and estimates
 

@@ -2,8 +2,9 @@
 title: Costing a data‑sharing platform
 ---
 
-import ReportScrolly from '../../../../components/ReportScrolly.astro';
-import CostPieCharts from '../../../../components/CostPieCharts.astro';
+import ReportScrolly from '../../../../components/costing-data-sharing/ReportScrolly.astro';
+import CostTable from '../../../../components/costing-data-sharing/CostTable.astro';
+import CostPieCharts from '../../../../components/costing-data-sharing/CostPieCharts.astro';
 
 
 Running a data-sharing platform on cloud infrastructure costs money in ways that aren't always obvious. Beyond the data itself, you pay to keep infrastructure running, secure access working, and datasets available when needed. Understanding these costs is essential for sustainability, funding conversations, and making smart architectural choices.
@@ -68,24 +69,25 @@ export const sceneData = [
     id: 'scene1',
     title: 'Standing Costs',
     intro: 'The baseline cost of keeping your platform ready, even when no one is using it. These are the costs that exist simply because the platform exists.',
+    costTable: 'standing',
     sections: [
       {
         heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
         items: [
           'Simpler networking: one location, minimal external access points',
           'Lighter security and audit requirements',
           'Platform components can scale down during quiet periods',
-          'Typical cost: $500–1,100/month',
         ],
       },
       {
         heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
         items: [
           'More complex networking: highly available external access points',
           'Complex security and identity management for external partners',
           'Detailed audit logging and compliance tracking',
           'Services must remain operational around the clock',
-          'Typical cost: $1,700–4,200/month',
         ],
       },
     ],
@@ -93,7 +95,7 @@ export const sceneData = [
       label: 'What makes up standing costs',
       text: 'Networking infrastructure, core storage and metadata systems, identity and security services, monitoring and audit logging, and baseline compute capacity.',
     },
-    image: '/diagrams/standing-costs.svg',
+    image: '/plots/costing-data-sharing/standing-costs.svg',
     link: '../standing-costs/',
     linkText: 'Explore standing costs',
   },
@@ -101,25 +103,26 @@ export const sceneData = [
     id: 'scene2',
     title: 'Storage Costs',
     intro: 'The cost of keeping analysis-ready data at rest. Storage costs grow with how much data you keep and how long you keep it.',
+    costTable: 'storage',
     sections: [
       {
         heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
         items: [
           'Centralised storage: data in one location, managed by your team',
           'Mix of hot storage (frequently accessed) and archived data (older projects)',
           'Curated outputs kept; intermediates often deleted after validation',
           'Optional backup to a second location for resilience',
-          'Typical cost: $170–550/month',
         ],
       },
       {
         heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
         items: [
           'Distributed storage: data replicated across multiple locations for partners',
           'More data kept hot to serve external partners quickly',
           'Longer retention periods due to compliance and governance requirements',
           'Multiple copies of datasets across regions and partner accounts',
-          'Typical cost: $450–1.3K/month',
         ],
       },
     ],
@@ -127,7 +130,7 @@ export const sceneData = [
       label: 'What drives storage costs',
       text: 'The amount of data stored, which storage tier you use (fast and expensive vs slow and cheap), how long you keep data, and whether data is replicated across multiple locations.',
     },
-    image: '/diagrams/storage-costs.svg',
+    image: '/plots/costing-data-sharing/storage-costs.svg',
     link: '../storage/',
     linkText: 'Explore storage costs',
   },
@@ -135,26 +138,27 @@ export const sceneData = [
     id: 'scene3',
     title: 'Data Movement Costs',
     intro: 'The cost of moving data around—between users, between locations, or to external partners. Unlike storage, these costs spike when you make specific decisions.',
+    costTable: 'data-movement',
     sections: [
       {
         heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
         items: [
           'Most data movement stays within your organisation and one location: free or negligible',
           'Simple infrastructure to coordinate data sharing and access',
           'Occasional replication to a backup location for resilience',
           'Minimal external downloads; data rarely leaves the organisation',
-          'Typical cost: $50–270/month',
         ],
       },
       {
         heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
         items: [
           'Data regularly moves to external partners across multiple locations',
           'More complex infrastructure to orchestrate sharing and manage access',
           'Routine replication of datasets to partner regions for compliance and performance',
           'External downloads and transfers to partners (whether to other cloud providers or on-premises systems) become a significant cost driver',
           'Data movement often becomes the dominant cost in cross-organisation platforms',
-          'Typical cost: $470–1.2K/month',
         ],
       },
     ],
@@ -162,7 +166,7 @@ export const sceneData = [
       label: 'What drives data movement costs',
       text: 'Where data moves (within or between regions, or outside the cloud; AWS charges egress fees in some scenarios), how often it moves, the infrastructure needed to coordinate transfers, and whether data is replicated across multiple locations.',
     },
-    image: '/diagrams/data-movement-egress.svg',
+    image: '/plots/costing-data-sharing/data-movement-egress.svg',
     link: '../data-movement-egress/',
     linkText: 'Explore data movement costs',
   }
@@ -236,7 +240,7 @@ export const lifecycleAnimationFrameCount = 49;
 export const lifecycleAnimationSubdir = 'lifecycle-progression';
 export const lifecycleAnimationFrames = (id) =>
   Array.from({ length: lifecycleAnimationFrameCount }, (_, index) =>
-    `/diagrams/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
+    `/plots/costing-data-sharing/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
   );
 
 
@@ -269,7 +273,7 @@ export const lifecycleSceneData = [
       label: 'Bottom line',
       text: 'Simple to operate, but the most expensive path over 7 years.',
     },
-    image: '/diagrams/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
   },
   {
@@ -298,7 +302,7 @@ export const lifecycleSceneData = [
       label: 'Bottom line',
       text: 'Balances accessibility, compliance, and cost control.',
     },
-    image: '/diagrams/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
   },
   {
@@ -327,7 +331,7 @@ export const lifecycleSceneData = [
       label: 'Bottom line',
       text: 'Lowest long-term cost, but requires strong governance and clear data policies.',
     },
-    image: '/diagrams/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
   }
 ];
@@ -347,7 +351,7 @@ Notice the stark differences: Full retention costs grow continuously and end up 
 
 <div class="not-prose" style={{ margin: '1rem 0 2rem', background: 'rgb(156, 163, 174, 0.08)', borderRadius: '0.5rem', padding: '1rem' }}>
   <img
-    src={`${import.meta.env.BASE_URL}/diagrams/lifecycle-scenario-comparison.svg`}
+    src={`${import.meta.env.BASE_URL}/plots/costing-data-sharing/lifecycle-scenario-comparison.svg`}
     alt="Total cost evolution curves over 7 years for full, balanced, and lean retention strategies"
     style={{ width: '100%', display: 'block' }}
   />
@@ -355,69 +359,7 @@ Notice the stark differences: Full retention costs grow continuously and end up 
 
 The table below captures the same evolution shown in the plot, with snapshots at Year 1, Year 3, and Year 7. Notice how the strategies start similarly but diverge sharply by Year 7. Costs shown in USD. 
 
-<table>
-  <tr>
-    <th>Platform</th>
-    <th>Year 1 (monthly)</th>
-    <th>Year 3 (monthly)</th>
-    <th>Year 7 (monthly)</th>
-    <th>7-year total</th>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Full Retention</strong> — keep most data indefinitely</td>
-  </tr>
-  <tr>
-    <td>ISP (50 projects)</td>
-    <td>~$1,050</td>
-    <td>~$1,350</td>
-    <td>~$2,050</td>
-    <td>~$132,000</td>
-  </tr>
-  <tr>
-    <td>CSP (20 projects, multi-region)</td>
-    <td>~$4,600</td>
-    <td>~$5,450</td>
-    <td>~$7,100</td>
-    <td>~$512,000</td>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Balanced Retention</strong> — archive and selectively delete</td>
-  </tr>
-  <tr>
-    <td>ISP (50 projects)</td>
-    <td>~$1,000</td>
-    <td>~$1,180</td>
-    <td>~$1,380</td>
-    <td>~$103,000</td>
-  </tr>
-  <tr>
-    <td>CSP (20 projects, multi-region)</td>
-    <td>~$4,450</td>
-    <td>~$4,900</td>
-    <td>~$5,500</td>
-    <td>~$418,000</td>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Lean Retention</strong> — aggressive deletion of transient data</td>
-  </tr>
-  <tr>
-    <td>ISP (50 projects)</td>
-    <td>~$980</td>
-    <td>~$1,040</td>
-    <td>~$1,050</td>
-    <td>~$88,000</td>
-  </tr>
-  <tr>
-    <td>CSP (20 projects, multi-region)</td>
-    <td>~$4,300</td>
-    <td>~$4,500</td>
-    <td>~$4,680</td>
-    <td>~$356,000</td>
-  </tr>
-</table>
+<CostTable table="lifecycle" />
 
 
 ## Key takeaways
