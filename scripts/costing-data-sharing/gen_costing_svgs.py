@@ -27,7 +27,7 @@ def load_total_midpoints(path=COST_TABLES_CSV):
     totals = {}
     with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            if row["total"] != "1" or row["table"] == "lifecycle":
+            if row["total"] != "1":
                 continue
             platform = "ISP" if "(ISP)" in row["column"] else "CSP"
             midpoint = (float(row["min"]) + float(row["max"])) / 2
@@ -65,56 +65,31 @@ LIFECYCLE_COMPONENTS = [
     ("Movement", "#1e3a8a"),
 ]
 
-LIFECYCLE_SCENARIOS = [
-    {
-        "id": "lifecycle-keep-everything",
-        "title": "Full retention",
-        "series": {
-            "ISP": {
-                "Standing": [700, 700, 700, 700, 700, 700, 700],
-                "Storage": [300, 450, 600, 760, 940, 1120, 1300],
-                "Movement": [50, 50, 50, 50, 50, 50, 50],
-            },
-            "CSP": {
-                "Standing": [3200, 3200, 3200, 3200, 3200, 3200, 3200],
-                "Storage": [1200, 1650, 2100, 2450, 2850, 3250, 3600],
-                "Movement": [200, 220, 250, 260, 270, 290, 300],
-            },
-        },
-    },
-    {
-        "id": "lifecycle-balanced-strategy",
-        "title": "Balanced retention",
-        "series": {
-            "ISP": {
-                "Standing": [700, 700, 700, 700, 700, 700, 700],
-                "Storage": [250, 350, 420, 500, 550, 590, 620],
-                "Movement": [50, 55, 60, 60, 60, 60, 60],
-            },
-            "CSP": {
-                "Standing": [3200, 3200, 3200, 3200, 3200, 3200, 3200],
-                "Storage": [1050, 1300, 1450, 1650, 1800, 1900, 2000],
-                "Movement": [200, 230, 250, 260, 270, 290, 300],
-            },
-        },
-    },
-    {
-        "id": "lifecycle-aggressive-deleting",
-        "title": "Lean retention",
-        "series": {
-            "ISP": {
-                "Standing": [700, 700, 700, 700, 700, 700, 700],
-                "Storage": [230, 260, 280, 290, 295, 292, 290],
-                "Movement": [50, 55, 60, 60, 60, 60, 60],
-            },
-            "CSP": {
-                "Standing": [3200, 3200, 3200, 3200, 3200, 3200, 3200],
-                "Storage": [900, 980, 1050, 1120, 1150, 1170, 1180],
-                "Movement": [200, 220, 250, 260, 270, 285, 300],
-            },
-        },
-    },
-]
+LIFECYCLE_SCENARIO_IDS = {
+    "Full retention": "lifecycle-keep-everything",
+    "Balanced retention": "lifecycle-balanced-strategy",
+    "Lean retention": "lifecycle-aggressive-deleting",
+}
+
+
+def load_lifecycle_scenarios(path=COST_TABLES_CSV):
+    """Yearly cost series per strategy, platform and component, from the lifecycle-series rows."""
+    scenarios = {}
+    with open(path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row["table"] != "lifecycle-series":
+                continue
+            platform, component = row["row"].split(" / ")
+            title = row["group"].split(" — ")[0]
+            series = scenarios.setdefault(title, {}).setdefault(platform, {})
+            series.setdefault(component, []).append(float(row["min"]))
+    return [
+        {"id": LIFECYCLE_SCENARIO_IDS[title], "title": title, "series": series}
+        for title, series in scenarios.items()
+    ]
+
+
+LIFECYCLE_SCENARIOS = load_lifecycle_scenarios()
 
 LIFECYCLE_SCENARIO_LINE_COLORS = {
     "lifecycle-keep-everything": "#4c1d95",

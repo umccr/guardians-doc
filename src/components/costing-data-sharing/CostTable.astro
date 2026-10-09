@@ -10,6 +10,8 @@
  *  - row/column: the cell position (first-appearance order is kept)
  *  - link:   optional anchor for the row label
  *  - min/max: a range ("$100–200"); empty max means a single value ("~$1,050")
+ *  - table="lifecycle" is not stored: it is derived from the "lifecycle-series" rows
+ *    (monthly cost = sum of components; 7-year total = 12 x sum of the yearly monthly costs)
  *  - total:  1 marks a total row (bold, prefixed with "~")
  */
 import csv from '../../../scripts/costing-data-sharing/cost_tables.csv?raw';
@@ -55,7 +57,38 @@ function formatCell(min: string, max: string, total: boolean): string {
   return total ? `~${range}` : range;
 }
 
-const lines = parseCsv(csv).filter((r) => r.table === table);
+const records = parseCsv(csv);
+
+const PLATFORM_LABELS: Record<string, string> = {
+  ISP: 'ISP (50 projects)',
+  CSP: 'CSP (20 projects, multi-region)',
+};
+
+function deriveLifecycle(): Record<string, string>[] {
+  const series = records.filter((r) => r.table === 'lifecycle-series');
+  const out: Record<string, string>[] = [];
+  for (const group of [...new Set(series.map((r) => r.group))]) {
+    for (const platform of Object.keys(PLATFORM_LABELS)) {
+      const mine = series.filter((r) => r.group === group && r.row.startsWith(`${platform} / `));
+      const monthly = (year: number) =>
+        mine.filter((r) => r.column === `Year ${year}`).reduce((sum, r) => sum + Number(r.min), 0);
+      const years = [...new Set(mine.map((r) => r.column))].length;
+      const total = 12 * Array.from({ length: years }, (_, i) => monthly(i + 1)).reduce((a, b) => a + b, 0);
+      const cells: [string, number][] = [
+        ['Year 1 (monthly)', monthly(1)],
+        ['Year 3 (monthly)', monthly(3)],
+        ['Year 7 (monthly)', monthly(7)],
+        [`${years}-year total`, Math.round(total / 1000) * 1000],
+      ];
+      for (const [column, value] of cells) {
+        out.push({ table, group, row: PLATFORM_LABELS[platform], link: '', column, min: String(value), max: '', total: '' });
+      }
+    }
+  }
+  return out;
+}
+
+const lines = table === 'lifecycle' ? deriveLifecycle() : records.filter((r) => r.table === table);
 if (lines.length === 0) throw new Error(`CostTable: no rows for table "${table}" in cost_tables.csv`);
 
 const columns = [...new Set(lines.map((r) => r.column))];
