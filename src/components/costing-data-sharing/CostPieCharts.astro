@@ -1,4 +1,50 @@
-  <div class="cost-pie-wrapper not-prose not-content" data-cost-pie-root>
+---
+import costCsv from '../../../scripts/costing-data-sharing/cost_tables.csv?raw';
+
+// Component rows (not totals) of each cost table; slice value = midpoint of min-max.
+const splitLine = (line: string) =>
+	[...line.matchAll(/("([^"]|"")*"|[^,]*)(,|$)/g)]
+		.slice(0, -1)
+		.map((m) => m[1].replace(/^"|"$/g, '').replace(/""/g, '"'));
+
+const rows = costCsv
+	.trim()
+	.split('\n')
+	.slice(1)
+	.map(splitLine)
+	.map(([table, , row, , column, min, max, total]) => ({ table, row, column, min, max, total }))
+	.filter((r) => r.total !== '1');
+
+const TABLES = [
+	{ table: 'standing', name: 'Standing Costs', color: '#bfdbfe' },
+	{ table: 'storage', name: 'Storage Costs', color: '#3b82f6' },
+	{ table: 'data-movement', name: 'Data Movement', color: '#1e3a8a' },
+];
+
+const categories = TABLES.map(({ table, name, color }) => ({
+	name,
+	color,
+	items: [...new Set(rows.filter((r) => r.table === table).map((r) => r.row))],
+}));
+
+const scenarios = Object.fromEntries(
+	(['ISP', 'CSP'] as const).map((platform) => [
+		platform,
+		TABLES.map(({ table }) =>
+			rows
+				.filter((r) => r.table === table && r.column.includes(`(${platform})`))
+				.map((r) => (Number(r.min) + Number(r.max)) / 2)
+		),
+	])
+);
+---
+
+  <div
+    class="cost-pie-wrapper not-prose not-content"
+    data-cost-pie-root
+    data-categories={JSON.stringify(categories)}
+    data-scenarios={JSON.stringify(scenarios)}
+  >
     <div class="cost-pie-charts">
       <div class="cost-pie-card">
         <div class="cost-pie-header">
@@ -29,48 +75,10 @@
 
   <script>
     (function () {
-      // Blues chosen for clearer separation across 3 groups:
-      // #bfdbfe · #3b82f6 · #1e3a8a
-      const CATEGORIES = [
-        {
-          name: 'Standing Costs',
-          color: '#bfdbfe',
-          items: [
-            'Network & access',
-            'Storage & metadata',
-            'Identity & security',
-            'Monitoring & audit',
-            'Baseline compute',
-          ],
-        },
-        {
-          name: 'Storage Costs',
-          color: '#3b82f6',
-          items: [
-            'Active curated outputs (hot)',
-            'Archived outputs (cold)',
-            'Metadata & indexing',
-            'Catalogue, logs & audit',
-            'Replication & multi-region',
-          ],
-        },
-        {
-          name: 'Data Movement',
-          color: '#1e3a8a',
-          items: [
-            'Platform infrastructure',
-            'Internal movement (same region)',
-            'Cross-region movement',
-            'External egress',
-          ],
-        },
-      ];
-
-      // Values per scenario: outer array = categories, inner = sub-items
-      const SCENARIOS = {
-        ISP: [[150, 75, 75, 150, 350], [200, 100, 35, 35, 25], [100, 10, 25, 25]],
-        CSP: [[750, 150, 350, 750, 1000], [400, 200, 75, 100, 200], [225, 35, 100, 200]],
-      };
+      const rootEl = document.querySelector('[data-cost-pie-root]');
+      // Category names, colours and per-scenario values are built from cost_tables.csv
+      const CATEGORIES = JSON.parse(rootEl.dataset.categories);
+      const SCENARIOS = JSON.parse(rootEl.dataset.scenarios);
 
       function buildPaletteAndLabels() {
         const colors = [];
