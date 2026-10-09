@@ -3,6 +3,7 @@ title: Costing a data‑sharing platform
 ---
 
 import ReportScrolly from '../../../../components/costing-data-sharing/ReportScrolly.astro';
+import CostTable from '../../../../components/costing-data-sharing/CostTable.astro';
 import CostPieCharts from '../../../../components/costing-data-sharing/CostPieCharts.astro';
 
 
@@ -355,69 +356,7 @@ Notice the stark differences: Full retention costs grow continuously and end up 
 
 The table below captures the same evolution shown in the plot, with snapshots at Year 1, Year 3, and Year 7. Notice how the strategies start similarly but diverge sharply by Year 7. Costs shown in USD. 
 
-<table>
-  <tr>
-    <th>Platform</th>
-    <th>Year 1 (monthly)</th>
-    <th>Year 3 (monthly)</th>
-    <th>Year 7 (monthly)</th>
-    <th>7-year total</th>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Full Retention</strong> — keep most data indefinitely</td>
-  </tr>
-  <tr>
-    <td>ISP (50 projects)</td>
-    <td>~$1,050</td>
-    <td>~$1,350</td>
-    <td>~$2,050</td>
-    <td>~$132,000</td>
-  </tr>
-  <tr>
-    <td>CSP (20 projects, multi-region)</td>
-    <td>~$4,600</td>
-    <td>~$5,450</td>
-    <td>~$7,100</td>
-    <td>~$512,000</td>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Balanced Retention</strong> — archive and selectively delete</td>
-  </tr>
-  <tr>
-    <td>ISP (50 projects)</td>
-    <td>~$1,000</td>
-    <td>~$1,180</td>
-    <td>~$1,380</td>
-    <td>~$103,000</td>
-  </tr>
-  <tr>
-    <td>CSP (20 projects, multi-region)</td>
-    <td>~$4,450</td>
-    <td>~$4,900</td>
-    <td>~$5,500</td>
-    <td>~$418,000</td>
-  </tr>
-
-  <tr>
-    <td colspan="5"><strong>Lean Retention</strong> — aggressive deletion of transient data</td>
-  </tr>
-  <tr>
-    <td>ISP (50 projects)</td>
-    <td>~$980</td>
-    <td>~$1,040</td>
-    <td>~$1,050</td>
-    <td>~$88,000</td>
-  </tr>
-  <tr>
-    <td>CSP (20 projects, multi-region)</td>
-    <td>~$4,300</td>
-    <td>~$4,500</td>
-    <td>~$4,680</td>
-    <td>~$356,000</td>
-  </tr>
-</table>
+<CostTable table="lifecycle" />
 
 
 ## Key takeaways

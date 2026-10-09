@@ -1,0 +1,112 @@
+---
+/**
+ * Renders one table from scripts/costing-data-sharing/cost_tables.csv.
+ *
+ * Usage: <CostTable table="standing" />
+ *
+ * CSV columns: table, group, row, link, column, min, max, total
+ *  - table:  which table the line belongs to (the `table` prop)
+ *  - group:  optional section header row, "Title — description"
+ *  - row/column: the cell position (first-appearance order is kept)
+ *  - link:   optional anchor for the row label
+ *  - min/max: a range ("$100–200"); empty max means a single value ("~$1,050")
+ *  - total:  1 marks a total row (bold, prefixed with "~")
+ */
+import csv from '../../../scripts/costing-data-sharing/cost_tables.csv?raw';
+
+interface Props {
+  table: string;
+}
+const { table } = Astro.props;
+
+function parseCsv(text: string): Record<string, string>[] {
+  const records: string[][] = [];
+  let field = '';
+  let record: string[] = [];
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') { record.push(field); field = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      record.push(field); field = '';
+      records.push(record); record = [];
+    } else field += ch;
+  }
+  if (field || record.length) { record.push(field); records.push(record); }
+  const [header, ...body] = records;
+  return body.filter((r) => r.length > 1).map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
+}
+
+// 1050 -> "1.05", 1000 -> "1", 470 -> "470"
+const compact = (n: number) => String(Number((n >= 1000 ? n / 1000 : n).toFixed(2)));
+
+function formatCell(min: string, max: string, total: boolean): string {
+  if (max === '') return `~$${Number(min).toLocaleString('en-US')}`;
+  const lo = Number(min);
+  const hi = Number(max);
+  const suffix = hi >= 1000 ? 'K' : '';
+  const range = `$${lo >= 1000 ? compact(lo) : lo}–${compact(hi)}${suffix}`;
+  return total ? `~${range}` : range;
+}
+
+const lines = parseCsv(csv).filter((r) => r.table === table);
+if (lines.length === 0) throw new Error(`CostTable: no rows for table "${table}" in cost_tables.csv`);
+
+const columns = [...new Set(lines.map((r) => r.column))];
+const groups = [...new Set(lines.map((r) => r.group))];
+
+const sections = groups.map((group) => {
+  const groupLines = lines.filter((r) => r.group === group);
+  const [title, ...rest] = group.split(' — ');
+  const rowNames = [...new Set(groupLines.map((r) => r.row))];
+  return {
+    title: group ? title : '',
+    note: rest.join(' — '),
+    rows: rowNames.map((name) => {
+      const cells = groupLines.filter((r) => r.row === name);
+      const total = cells[0].total === '1';
+      return {
+        name,
+        link: cells[0].link,
+        total,
+        values: columns.map((c) => {
+          const cell = cells.find((r) => r.column === c);
+          return cell ? formatCell(cell.min, cell.max, total) : '';
+        }),
+      };
+    }),
+  };
+});
+---
+
+<table>
+  <tr>
+    <th>{lines.some((r) => r.group) ? 'Platform' : ' '}</th>
+    {columns.map((c) => <th>{c}</th>)}
+  </tr>
+  {sections.map((section) => (
+    <>
+      {section.title && (
+        <tr>
+          <td colspan={columns.length + 1}>
+            <strong>{section.title}</strong>{section.note && ` — ${section.note}`}
+          </td>
+        </tr>
+      )}
+      {section.rows.map((row) => (
+        <tr>
+          <td>
+            {row.total ? <strong>{row.name}</strong> : row.link ? <a href={row.link}>{row.name}</a> : row.name}
+          </td>
+          {row.values.map((v) => <td>{row.total ? <strong>{v}</strong> : v}</td>)}
+        </tr>
+      ))}
+    </>
+  ))}
+</table>

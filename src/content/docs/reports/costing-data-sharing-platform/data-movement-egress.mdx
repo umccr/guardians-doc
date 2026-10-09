@@ -3,6 +3,7 @@ title: Data movement & egress
 ---
 import { LinkButton } from '@astrojs/starlight/components';
 import ReportStickyHeader from '../../../../components/costing-data-sharing/ReportStickyHeader.astro';
+import CostTable from '../../../../components/costing-data-sharing/CostTable.astro';
 
 <ReportStickyHeader title="Data movement & egress" backHref="../costing-scrollytell/" />
 
@@ -219,38 +220,7 @@ Data movement cost is event-driven, not gradual. Unlike storage, which grows ste
  
  The table below summarises indicative monthly data movement cost ranges for an ISP and a CSP. The underlying estimation details are described in the [Assumptions and estimates](#assumptions-and-estimates) section. Costs are shown in USD .
 
-<table>
-  <tr>
-    <th> </th>
-    <th>Internal Sharing Platform (ISP)</th>
-    <th>Cross‑Organisation Sharing Platform (CSP)</th>
-  </tr>
-  <tr>
-    <td>Platform infrastructure (orchestration, APIs, logging, intermediate storage)</td>
-    <td>\$50–150</td>
-    <td>\$150–350</td>
-  </tr>
-  <tr>
-    <td>Internal transfers (same region)</td>
-    <td>\$0–20</td>
-    <td>\$20–50</td>
-  </tr>
-  <tr>
-    <td>Cross‑region transfers</td>
-    <td>\$0–50</td>
-    <td>\$100–300</td>
-  </tr>
-  <tr>
-    <td>External egress (internet, on‑premises, other clouds)</td>
-    <td>\$0–50</td>
-    <td>\$200–500</td>
-  </tr>
-  <tr>
-    <td><strong>Total data movement cost</strong></td>
-    <td><strong>~\$50–270</strong></td>
-    <td><strong>~\$470–1.2K</strong></td>
-  </tr>
-</table>
+<CostTable table="data-movement" />
 
 These ranges assume a moderate‑scale platform with tens of projects, a few TB of active datasets, and several partners.
 
