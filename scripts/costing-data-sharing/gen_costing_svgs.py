@@ -5,7 +5,7 @@ from matplotlib.patches import FancyBboxPatch, Patch
 
 # Get the script directory and build the output path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUT_DIR = os.path.join(SCRIPT_DIR, "..", "public", "plots", "costing-data-sharing")
+OUT_DIR = os.path.join(SCRIPT_DIR, "..", "..", "public", "plots", "costing-data-sharing")
 LIFECYCLE_ANIMATION_SUBDIR = "lifecycle-progression"
 LIFECYCLE_ANIMATION_DIR = os.path.join(OUT_DIR, LIFECYCLE_ANIMATION_SUBDIR)
 
