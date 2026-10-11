@@ -1,0 +1,185 @@
+---
+title: Introduction
+---
+
+**v 0.1**
+
+Andrew Patterson, Oliver Hofmann, Alexis, Marko, Felipe
+
+## Document History
+
+| Version | Date     | Who | Change Summary                       |
+| ------- | -------- | --- | ------------------------------------ |
+| initial | Jul 2026 | AP  | First version adding initial content |
+
+## Our Context
+
+We are CCGCM (the Collaborative Centre for Genomic Cancer Medicine)
+a centre formed from genomic cancer researchers from Peter Mac
+and University of Melbourne.
+
+We do a mix of clinical and research genomic sequencing - with a variety
+of a assays. We also do novel cancer research, both within the core
+team of the centre and in associated research groups.
+
+## GUARDIANS
+
+BioCommons, funding etc.
+
+## Our Stories
+
+Our work on GUARDIANS data sharing is motivated by solving
+underlying stories we encounter each day. Not all our stories
+are national focussed - some can be solved by a simple mouse click in
+existing software. We start though with an enumeration of our sharing
+stories to provide some context for all of our work.
+
+### Terms
+
+* Research Institute
+* Research Group
+* Lab
+* Pipeline
+
+### Story 1 "Sequencer software sharing"
+
+"I am a collaborator with the centre that has our own
+account in the ICA (the Illumina Connected Analytics) system
+attached to our Illumina sequencer -
+albeit maybe under a different organisation/tenant. I
+would like some sequencing data or pipeline runs from
+ICA placed directly into my account."
+
+Tech keywords
+Illumina Connected Analytics
+
+Solution sketch
+Our data already sits on ICA and can be copied to
+another ICA account by the service user, even across a different tenancy. 
+
+### Story "Adhoc send it to my bucket sharing"
+
+"I am a collaborator within an external institution that
+sends data or samples to CCGCM for clinical curation reporting.
+We would like a copy of the analysis data that
+is generated from the curation reporting as part
+of our research governance/requirements - and to this end
+our IT department have made us an AWS S3 bucket in the same
+region as CCGCM. We only occasionally ask for this data so there
+is no standing agreement for this process - we just email
+our contact at CCGCM."
+
+Tech keywords
+
+data-sharing-manager, S3
+
+Solution sketch
+
+s3-steps-role is given write access to S3 bucket. Use data-sharing-manager to copy all data over to the collaborators S3 bucket.
+
+### Story "Routine send it to my bucket sharing"
+
+"I am a postdoctoral researcher working at CCGCM in a research group. We sequence
+ samples regularly, and I track sequencing runs and request the corresponding
+ FASTQ files when I expect the results to be available. Our group manages a dozen
+ ongoing projects; when data is requested, the Genomics Platform Team pushes
+ it to our S3 locations."
+
+Tech keywords
+
+data sharing manager, S3, steps-s3-copy, GitHub
+
+Solution sketch
+
+A data-sharing agreement stored in a GitHub repository defines the terms
+ of data sharing, including project identifiers, data ownership, contact
+  recipients and the S3 destinations where the data will be pushed. Upon
+   completion of a sequencing run analysis, an automated tool identifies
+    all data that match the agreement. Data recipients raise GitHub
+     issues with the requested library details; the Genomics Platform
+      Team validates the request against the identified data,
+       delivers FASTQ files to the defined S3 path, and the requester
+        verifies and closes the issue, creating an auditable
+         record of each data share.
+
+### Story "Internal use of data"
+
+I am a bioinformatician working on some methods development
+at CCGCM. I am a University of Melbourne employee and have familiarity
+with AWS. CCGCM has sequenced a patient
+that has exhibited some edge cases I want to test with my software.
+
+This is patient data so I would like to do some work in a privileged
+AWS account (i.e. not a common developers account).
+
+I just want to be left alone with my AWS account and some S3 URLs that
+I can read from the account - so I can do work using native AWS
+tools such as AWS Batch or a plain EC2 instance.
+
+After my work is done I promise I will try to remember to let
+someone know and the access to the data can be removed - though it would
+be good if there were other mechanisms to notice these shares as I may forget.
+
+Tech keywords
+Access points, CloudFormation, S3
+
+Solution sketch
+Create some form of mart(?) query to identify the S3 URLs I want to access
+Ask someone to install something in the data control account that enables sharing of the objects to the account I have access to
+
+Parts of the story dealt with elsewhere
+Getting access to an AWS account that is appropriate (one for centre management and policy)
+Lifecycle management (assume the objects are live or been restored through some other mechanism?)
+
+
+
+### Story
+
+
+I am a new PhD researcher working for a research group at CCGCM and am employed by Peter Mac. I have lots of bioinformatics experience but very little cloud compute. It has been decided I will be given access to a small subset of project data for my initial project work and that I will be writing the workflows in nextflow in Seqera. I am only going to be allowed to access the variant data from the participants. I want to run pipelines over the data in my given Seqera workspace.
+Tech keywords
+htsget-rs, VPC Lattice, Seqera, terraform
+
+Solution sketch
+Someone within centre uses a tool to take known identifiers from researcher and constructs VCF list.
+htsget is configured with a config file (?) that authorises this share of variants across into the designated account via htsget vpc lattice
+
+Parts of the story dealt with elsewhere
+Lifecycle management (assume the objects are live or been restored through some other mechanism?)
+
+
+
+User Story #3
+
+
+
+
+User Story #4
+
+
+I am a researcher at Garvan who wants to perform some research on the CUP cohort. I have created a locked down environment in a VPC in AWS in the Garvan organisation. I would like to apply for a subset of the CUP cohort as aligned reads and have access to them in my VPC. I would like access to the data for one month.
+
+Tech keywords
+htsget-rs, VPC Lattice, REMS
+
+Solution sketch
+application process with REMS?
+htsget / vpc lattice
+instruction guide for consuming lattice
+caching CUP samples into data control 
+
+
+### Story "Downloadable links story"
+
+I am a researcher at an external university. I do  not have any cloud experience
+and would prefer to do my research on a HPC. Each week, the platform
+lead generates a script of presigned urls and sends us that script
+so that we can download our data onto our HPC. 
+
+Tech keywords
+Presigned urls, HPC, zero-cloud
+
+Solution sketch
+The datasharing service uses the filemanager to generate a presigned url for all files. 
+When a presign request comes in, the API collects all presigned urls for all files in the request and then a lambda generates a shell script that is written to s3. 
+A presigned url is then generated of that script which can be shared with the client.
