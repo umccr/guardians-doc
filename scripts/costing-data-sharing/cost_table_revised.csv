@@ -1,0 +1,13 @@
+table,group,row,link,column,value,total
+standing,,Network & access,#network-and-access,Internal Sharing Platform (ISP),60.35,
+standing,,Network & access,#network-and-access,Cross‑Organisation Sharing Platform (CSP),160.50,
+standing,,Storage & metadata,#core-storage-and-metadata,Internal Sharing Platform (ISP),2.41,
+standing,,Storage & metadata,#core-storage-and-metadata,Cross‑Organisation Sharing Platform (CSP),5.14,
+standing,,Identity & security,#identity-and-security,Internal Sharing Platform (ISP),2.30,
+standing,,Identity & security,#identity-and-security,Cross‑Organisation Sharing Platform (CSP),8.50,
+standing,,Monitoring & audit,#monitoring-and-audit,Internal Sharing Platform (ISP),20.60,
+standing,,Monitoring & audit,#monitoring-and-audit,Cross‑Organisation Sharing Platform (CSP),136.50,
+standing,,Baseline compute,#baseline-compute,Internal Sharing Platform (ISP),30.43,
+standing,,Baseline compute,#baseline-compute,Cross‑Organisation Sharing Platform (CSP),123.38,
+standing,,Total standing cost,,Internal Sharing Platform (ISP),116.09,1
+standing,,Total standing cost,,Cross‑Organisation Sharing Platform (CSP),434.02,1
