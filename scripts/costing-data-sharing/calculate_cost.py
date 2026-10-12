@@ -1,4 +1,4 @@
-"""Calculate standing, storage, and data-movement estimates.
+"""Calculate standing, storage, data-movement, and lifecycle estimates.
 
 Rates are AWS public list prices for us-east-1 (US East, N. Virginia),
 checked on 2026-10-12. Free-tier credits, discounts, taxes, and data-transfer
@@ -190,6 +190,22 @@ MOVEMENT_SCENARIOS = {
         "cross_region_transfer_gb": Decimal("10000"),
         "external_egress_gb": Decimal("4000"),
     },
+}
+
+# Lifecycle model assumptions from the agreed seven-year scenarios. Annual
+# project additions are spread evenly across months, and new projects enter at
+# the active storage volume before moving to Deep Archive at the policy age.
+# All opening active data starts at age zero; opening archive data stays archived.
+# Standing and movement charges remain fixed at their current monthly estimates.
+LIFECYCLE_MONTHS = 7 * 12
+NEW_PROJECTS_PER_YEAR = {
+    "Internal Sharing Platform (ISP)": Decimal("25"),
+    "Cross‑Organisation Sharing Platform (CSP)": Decimal("50"),
+}
+LIFECYCLE_POLICIES = {
+    "Full retention — keep most data indefinitely": None,
+    "Balanced retention — archive and selectively delete": 24,
+    "Lean retention — aggressive deletion of transient data": 12,
 }
 
 def calculate_network_access(assumptions):
@@ -491,10 +507,79 @@ def calculate_data_movement_costs():
     return component_values
 
 
+def calculate_lifecycle_costs():
+    """Return actual annual spending by strategy, platform, and cost dimension."""
+    annual_costs = {}
+    standing_monthly = calculate_standing_costs()
+    movement_monthly = calculate_data_movement_costs()
+
+    for strategy, archive_after_months in LIFECYCLE_POLICIES.items():
+        annual_costs[strategy] = {}
+        for platform, storage_assumptions in STORAGE_SCENARIOS.items():
+            active_gb = (
+                storage_assumptions["active_projects"]
+                * storage_assumptions["active_output_gb_per_project"]
+            )
+            archived_gb = (
+                storage_assumptions["archived_projects"]
+                * storage_assumptions["archived_output_gb_per_project"]
+            )
+            active_cohorts = [(0, active_gb)]
+            new_project_gb_per_month = (
+                NEW_PROJECTS_PER_YEAR[platform]
+                * storage_assumptions["active_output_gb_per_project"]
+                / Decimal("12")
+            )
+            metadata_monthly = calculate_metadata_and_indexing(storage_assumptions)
+            replica_copies = storage_assumptions["replica_copies"]
+            yearly = {"Standing": [], "Storage": [], "Movement": []}
+
+            for month in range(1, LIFECYCLE_MONTHS + 1):
+                active_cohorts.append((0, new_project_gb_per_month))
+                active_gb = sum(volume for _, volume in active_cohorts)
+                storage_monthly = (
+                    active_gb
+                    * (1 + replica_copies)
+                    * AWS_PRICES["s3_standard_per_gb_month"]
+                    + archived_gb
+                    * AWS_PRICES["s3_glacier_deep_archive_per_gb_month"]
+                    + metadata_monthly
+                )
+
+                yearly["Standing"].append(
+                    standing_monthly["Total standing cost", platform]
+                )
+                yearly["Storage"].append(storage_monthly)
+                yearly["Movement"].append(
+                    movement_monthly["Total data movement cost", platform]
+                )
+
+                if archive_after_months is not None:
+                    retained_cohorts = []
+                    for age_months, volume in active_cohorts:
+                        age_months += 1
+                        if age_months >= archive_after_months:
+                            archived_gb += volume
+                        else:
+                            retained_cohorts.append((age_months, volume))
+                    active_cohorts = retained_cohorts
+
+            annual_costs[strategy][platform] = {
+                component: [
+                    sum(monthly_values[index:index + 12])
+                    for index in range(0, LIFECYCLE_MONTHS, 12)
+                ]
+                for component, monthly_values in yearly.items()
+            }
+
+    return annual_costs
+
+
 def write_cost_csv():
     standing_values = calculate_standing_costs()
     storage_values = calculate_storage_costs()
     movement_values = calculate_data_movement_costs()
+    lifecycle_values = calculate_lifecycle_costs()
     fieldnames = ["table", "group", "row", "link", "column", "value", "total"]
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8") as output:
         writer = csv.DictWriter(output, fieldnames=fieldnames, lineterminator="\n")
@@ -574,8 +659,24 @@ def write_cost_csv():
                     "total": "1",
                 }
             )
+        for strategy, platform_costs in lifecycle_values.items():
+            for platform, component_costs in platform_costs.items():
+                platform_short = "ISP" if platform.endswith("(ISP)") else "CSP"
+                for component, yearly_values in component_costs.items():
+                    for year, annual_value in enumerate(yearly_values, start=1):
+                        writer.writerow(
+                            {
+                                "table": "lifecycle-series",
+                                "group": strategy,
+                                "row": f"{platform_short} / {component}",
+                                "link": "",
+                                "column": f"Year {year}",
+                                "value": f"{annual_value:.2f}",
+                                "total": "",
+                            }
+                        )
 
 
 if __name__ == "__main__":
     write_cost_csv()
-    print(f"Wrote standing, storage, and data-movement estimates to {OUTPUT_CSV}")
+    print(f"Wrote standing, storage, movement, and lifecycle estimates to {OUTPUT_CSV}")
