@@ -194,9 +194,10 @@ MOVEMENT_SCENARIOS = {
 
 # Lifecycle model assumptions from the agreed seven-year scenarios. Annual
 # project additions are spread evenly across months, and new projects enter at
-# the active storage volume before moving to Deep Archive at the policy age.
-# Opening active data is evenly aged across the retention window, so it
-# archives gradually; opening archive data stays archived.
+# the active storage volume before the policy archives or deletes them at the
+# policy age. Opening active data is evenly aged across the retention window,
+# so it is archived or deleted gradually. Opening archive data stays archived,
+# except under the delete policy, which keeps nothing beyond the window.
 # Standing and movement charges remain fixed at their current monthly estimates.
 LIFECYCLE_MONTHS = 7 * 12
 NEW_PROJECTS_PER_YEAR = {
@@ -204,9 +205,9 @@ NEW_PROJECTS_PER_YEAR = {
     "Cross‑Organisation Sharing Platform (CSP)": Decimal("50"),
 }
 LIFECYCLE_POLICIES = {
-    "Full retention — keep most data indefinitely": None,
-    "Balanced retention — archive and selectively delete": 24,
-    "Lean retention — aggressive deletion of transient data": 12,
+    "Full retention — keep everything in Standard": (None, None),
+    "Balanced retention — archive after 2 years": (24, "archive"),
+    "Lean retention — delete after 1 year": (12, "delete"),
 }
 
 def calculate_network_access(assumptions):
@@ -514,7 +515,7 @@ def calculate_lifecycle_costs():
     standing_monthly = calculate_standing_costs()
     movement_monthly = calculate_data_movement_costs()
 
-    for strategy, archive_after_months in LIFECYCLE_POLICIES.items():
+    for strategy, (archive_after_months, expiry_action) in LIFECYCLE_POLICIES.items():
         annual_costs[strategy] = {}
         for platform, storage_assumptions in STORAGE_SCENARIOS.items():
             active_gb = (
@@ -525,6 +526,8 @@ def calculate_lifecycle_costs():
                 storage_assumptions["archived_projects"]
                 * storage_assumptions["archived_output_gb_per_project"]
             )
+            if expiry_action == "delete":
+                archived_gb = Decimal("0")
             if archive_after_months is None:
                 active_cohorts = [(0, active_gb)]
             else:
@@ -566,7 +569,8 @@ def calculate_lifecycle_costs():
                     for age_months, volume in active_cohorts:
                         age_months += 1
                         if age_months >= archive_after_months:
-                            archived_gb += volume
+                            if expiry_action == "archive":
+                                archived_gb += volume
                         else:
                             retained_cohorts.append((age_months, volume))
                     active_cohorts = retained_cohorts

@@ -229,17 +229,17 @@ The charts below show how these components combine for each scenario. Hover over
 
 Platform costs change as data accumulates and ages. One important choice is when to move older data from faster, more expensive storage to a lower-cost archive tier. This seven-year illustration shows how that choice affects costs for internal and cross-organisation platforms.
 
-The model starts with the active and archived curated datasets described in the storage assumptions, then adds 25 ISP or 50 CSP projects each year, at 150 GB of curated data per project. It focuses on curated outputs: transient and intermediate data, and deletion of curated data, are not modeled. Standing and data-movement costs are held constant so the comparison highlights the effect of storage choices.
+The model starts with the active and archived curated datasets described in the storage assumptions, then adds 25 ISP or 50 CSP projects each year, at 150 GB of curated data per project. It focuses on curated outputs; transient and intermediate data are not modeled. Standing and data-movement costs are held constant so the comparison highlights the effect of storage choices.
 
-The three strategies differ in when new active curated data moves to S3 Glacier Deep Archive:
+The three strategies differ in what happens to curated data as it ages. They are deliberately extreme bookends rather than realistic policies:
 
 **Full retention** keeps new curated outputs in S3 Standard throughout the model period.
 
 **Balanced retention** moves curated outputs to S3 Glacier Deep Archive after two years.
 
-**Lean retention** moves curated outputs to S3 Glacier Deep Archive after one year.
+**Lean retention** deletes curated outputs after one year. Nothing is archived, and the existing archived outputs are deleted at the start.
 
-New projects are spread across each year. Opening active data is assumed to be evenly aged across the retention window, so it moves to the archive gradually, while existing archived data remains archived. As a result, Lean and Balanced spend is highest early on and then settles: Lean's first year is more expensive than its second because the opening stock is still being archived through year 1. Costs are calculated month by month and summed into annual spend; archive transition and retrieval fees are not included.
+New projects are spread across each year. Opening active data is assumed to be evenly aged across the retention window, so it is archived (Balanced) or deleted (Lean) gradually, while existing archived data remains archived under Full and Balanced. As a result, Lean and Balanced spend is highest early on and then settles: Lean's first year is more expensive than its second because the opening stock is still being deleted through year 1. Costs are calculated month by month and summed into annual spend; archive transition, retrieval and early-deletion fees are not included, and metadata costs are held constant.
 
 The scenarios below show how standing, storage, and data-movement costs contribute to annual spending and accumulate over seven years for both platforms. The charts and table use the same calculated estimates, with annual values shown separately from the seven-year cumulative total.
 
@@ -324,28 +324,28 @@ export const lifecycleSceneData = [
   {
     id: 'lifecycle-scene3',
     title: 'Lean Retention',
-    intro: 'Move curated outputs to S3 Glacier Deep Archive after one year.',
+    intro: 'Delete curated outputs after one year; nothing is archived.',
     sections: [
       {
         heading: 'What this means:',
         items: [
           'Keep new curated outputs in S3 Standard for one year',
-          'Then move them to Deep Archive',
-          'Retain curated outputs; transient data and deletion are not modeled',
+          'Then delete them; nothing moves to Deep Archive',
+          'Existing archived outputs are deleted at the start',
         ],
       },
       {
         heading: 'How costs evolve:',
         items: [
           'Standing costs remain stable',
-          'Older data costs less to store after archiving',
-          'Total stored data and annual storage spend continue to grow',
+          'Stored data is capped at about one year of projects',
+          'Annual storage spend settles after the opening stock is deleted',
         ],
       },
     ],
     note: {
       label: 'Bottom line',
-      text: 'Moves data to the lower-cost archive tier sooner, reducing modeled storage costs.',
+      text: 'The lowest-cost bookend, but curated data older than one year is no longer available.',
     },
     image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),

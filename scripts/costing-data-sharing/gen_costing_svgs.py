@@ -564,7 +564,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
                 "lifecycle-balanced-strategy": "Balanced",
                 "lifecycle-aggressive-deleting": "Lean",
             }.get(scenario["id"], scenario["title"])
-            label_text = f"{label_name}: {format_total(cumulative_7y)}"
+            label_text = f"{label_name}: ${cumulative_7y / 1000:,.0f}K"
             line_color = LIFECYCLE_SCENARIO_LINE_COLORS[scenario["id"]]
             ax.text(
                 label_x,
