@@ -21,3 +21,13 @@ storage,,Replication & multi‑region copies,,Internal Sharing Platform (ISP),0.
 storage,,Replication & multi‑region copies,,Cross‑Organisation Sharing Platform (CSP),345.00,
 storage,,Total storage cost,,Internal Sharing Platform (ISP),192.32,1
 storage,,Total storage cost,,Cross‑Organisation Sharing Platform (CSP),729.71,1
+data-movement,,"Platform infrastructure (orchestration, APIs, logging, intermediate storage)",,Internal Sharing Platform (ISP),0.06,
+data-movement,,"Platform infrastructure (orchestration, APIs, logging, intermediate storage)",,Cross‑Organisation Sharing Platform (CSP),1.15,
+data-movement,,Internal transfers (same region),,Internal Sharing Platform (ISP),0.04,
+data-movement,,Internal transfers (same region),,Cross‑Organisation Sharing Platform (CSP),0.10,
+data-movement,,Cross‑region transfers,,Internal Sharing Platform (ISP),20.00,
+data-movement,,Cross‑region transfers,,Cross‑Organisation Sharing Platform (CSP),200.00,
+data-movement,,"External egress (internet, on‑premises, other clouds)",,Internal Sharing Platform (ISP),22.50,
+data-movement,,"External egress (internet, on‑premises, other clouds)",,Cross‑Organisation Sharing Platform (CSP),360.00,
+data-movement,,Total data movement cost,,Internal Sharing Platform (ISP),42.60,1
+data-movement,,Total data movement cost,,Cross‑Organisation Sharing Platform (CSP),561.25,1

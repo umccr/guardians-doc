@@ -1,4 +1,4 @@
-"""Calculate standing and storage estimates and write a review CSV.
+"""Calculate standing, storage, and data-movement estimates.
 
 Rates are AWS public list prices for us-east-1 (US East, N. Virginia),
 checked on 2026-10-12. Free-tier credits, discounts, taxes, and data-transfer
@@ -39,6 +39,9 @@ AWS_PRICES = {
     "s3_glacier_deep_archive_per_gb_month": Decimal("0.00099"),
     "s3_get_per_1000_requests": Decimal("0.0004"),
     "s3_put_per_1000_requests": Decimal("0.005"),
+    "step_functions_standard_per_1000_transitions": Decimal("0.025"),
+    "cross_region_transfer_per_gb": Decimal("0.02"),
+    "internet_data_transfer_out_per_gb": Decimal("0.09"),
     "dynamodb_read_per_million_units": Decimal("0.125"),
     "dynamodb_write_per_million_units": Decimal("0.625"),
     "dynamodb_storage_per_gb_month": Decimal("0.25"),
@@ -151,6 +154,41 @@ STORAGE_SCENARIOS = {
         "catalogue_reads_per_table": Decimal("250000"),
         "catalogue_writes_per_table": Decimal("25000"),
         "replica_copies": 1,
+    },
+}
+
+# Monthly data-movement usage from data-movement-egress.mdx. Costs use gross
+# list prices before free-tier allowances or credits. External volumes are
+# modeled at the standard internet data-transfer-out rate; Direct Connect,
+# VPN, and provider-specific transfer rates are not separately modeled.
+MOVEMENT_SCENARIOS = {
+    "Internal Sharing Platform (ISP)": {
+        "step_functions_executions": Decimal("100"),
+        "step_functions_transitions_per_execution": Decimal("5"),
+        "orchestration_lambda_invocations": Decimal("1000"),
+        "orchestration_lambda_memory_gb": Decimal("0.512"),
+        "orchestration_lambda_duration_seconds": Decimal("1"),
+        "staging_gb_per_month": Decimal("50"),
+        "staging_average_days": Decimal("1"),
+        "staging_get_requests": Decimal("500"),
+        "staging_put_requests": Decimal("100"),
+        "internal_s3_get_requests": Decimal("100000"),
+        "cross_region_transfer_gb": Decimal("1000"),
+        "external_egress_gb": Decimal("250"),
+    },
+    "Cross‑Organisation Sharing Platform (CSP)": {
+        "step_functions_executions": Decimal("1000"),
+        "step_functions_transitions_per_execution": Decimal("8"),
+        "orchestration_lambda_invocations": Decimal("10000"),
+        "orchestration_lambda_memory_gb": Decimal("0.512"),
+        "orchestration_lambda_duration_seconds": Decimal("2"),
+        "staging_gb_per_month": Decimal("500"),
+        "staging_average_days": Decimal("2"),
+        "staging_get_requests": Decimal("5000"),
+        "staging_put_requests": Decimal("1000"),
+        "internal_s3_get_requests": Decimal("250000"),
+        "cross_region_transfer_gb": Decimal("10000"),
+        "external_egress_gb": Decimal("4000"),
     },
 }
 
@@ -303,6 +341,65 @@ def calculate_replication(assumptions):
     return replicated_gb * AWS_PRICES["s3_standard_per_gb_month"]
 
 
+def calculate_platform_infrastructure(assumptions):
+    transitions = (
+        assumptions["step_functions_executions"]
+        * assumptions["step_functions_transitions_per_execution"]
+    )
+    step_functions_cost = (
+        transitions
+        / Decimal("1000")
+        * AWS_PRICES["step_functions_standard_per_1000_transitions"]
+    )
+    lambda_invocations = assumptions["orchestration_lambda_invocations"]
+    lambda_cost = (
+        lambda_invocations
+        / Decimal("1000000")
+        * AWS_PRICES["lambda_per_million_requests"]
+        + lambda_invocations
+        * assumptions["orchestration_lambda_memory_gb"]
+        * assumptions["orchestration_lambda_duration_seconds"]
+        * AWS_PRICES["lambda_per_gb_second"]
+    )
+    staging_average_gb = (
+        assumptions["staging_gb_per_month"]
+        * assumptions["staging_average_days"]
+        / DAYS_PER_MONTH
+    )
+    staging_cost = (
+        staging_average_gb * AWS_PRICES["s3_standard_per_gb_month"]
+        + assumptions["staging_get_requests"]
+        / Decimal("1000")
+        * AWS_PRICES["s3_get_per_1000_requests"]
+        + assumptions["staging_put_requests"]
+        / Decimal("1000")
+        * AWS_PRICES["s3_put_per_1000_requests"]
+    )
+    return step_functions_cost + lambda_cost + staging_cost
+
+
+def calculate_internal_transfers(assumptions):
+    return (
+        assumptions["internal_s3_get_requests"]
+        / Decimal("1000")
+        * AWS_PRICES["s3_get_per_1000_requests"]
+    )
+
+
+def calculate_cross_region_transfers(assumptions):
+    return (
+        assumptions["cross_region_transfer_gb"]
+        * AWS_PRICES["cross_region_transfer_per_gb"]
+    )
+
+
+def calculate_external_egress(assumptions):
+    return (
+        assumptions["external_egress_gb"]
+        * AWS_PRICES["internet_data_transfer_out_per_gb"]
+    )
+
+
 COMPONENT_CALCULATORS = {
     "Network & access": ("#network-and-access", calculate_network_access),
     "Storage & metadata": ("#core-storage-and-metadata", calculate_storage_and_metadata),
@@ -327,6 +424,25 @@ STORAGE_COMPONENT_CALCULATORS = {
     "Replication & multi‑region copies": (
         "",
         calculate_replication,
+    ),
+}
+
+MOVEMENT_COMPONENT_CALCULATORS = {
+    "Platform infrastructure (orchestration, APIs, logging, intermediate storage)": (
+        "",
+        calculate_platform_infrastructure,
+    ),
+    "Internal transfers (same region)": (
+        "",
+        calculate_internal_transfers,
+    ),
+    "Cross‑region transfers": (
+        "",
+        calculate_cross_region_transfers,
+    ),
+    "External egress (internet, on‑premises, other clouds)": (
+        "",
+        calculate_external_egress,
     ),
 }
 
@@ -360,9 +476,25 @@ def calculate_storage_costs():
     return component_values
 
 
+def calculate_data_movement_costs():
+    """Return unrounded monthly data-movement values by component and platform."""
+    component_values = {}
+    for platform, assumptions in MOVEMENT_SCENARIOS.items():
+        for component, (_, calculator) in MOVEMENT_COMPONENT_CALCULATORS.items():
+            component_values[component, platform] = calculator(assumptions)
+
+    for platform in MOVEMENT_SCENARIOS:
+        component_values["Total data movement cost", platform] = sum(
+            component_values[component, platform]
+            for component in MOVEMENT_COMPONENT_CALCULATORS
+        )
+    return component_values
+
+
 def write_cost_csv():
     standing_values = calculate_standing_costs()
     storage_values = calculate_storage_costs()
+    movement_values = calculate_data_movement_costs()
     fieldnames = ["table", "group", "row", "link", "column", "value", "total"]
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8") as output:
         writer = csv.DictWriter(output, fieldnames=fieldnames, lineterminator="\n")
@@ -417,8 +549,33 @@ def write_cost_csv():
                     "total": "1",
                 }
             )
+        for component, (link, _) in MOVEMENT_COMPONENT_CALCULATORS.items():
+            for platform in MOVEMENT_SCENARIOS:
+                writer.writerow(
+                    {
+                        "table": "data-movement",
+                        "group": "",
+                        "row": component,
+                        "link": link,
+                        "column": platform,
+                        "value": f"{movement_values[component, platform]:.2f}",
+                        "total": "",
+                    }
+                )
+        for platform in MOVEMENT_SCENARIOS:
+            writer.writerow(
+                {
+                    "table": "data-movement",
+                    "group": "",
+                    "row": "Total data movement cost",
+                    "link": "",
+                    "column": platform,
+                    "value": f"{movement_values['Total data movement cost', platform]:.2f}",
+                    "total": "1",
+                }
+            )
 
 
 if __name__ == "__main__":
     write_cost_csv()
-    print(f"Wrote standing and storage estimates to {OUTPUT_CSV}")
+    print(f"Wrote standing, storage, and data-movement estimates to {OUTPUT_CSV}")

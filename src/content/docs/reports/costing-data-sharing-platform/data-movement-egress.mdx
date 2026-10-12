@@ -272,12 +272,12 @@ AWS pricing references:
 
 **ISP**
 
-- No routine cross-region transfers are included in the monthly estimate.
+- Replicate 1 TB of selected datasets to a secondary region each month for resilience.
 
 **CSP**
 
 - The 15 TB active dataset is already replicated to one additional region, as described in [storage assumptions](../storage/#assumptions).
-- Assume 10% of the replicated dataset changes each month, producing 1.5 TB of recurring cross-region transfers.
+- Assume 10% of that dataset changes each month (1.5 TB), plus 8.5 TB of reference and project data copied to partner regions, for 10 TB of cross-region transfers per month.
 - The initial 15 TB replication is excluded from the monthly estimate.
 
 AWS pricing references:  
@@ -287,11 +287,11 @@ AWS pricing references:
 
 **ISP**
 
-- Assume 50 GB of downloads to the public internet, on-premises systems, or other clouds per month.
+- Assume 250 GB of downloads to the public internet, on-premises systems, or other clouds per month.
 
 **CSP**
 
-- 10 external partners each download 100 GB to the public internet, on-premises systems, or other clouds per month, for 1 TB of external egress.
+- 10 external partners each download 400 GB to the public internet, on-premises systems, or other clouds per month, for 4 TB of external egress.
 
 AWS pricing references:  
 [EC2 / S3 data transfer out](https://aws.amazon.com/ec2/pricing/), [Direct Connect](https://aws.amazon.com/directconnect/pricing/).
