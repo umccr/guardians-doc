@@ -218,37 +218,33 @@ Data movement cost is event-driven, not gradual. Unlike storage, which grows ste
  data movement spikes when you make architectural choices—replicate to a new region, let partners download freely, or scale to new collaborators. 
  This makes data movement both easier to control and easier to get wrong.
  
- The table below summarises indicative monthly data movement cost ranges for an ISP and a CSP. The underlying estimation details are described in the [Assumptions and estimates](#assumptions-and-estimates) section. Costs are shown in USD .
+ The table below summarises indicative monthly data movement cost ranges for an ISP and a CSP. The assumptions behind these ranges are described in the [Assumptions](#assumptions) section. Costs are shown in USD.
 
 <CostTable table="data-movement" />
 
-These ranges assume a moderate‑scale platform with tens of projects, a few TB of active datasets, and several partners.
+### Assumptions
 
-### Assumptions and estimates
-
-Below, we describe representative setups we assumed for an ISP and a CSP, and the corresponding estimates for each component.
+The assumptions below set out the data volumes, transfer routes, and orchestration activity used to model monthly data movement for each platform.
 
 #### Platform infrastructure (orchestration, APIs, logging, intermediate storage)
 
 **ISP**
 
-- Custom orchestration using Step Functions and Lambda for internal copy jobs.
-- Core API endpoints for internal users.
-- CloudWatch logging tuned to internal compliance needs.
-- Small working buckets for staging and thawing.
-- Typical monthly cost: **\$50–150** for these shared services.
+- 100 Step Functions Standard workflow executions per month, with 5 state transitions per execution.
+- 1,000 additional Lambda orchestration invocations per month, each using 512 MB of memory for 1 second.
+- 50 GB of temporary staging data per month, held for an average of 1 day; assume 500 S3 GET requests and 100 S3 PUT requests per month.
+- API requests, baseline compute, and audit logs are counted under standing costs, not here.
 
 **CSP**
 
-- Custom orchestration using Step Functions and Lambda for internal and partner transfers.
-- Additional APIs for partner access and federated queries.
-- Detailed logging and longer retention for cross‑organisational audit.
-- Larger staging and working buckets due to higher partner activity.
-- Typical monthly cost: **\$150–350**, reflecting broader use and higher logging needs.
+- 1,000 Step Functions Standard workflow executions per month, with 8 state transitions per execution.
+- 10,000 additional Lambda orchestration invocations per month, each using 512 MB of memory for 2 seconds.
+- 500 GB of temporary staging data per month, held for an average of 2 days; assume 5,000 S3 GET requests and 1,000 S3 PUT requests per month.
+- API requests, baseline compute, and audit logs are counted under standing costs, not here.
 
 
 
-*Note: costs for external orchestration services (e.g. Globus) are not included and should be evaluated separately.*
+External orchestration services (e.g. Globus) are not included.
 
 AWS pricing references:  
 [API Gateway](https://aws.amazon.com/api-gateway/pricing/), [Lambda](https://aws.amazon.com/lambda/pricing/), [Step Functions](https://aws.amazon.com/step-functions/pricing/), [CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [S3](https://aws.amazon.com/s3/pricing/).
@@ -258,16 +254,16 @@ AWS pricing references:
 
 **ISP**
 
-- Datasets accessed by internal projects within the same region.
-- Movement is reads from S3 to compute and writes back, with negligible egress cost.
-- Occasional intra‑bucket copies and storage class transitions.
-- Typical monthly cost: **\$0–20**, primarily S3 request charges.
+- 50 active projects each read 20 GB of shared data 4 times per month, for 4 TB of same-region reads.
+- Model 100,000 S3 GET requests per month for these reads.
+- No S3-to-S3 copies or storage-class transitions are included here.
 
 **CSP**
 
-- Similar internal usage within each account, plus cross‑account movement via bucket policies and VPC endpoints.
-- Internal movement costs remain low, but logging and orchestration add small overhead.
-- Typical monthly cost: **\$20–50**, including logging and request charges.
+- 20 internal projects each read 50 GB of shared data 4 times per month, for 4 TB of same-region reads.
+- 10 partner AWS accounts in the same region each read 100 GB per month, for 1 TB of same-region cross-account reads.
+- Model 250,000 S3 GET requests per month across these reads.
+- No S3-to-S3 copies or storage-class transitions are included here.
 
 AWS pricing references:  
 [S3](https://aws.amazon.com/s3/pricing/), [EC2 data transfer](https://aws.amazon.com/ec2/pricing/).
@@ -276,16 +272,13 @@ AWS pricing references:
 
 **ISP**
 
-- Occasional replication of key datasets to a secondary region for resilience.
-- Typical pattern: TB‑scale per month at most.
-- Typical monthly cost: **\$0–50**, depending on replication frequency.
+- No routine cross-region transfers are included in the monthly estimate.
 
 **CSP**
 
-- Routine replication of reference datasets (genome builds, annotations) to partner regions.
-- Project outputs replicated on demand when partners request them.
-- Movement may be tens of GB to a few TB per month across regions.
-- Typical monthly cost: **\$100–300**, depending on the volume of cross‑region transfers.
+- The 15 TB active dataset is already replicated to one additional region, as described in [storage assumptions](../storage/#assumptions).
+- Assume 10% of the replicated dataset changes each month, producing 1.5 TB of recurring cross-region transfers.
+- The initial 15 TB replication is excluded from the monthly estimate.
 
 AWS pricing references:  
 [S3 replication and multi‑region storage](https://aws.amazon.com/s3/pricing/).
@@ -294,16 +287,11 @@ AWS pricing references:
 
 **ISP**
 
-- Internal sharing with minimal external egress; analysts work within the platform.
-- Occasional external downloads of smaller datasets for local work.
-- Typical monthly cost: **\$0–50** for external egress.
+- Assume 50 GB of downloads to the public internet, on-premises systems, or other clouds per month.
 
 **CSP**
 
-- Regular downloads by partners to on‑premises systems or other clouds.
-- Egress to the internet or via Direct Connect becomes a significant line item.
-- Partners may download 100 GB to 1 TB per month depending on project activity.
-- Typical monthly cost: **\$200–500**, depending on partner behaviour and dataset sizes.
+- 10 external partners each download 100 GB to the public internet, on-premises systems, or other clouds per month, for 1 TB of external egress.
 
 AWS pricing references:  
 [EC2 / S3 data transfer out](https://aws.amazon.com/ec2/pricing/), [Direct Connect](https://aws.amazon.com/directconnect/pricing/).
