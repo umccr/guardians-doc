@@ -77,14 +77,15 @@ NAT Gateways charge hourly per gateway, plus data processing charges per GB.
 Before any project uploads data, a data‑sharing platform must have foundational storage and indexing:
 
 - **S3 buckets** ([AWS's object storage service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html))
- hold shared datasets, platform configuration, catalogues, and logs. S3 charges primarily for data volume stored, 
+ hold platform configuration and logs. Shared analysis-ready datasets and their catalogue are covered under
+ [storage costs](../storage/). S3 charges primarily for data volume stored,
  but there is always a **minimum baseline** of platform data that persists month to month. Storage optimization 
  is covered in [Storing data](../storage/) and [Looking after data](../data-lifecycle/).
 
-- **Metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)) 
+- **Operational metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html))
 or **RDS** ([a relational database](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)) 
-index datasets, track permissions, and record sharing history. These often incur a **minimum monthly charge** 
-even when lightly used.
+hold platform configuration, access policies, and sharing-workflow state. The dataset catalogue and its
+growing index are counted separately under [storage costs](../storage/) to avoid counting them twice.
 
 💡 Unlike networking, storage cost scales with data volume, so it is not purely "fixed". 
 However, the platform's own metadata and configuration occupy a small but persistent footprint,
@@ -237,13 +238,13 @@ AWS pricing references:
 
 **ISP**
 
-- 2 S3 buckets for platform configuration, catalogues, and logs, holding 100 GB total in S3 Standard; assume 100,000 GET requests and 10,000 PUT requests per month
-- 1 on-demand DynamoDB table for metadata, with 100,000 read request units and 10,000 write request units per month; assume items average 1 KB
+- 2 S3 buckets for platform configuration and logs, holding 100 GB total in S3 Standard; assume 100,000 GET requests and 10,000 PUT requests per month
+- 1 on-demand DynamoDB table for operational metadata (access policies and sharing-workflow state), with 100,000 read request units and 10,000 write request units per month; dataset catalogue records are counted under storage costs
 
 **CSP**
 
-- 4 S3 buckets across 2 accounts for catalogues, logs, and shared configuration, holding 200 GB total in S3 Standard; assume 500,000 GET requests and 50,000 PUT requests per month
-- 2 on-demand DynamoDB tables for metadata, each with 250,000 read request units and 25,000 write request units per month; assume items average 1 KB
+- 4 S3 buckets across 2 accounts for logs and shared configuration, holding 200 GB total in S3 Standard; assume 500,000 GET requests and 50,000 PUT requests per month
+- 2 on-demand DynamoDB tables for operational metadata (access policies and sharing-workflow state), each with 250,000 read request units and 25,000 write request units per month; dataset catalogue records are counted under storage costs
 
 AWS pricing references:  
 [S3](https://aws.amazon.com/s3/pricing/), [DynamoDB](https://aws.amazon.com/dynamodb/pricing/), [RDS](https://aws.amazon.com/rds/pricing/).

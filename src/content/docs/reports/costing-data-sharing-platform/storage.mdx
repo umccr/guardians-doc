@@ -185,27 +185,27 @@ a necessary cost of doing business.
 Storage cost is the part of the budget that grows visibly over time: as more data is produced and retained, 
 and as more copies are created for partners and resilience. The table below summarises indicative monthly storage cost ranges 
 for an ISP and a CSP, broken down by main components. The underlying estimation details are described in
- [Assumptions and estimates](#assumptions-and-estimates). Costs are shown in USD.
+ [Assumptions](#assumptions). Costs are shown in USD.
 
 <CostTable table="storage" />
 
-### Assumptions and estimates
+### Assumptions
 
-Below, we describe representative setups we assumed for an ISP and a CSP, and the corresponding estimates for each component.
+The assumptions below define the data volumes, storage classes, catalogue, and replication modeled for each platform.
+
+Volumes use decimal units: 1 TB = 1,000 GB. Active and archived outputs refer to separate sets of projects.
 
 #### Active curated outputs (hot storage)
 
 **ISP**
 
-- Curated outputs for around 50 projects stored in S3 Standard.
-- Approximate volume: 5–10 TB of BAM/CRAM, VCFs and summary tables.
-- Typical monthly cost: **\$100–300** for hot storage of these TB‑scale curated outputs.
+- 50 active projects, with 150 GB of curated BAM/CRAM, VCFs, and summary tables per project.
+- Store 7.5 TB total in S3 Standard.
 
 **CSP**
 
-- Similar curated outputs, but a larger active set due to ongoing collaborative work.
-- Approximate volume: 10–20 TB of datasets kept hot to support partners.
-- Typical monthly cost: **\$200–600**, reflecting higher TB volumes kept in hot storage.
+- 100 active projects, with 150 GB of curated outputs per project.
+- Store 15 TB total in S3 Standard.
 
 AWS pricing references:  
 [S3 storage classes](https://aws.amazon.com/s3/pricing/).
@@ -214,15 +214,13 @@ AWS pricing references:
 
 **ISP**
 
-- Older curated outputs moved to Glacier or Deep Archive after a defined period (e.g. 12–24 months).
-- Approximate volume: 10–30 TB of archived results across a few years of projects.
-- Typical monthly cost: **\$50–150** for archival storage in Glacier classes.
+- 100 completed projects, with 200 GB of retained curated outputs per project.
+- Store 20 TB total in S3 Glacier Deep Archive.
 
 **CSP**
 
-- Larger archival footprint due to longer retention for cross‑organisational projects.
-- Approximate volume: 20–60 TB of archived datasets, possibly across multiple regions or accounts.
-- Typical monthly cost: **\$100–300**, depending on tier mix and retention length.
+- 200 completed projects, with 200 GB of retained curated outputs per project.
+- Store 40 TB total in S3 Glacier Deep Archive.
 
 AWS pricing references:  
 [S3 Glacier & Deep Archive](https://aws.amazon.com/s3/pricing/).
@@ -231,32 +229,30 @@ AWS pricing references:
 
 **ISP**
 
-- A small number of metadata tables (e.g. DynamoDB or RDS) indexing datasets, projects and permissions.
-- Overall size is modest compared to raw data (GB‑scale rather than TB‑scale).
-- Typical monthly cost: **\$20–50** for core metadata stores.
+- 1 on-demand DynamoDB table for the dataset catalogue, separate from the platform operational metadata store described in [Standing costs](../standing-costs/).
+- 5,000 dataset records, averaging 4 KB each; assume 100,000 read request units and 10,000 write request units per month.
+- No separate OpenSearch domain is included.
 
 **CSP**
 
-- More metadata tables and indexes, spread across multiple accounts and possibly regions.
-- Additional catalogues to support partner‑specific views of datasets.
-- Typical monthly cost: **\$50–100** for distributed metadata stores.
+- 2 on-demand DynamoDB tables for dataset catalogues, one per platform account, separate from the platform operational metadata stores described in [Standing costs](../standing-costs/).
+- 10,000 dataset records per table, averaging 4 KB each; assume 250,000 read request units and 25,000 write request units per table per month.
+- No separate OpenSearch domain is included.
 
 AWS pricing references:  
-[DynamoDB](https://aws.amazon.com/dynamodb/pricing/), [RDS](https://aws.amazon.com/rds/pricing/).
+[DynamoDB](https://aws.amazon.com/dynamodb/pricing/).
 
 #### Replication and multi‑region copies
 
 **ISP**
 
-- Primarily single‑region storage; little or no cross‑region replication.
-- Occasional copies for backup or special projects, but not routine.
-- Typical monthly cost: **\$0–50** for replication‑related storage.
+- No routine cross-region or cross-account copies of curated outputs are included.
 
 **CSP**
 
-- Routine replication of key datasets across regions or accounts for resilience and data residency.
-- Partners may retain their own copies in their accounts.
-- Typical monthly cost: **\$100–300** attributable to replicated copies and partner‑side storage.
+- Replicate all 15 TB of active curated outputs to one additional AWS region, for a 15 TB replica.
+- Do not replicate archived outputs; partner-managed copies are excluded.
+- Data transfer used to create and update replicas is counted under data movement, not storage.
 
 AWS pricing references:  
 [S3 replication and multi‑region storage](https://aws.amazon.com/s3/pricing/).
