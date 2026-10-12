@@ -11,3 +11,13 @@ standing,,Baseline compute,#baseline-compute,Internal Sharing Platform (ISP),30.
 standing,,Baseline compute,#baseline-compute,Cross‑Organisation Sharing Platform (CSP),123.38,
 standing,,Total standing cost,,Internal Sharing Platform (ISP),116.09,1
 standing,,Total standing cost,,Cross‑Organisation Sharing Platform (CSP),434.02,1
+storage,,Active curated outputs (hot storage),,Internal Sharing Platform (ISP),172.50,
+storage,,Active curated outputs (hot storage),,Cross‑Organisation Sharing Platform (CSP),345.00,
+storage,,Archived outputs (cold storage),,Internal Sharing Platform (ISP),19.80,
+storage,,Archived outputs (cold storage),,Cross‑Organisation Sharing Platform (CSP),39.60,
+storage,,Metadata & indexing,,Internal Sharing Platform (ISP),0.02,
+storage,,Metadata & indexing,,Cross‑Organisation Sharing Platform (CSP),0.11,
+storage,,Replication & multi‑region copies,,Internal Sharing Platform (ISP),0.00,
+storage,,Replication & multi‑region copies,,Cross‑Organisation Sharing Platform (CSP),345.00,
+storage,,Total storage cost,,Internal Sharing Platform (ISP),192.32,1
+storage,,Total storage cost,,Cross‑Organisation Sharing Platform (CSP),729.71,1

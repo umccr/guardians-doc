@@ -1,4 +1,4 @@
-"""Calculate the standing-cost estimates and write a review CSV.
+"""Calculate standing and storage estimates and write a review CSV.
 
 Rates are AWS public list prices for us-east-1 (US East, N. Virginia),
 checked on 2026-10-12. Free-tier credits, discounts, taxes, and data-transfer
@@ -36,10 +36,12 @@ AWS_PRICES = {
     "interface_endpoint_per_gb": Decimal("0.01"),
     "http_api_per_million_requests": Decimal("1.00"),
     "s3_standard_per_gb_month": Decimal("0.023"),
+    "s3_glacier_deep_archive_per_gb_month": Decimal("0.00099"),
     "s3_get_per_1000_requests": Decimal("0.0004"),
     "s3_put_per_1000_requests": Decimal("0.005"),
     "dynamodb_read_per_million_units": Decimal("0.125"),
     "dynamodb_write_per_million_units": Decimal("0.625"),
+    "dynamodb_storage_per_gb_month": Decimal("0.25"),
     "cloudtrail_data_events_per_100000": Decimal("0.10"),
     "kms_customer_managed_key_per_month": Decimal("1.00"),
     "kms_per_10000_requests": Decimal("0.03"),
@@ -116,6 +118,39 @@ SCENARIOS = {
         "lambda_invocations": Decimal("1000000"),
         "lambda_memory_gb": Decimal("0.512"),
         "lambda_duration_seconds": Decimal("0.2"),
+    },
+}
+
+# Storage assumptions from storage.mdx. Storage prices are modeled in us-east-1;
+# the CSP's additional replica is in us-west-2, using that region's S3 Standard rate.
+# Archived data is assumed to remain in Deep Archive for at least its 180-day
+# minimum duration. S3 request, retrieval, transition, and per-object archive
+# metadata charges are excluded because the assumptions do not specify them.
+# DynamoDB storage uses decimal units (1 KB = 1,000 bytes); free storage is excluded.
+STORAGE_SCENARIOS = {
+    "Internal Sharing Platform (ISP)": {
+        "active_projects": 50,
+        "active_output_gb_per_project": Decimal("150"),
+        "archived_projects": 100,
+        "archived_output_gb_per_project": Decimal("200"),
+        "catalogue_tables": 1,
+        "catalogue_records_per_table": 5000,
+        "catalogue_record_kb": Decimal("4"),
+        "catalogue_reads_per_table": Decimal("100000"),
+        "catalogue_writes_per_table": Decimal("10000"),
+        "replica_copies": 0,
+    },
+    "Cross‑Organisation Sharing Platform (CSP)": {
+        "active_projects": 100,
+        "active_output_gb_per_project": Decimal("150"),
+        "archived_projects": 200,
+        "archived_output_gb_per_project": Decimal("200"),
+        "catalogue_tables": 2,
+        "catalogue_records_per_table": 10000,
+        "catalogue_record_kb": Decimal("4"),
+        "catalogue_reads_per_table": Decimal("250000"),
+        "catalogue_writes_per_table": Decimal("25000"),
+        "replica_copies": 1,
     },
 }
 
@@ -225,12 +260,74 @@ def calculate_baseline_compute(assumptions):
     return ec2_cost + lambda_cost
 
 
+def calculate_active_curated_outputs(assumptions):
+    stored_gb = (
+        assumptions["active_projects"] * assumptions["active_output_gb_per_project"]
+    )
+    return stored_gb * AWS_PRICES["s3_standard_per_gb_month"]
+
+
+def calculate_archived_outputs(assumptions):
+    stored_gb = (
+        assumptions["archived_projects"]
+        * assumptions["archived_output_gb_per_project"]
+    )
+    return stored_gb * AWS_PRICES["s3_glacier_deep_archive_per_gb_month"]
+
+
+def calculate_metadata_and_indexing(assumptions):
+    catalogue_gb = (
+        assumptions["catalogue_tables"]
+        * assumptions["catalogue_records_per_table"]
+        * assumptions["catalogue_record_kb"]
+        / Decimal("1000000")
+    )
+    storage_cost = catalogue_gb * AWS_PRICES["dynamodb_storage_per_gb_month"]
+    request_cost = assumptions["catalogue_tables"] * (
+        assumptions["catalogue_reads_per_table"]
+        / Decimal("1000000")
+        * AWS_PRICES["dynamodb_read_per_million_units"]
+        + assumptions["catalogue_writes_per_table"]
+        / Decimal("1000000")
+        * AWS_PRICES["dynamodb_write_per_million_units"]
+    )
+    return storage_cost + request_cost
+
+
+def calculate_replication(assumptions):
+    replicated_gb = (
+        assumptions["active_projects"]
+        * assumptions["active_output_gb_per_project"]
+        * assumptions["replica_copies"]
+    )
+    return replicated_gb * AWS_PRICES["s3_standard_per_gb_month"]
+
+
 COMPONENT_CALCULATORS = {
     "Network & access": ("#network-and-access", calculate_network_access),
     "Storage & metadata": ("#core-storage-and-metadata", calculate_storage_and_metadata),
     "Identity & security": ("#identity-and-security", calculate_identity_and_security),
     "Monitoring & audit": ("#monitoring-and-audit", calculate_monitoring_and_audit),
     "Baseline compute": ("#baseline-compute", calculate_baseline_compute),
+}
+
+STORAGE_COMPONENT_CALCULATORS = {
+    "Active curated outputs (hot storage)": (
+        "",
+        calculate_active_curated_outputs,
+    ),
+    "Archived outputs (cold storage)": (
+        "",
+        calculate_archived_outputs,
+    ),
+    "Metadata & indexing": (
+        "",
+        calculate_metadata_and_indexing,
+    ),
+    "Replication & multi‑region copies": (
+        "",
+        calculate_replication,
+    ),
 }
 
 
@@ -248,11 +345,27 @@ def calculate_standing_costs():
     return component_values
 
 
-def write_standing_csv():
-    component_values = calculate_standing_costs()
+def calculate_storage_costs():
+    """Return unrounded monthly storage values keyed by component and platform."""
+    component_values = {}
+    for platform, assumptions in STORAGE_SCENARIOS.items():
+        for component, (_, calculator) in STORAGE_COMPONENT_CALCULATORS.items():
+            component_values[component, platform] = calculator(assumptions)
+
+    for platform in STORAGE_SCENARIOS:
+        component_values["Total storage cost", platform] = sum(
+            component_values[component, platform]
+            for component in STORAGE_COMPONENT_CALCULATORS
+        )
+    return component_values
+
+
+def write_cost_csv():
+    standing_values = calculate_standing_costs()
+    storage_values = calculate_storage_costs()
     fieldnames = ["table", "group", "row", "link", "column", "value", "total"]
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8") as output:
-        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer = csv.DictWriter(output, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for component, (link, _) in COMPONENT_CALCULATORS.items():
             for platform in SCENARIOS:
@@ -263,7 +376,7 @@ def write_standing_csv():
                         "row": component,
                         "link": link,
                         "column": platform,
-                        "value": f"{component_values[component, platform]:.2f}",
+                        "value": f"{standing_values[component, platform]:.2f}",
                         "total": "",
                     }
                 )
@@ -275,12 +388,37 @@ def write_standing_csv():
                     "row": "Total standing cost",
                     "link": "",
                     "column": platform,
-                    "value": f"{component_values['Total standing cost', platform]:.2f}",
+                    "value": f"{standing_values['Total standing cost', platform]:.2f}",
+                    "total": "1",
+                }
+            )
+        for component, (link, _) in STORAGE_COMPONENT_CALCULATORS.items():
+            for platform in STORAGE_SCENARIOS:
+                writer.writerow(
+                    {
+                        "table": "storage",
+                        "group": "",
+                        "row": component,
+                        "link": link,
+                        "column": platform,
+                        "value": f"{storage_values[component, platform]:.2f}",
+                        "total": "",
+                    }
+                )
+        for platform in STORAGE_SCENARIOS:
+            writer.writerow(
+                {
+                    "table": "storage",
+                    "group": "",
+                    "row": "Total storage cost",
+                    "link": "",
+                    "column": platform,
+                    "value": f"{storage_values['Total storage cost', platform]:.2f}",
                     "total": "1",
                 }
             )
 
 
 if __name__ == "__main__":
-    write_standing_csv()
-    print(f"Wrote standing-cost estimates to {OUTPUT_CSV}")
+    write_cost_csv()
+    print(f"Wrote standing and storage estimates to {OUTPUT_CSV}")
