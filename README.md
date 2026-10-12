@@ -46,25 +46,28 @@ Notes for maintainers. Everything lives under the `costing-data-sharing` name:
 |:-----|:------|
 | Pages | `src/content/docs/reports/costing-data-sharing-platform/` (`costing-scrollytell.mdx`, `standing-costs.mdx`, `storage.mdx`, `data-movement-egress.mdx`) |
 | Components | `src/components/costing-data-sharing/` (`CostTable`, `CostPieCharts`, `ReportScrolly`, `ReportStickyHeader`) |
-| Data and plot script | `scripts/costing-data-sharing/` (`cost_tables.csv`, `gen_costing_svgs.py`) |
+| Data and plot scripts | `scripts/costing-data-sharing/` (`calculate_cost.py`, `cost_table.csv`, `gen_costing_svgs.py`) |
 | Generated plots | `public/plots/costing-data-sharing/` |
 
 ### The CSV is the single source of truth
 
-[`scripts/costing-data-sharing/cost_tables.csv`](scripts/costing-data-sharing/cost_tables.csv) holds every costing number that is shown as a table or plot. Edit the numbers there, never in the consumers.
+[`scripts/costing-data-sharing/calculate_cost.py`](scripts/costing-data-sharing/calculate_cost.py) calculates the estimates and writes [`cost_table.csv`](scripts/costing-data-sharing/cost_table.csv). This generated CSV is the single source of truth consumed by the report tables and plots; update the model inputs and assumptions in the calculator rather than editing the CSV or its consumers.
 
-Columns: `table, group, row, link, column, min, max, total`. The `table` column says which table a line belongs to:
+Columns: `table, group, row, link, column, value, total`. Each `value` is a calculated estimate:
 
 | `table` | Content | Read by |
 |:--------|:--------|:--------|
-| `standing`, `storage`, `data-movement` | Component cost ranges (min-max) per platform; rows with `total=1` are the published totals | `CostTable`, `CostPieCharts` (component rows, midpoints), scene bar plots (total rows, midpoints), "Typical cost" lines in `ReportScrolly` (total rows) |
-| `lifecycle-series` | Yearly monthly cost per strategy, platform and component (Year 1-7) | Lifecycle plots (script) and the lifecycle table (`CostTable` derives Year 1/3/7 and the 7-year total from it) |
+| `standing`, `storage`, `data-movement` | Component cost estimates per platform; rows with `total=1` are calculated totals | `CostTable`, `CostPieCharts`, scene bar plots, and "Typical cost" lines in `ReportScrolly` |
+| `lifecycle-series` | Annual spend per strategy, platform and component (Year 1-7) | Lifecycle plots and the lifecycle table (`CostTable` derives annual spend for Years 1/3/7 and the seven-year total) |
 
-Totals are stored as published values, not computed from the components (the standing ISP maxima sum to $1,150 but the published total is $1,250).
+Values are stored at calculation precision; report tables round them and prefix them with `~` to indicate estimates.
 
 ### Updating the numbers
 
-1. Edit `cost_tables.csv`.
+1. Run the calculator to regenerate `cost_table.csv`:
+   ```bash
+   python scripts/costing-data-sharing/calculate_cost.py
+   ```
 2. Regenerate the plots (needs `numpy` and `matplotlib`):
    ```bash
    python scripts/costing-data-sharing/gen_costing_svgs.py
@@ -74,9 +77,9 @@ Totals are stored as published values, not computed from the components (the sta
 
 ### Still hardcoded (update by hand)
 
-These values do not read from the CSV. If you change the CSV, check them:
+These values are prose rather than generated from the CSV. If you change the calculator, check them:
 
-- The "Typical monthly cost: **$X-Y**" lines in `storage.mdx` (8) and `data-movement-egress.mdx` (8): one per component and platform.
+- The "Typical monthly cost" lines in `storage.mdx` and `data-movement-egress.mdx`: one per component and platform.
 - The AWS line-item estimates in `standing-costs.mdx` (for example "1 NAT Gateway - around $40/month").
 - The per-GB unit prices in `data-movement-egress.mdx` (cross-region, internet egress).
 - Any prose in the pages that quotes totals or ranges.

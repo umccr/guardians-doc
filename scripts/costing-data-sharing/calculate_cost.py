@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-OUTPUT_CSV = SCRIPT_DIR / "cost_table_revised.csv"
+OUTPUT_CSV = SCRIPT_DIR / "cost_table.csv"
 
 PRICE_REGION = "us-east-1"
 PRICING_AS_OF = "2026-10-12"

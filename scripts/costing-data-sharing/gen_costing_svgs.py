@@ -19,19 +19,26 @@ LIFECYCLE_ANIMATION_FRAMES = 49
 
 SCENE_BLUES = ["#bfdbfe", "#3b82f6", "#1e3a8a"]
 
-COST_TABLES_CSV = os.path.join(SCRIPT_DIR, "cost_tables.csv")
+COST_TABLE_CSV = os.path.join(SCRIPT_DIR, "cost_table.csv")
 
 
-def load_total_midpoints(path=COST_TABLES_CSV):
-    """Midpoint of the total row's min-max range, as {table: {platform: value}}."""
+def save_svg(fig, path):
+    fig.savefig(path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+    with open(path, encoding="utf-8") as svg_file:
+        lines = svg_file.read().splitlines()
+    with open(path, "w", encoding="utf-8", newline="\n") as svg_file:
+        svg_file.write("\n".join(line.rstrip() for line in lines) + "\n")
+
+
+def load_total_values(path=COST_TABLE_CSV):
+    """Load total row values as {table: {platform: value}}."""
     totals = {}
     with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if row["total"] != "1":
                 continue
             platform = "ISP" if "(ISP)" in row["column"] else "CSP"
-            midpoint = (float(row["min"]) + float(row["max"])) / 2
-            totals.setdefault(row["table"], {})[platform] = midpoint
+            totals.setdefault(row["table"], {})[platform] = float(row["value"])
     return totals
 
 
@@ -51,7 +58,7 @@ def build_scenes(totals):
     ]
 
 
-SCENES = build_scenes(load_total_midpoints())
+SCENES = build_scenes(load_total_values())
 
 # Shared by all scene plots so the bars keep one scale as they grow
 SCENES_MAX_TOTAL = max(sum(bar["values"]) for scene in SCENES for bar in scene["bars"])
@@ -72,8 +79,8 @@ LIFECYCLE_SCENARIO_IDS = {
 }
 
 
-def load_lifecycle_scenarios(path=COST_TABLES_CSV):
-    """Yearly cost series per strategy, platform and component, from the lifecycle-series rows."""
+def load_lifecycle_scenarios(path=COST_TABLE_CSV):
+    """Annual cost series per strategy, platform and component, from lifecycle-series rows."""
     scenarios = {}
     with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -82,7 +89,7 @@ def load_lifecycle_scenarios(path=COST_TABLES_CSV):
             platform, component = row["row"].split(" / ")
             title = row["group"].split(" — ")[0]
             series = scenarios.setdefault(title, {}).setdefault(platform, {})
-            series.setdefault(component, []).append(float(row["min"]))
+            series.setdefault(component, []).append(float(row["value"]))
     return [
         {"id": LIFECYCLE_SCENARIO_IDS[title], "title": title, "series": series}
         for title, series in scenarios.items()
@@ -215,7 +222,7 @@ def render_cost_dimension_bars():
 
         fig.subplots_adjust(left=0.03, right=0.97, bottom=0.05, top=0.998)
         out_path = os.path.join(OUT_DIR, f"{scene['id']}.svg")
-        fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        save_svg(fig, out_path)
         plt.close(fig)
         print(f"Saved {out_path}")
 
@@ -302,6 +309,7 @@ def style_lifecycle_axes(ax, x_positions, years, y_top):
     # Y-axis labels positioned on the right
     ax.yaxis.set_label_position("right")
     ax.yaxis.tick_right()
+    ax.set_ylabel("USD / year", labelpad=8, fontsize=10, color="#334155")
     
     # X-axis label
     ax.set_xlabel("Year", fontsize=11, labelpad=8)
@@ -456,7 +464,7 @@ def render_lifecycle_progression_charts():
                 LIFECYCLE_ANIMATION_DIR,
                 f"{scenario['id']}-anim-{str(frame_index).zfill(frame_pad)}.svg",
             )
-            animated_fig.savefig(animated_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+            save_svg(animated_fig, animated_path)
             plt.close(animated_fig)
             print(f"Saved {animated_path}")
 
@@ -468,7 +476,7 @@ def render_lifecycle_progression_charts():
             total_line_indices=list(range(scenario_index)),
         )
         bars_only_path = os.path.join(OUT_DIR, f"{scenario['id']}-bars.svg")
-        bars_only_fig.savefig(bars_only_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        save_svg(bars_only_fig, bars_only_path)
         plt.close(bars_only_fig)
         print(f"Saved {bars_only_path}")
 
@@ -480,7 +488,7 @@ def render_lifecycle_progression_charts():
             total_line_indices=list(range(scenario_index + 1)),
         )
         with_total_path = os.path.join(OUT_DIR, f"{scenario['id']}.svg")
-        with_total_fig.savefig(with_total_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        save_svg(with_total_fig, with_total_path)
         plt.close(with_total_fig)
         print(f"Saved {with_total_path}")
 
@@ -492,7 +500,7 @@ def render_lifecycle_progression_charts():
             total_line_indices=list(range(scenario_index + 1)),
         )
         totals_only_path = os.path.join(OUT_DIR, f"{scenario['id']}-totals.svg")
-        totals_only_fig.savefig(totals_only_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+        save_svg(totals_only_fig, totals_only_path)
         plt.close(totals_only_fig)
         print(f"Saved {totals_only_path}")
 
@@ -533,7 +541,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
         for scenario in LIFECYCLE_SCENARIOS:
             scenario_totals = scenario_platform_totals(scenario)
             end_value = scenario_totals[platform_name][-1]
-            cumulative_7y = sum(scenario_totals[platform_name]) * 12
+            cumulative_7y = sum(scenario_totals[platform_name])
             label_name = {
                 "lifecycle-keep-everything": "Full",
                 "lifecycle-balanced-strategy": "Balanced",
@@ -577,7 +585,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
     )
 
     out_path = os.path.join(OUT_DIR, f"{LIFECYCLE_COMPARISON_FIGURE_ID}.svg")
-    comparison_fig.savefig(out_path, transparent=True, bbox_inches="tight", pad_inches=0.005)
+    save_svg(comparison_fig, out_path)
     plt.close(comparison_fig)
     print(f"Saved {out_path}")
 
