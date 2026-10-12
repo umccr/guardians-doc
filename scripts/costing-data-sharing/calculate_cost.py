@@ -195,7 +195,8 @@ MOVEMENT_SCENARIOS = {
 # Lifecycle model assumptions from the agreed seven-year scenarios. Annual
 # project additions are spread evenly across months, and new projects enter at
 # the active storage volume before moving to Deep Archive at the policy age.
-# All opening active data starts at age zero; opening archive data stays archived.
+# Opening active data is evenly aged across the retention window, so it
+# archives gradually; opening archive data stays archived.
 # Standing and movement charges remain fixed at their current monthly estimates.
 LIFECYCLE_MONTHS = 7 * 12
 NEW_PROJECTS_PER_YEAR = {
@@ -524,7 +525,13 @@ def calculate_lifecycle_costs():
                 storage_assumptions["archived_projects"]
                 * storage_assumptions["archived_output_gb_per_project"]
             )
-            active_cohorts = [(0, active_gb)]
+            if archive_after_months is None:
+                active_cohorts = [(0, active_gb)]
+            else:
+                active_cohorts = [
+                    (age, active_gb / archive_after_months)
+                    for age in range(archive_after_months)
+                ]
             new_project_gb_per_month = (
                 NEW_PROJECTS_PER_YEAR[platform]
                 * storage_assumptions["active_output_gb_per_project"]

@@ -293,6 +293,9 @@ def ordinal(n):
     suffixes = {1: "st", 2: "nd", 3: "rd"}
     return str(n) + suffixes.get(n if n < 20 else n % 10, "th")
 
+LIFECYCLE_Y_STEPS = [1000, 2000, 5000, 10000, 20000, 25000, 50000]
+
+
 def style_lifecycle_axes(ax, x_positions, years, y_top):
     ax.set_ylim(0, y_top)
     ax.set_xlim(-0.8, max(x_positions) + 0.8)
@@ -300,10 +303,12 @@ def style_lifecycle_axes(ax, x_positions, years, y_top):
     ax.set_xticklabels([ordinal(year) for year in years], fontsize=12)
     
     # Y-axis with rounder gridlines
-    step = 1500
-    y_ticks = np.arange(step, y_top + step, step)
+    step = next(s for s in LIFECYCLE_Y_STEPS if s >= y_top / 5)
+    top = np.ceil(y_top / step) * step
+    ax.set_ylim(0, top)
+    y_ticks = np.arange(step, top + 1e-9, step)
     ax.set_yticks(y_ticks)
-    ax.set_yticklabels([f"${int(v)}" for v in y_ticks], fontsize=11)
+    ax.set_yticklabels([f"${int(v / 1000)}k" for v in y_ticks], fontsize=11)
     ax.grid(axis="y", alpha=0.2, linestyle="-", linewidth=0.5, color="gray")
     
     # Y-axis labels positioned on the right
@@ -537,7 +542,19 @@ def render_lifecycle_total_evolution_figure(years, y_top):
         clip_on=False,
     )
 
+    min_gap = y_top * 0.06
     for platform_name in ["CSP", "ISP"]:
+        ordered = sorted(
+            LIFECYCLE_SCENARIOS,
+            key=lambda sc: scenario_platform_totals(sc)[platform_name][-1],
+        )
+        ys = [scenario_platform_totals(sc)[platform_name][-1] for sc in ordered]
+        for i in range(len(ys) - 1):
+            deficit = min_gap - (ys[i + 1] - ys[i])
+            if deficit > 0:
+                ys[i] -= deficit / 2
+                ys[i + 1] += deficit / 2
+        label_ys = {sc["id"]: y for sc, y in zip(ordered, ys)}
         for scenario in LIFECYCLE_SCENARIOS:
             scenario_totals = scenario_platform_totals(scenario)
             end_value = scenario_totals[platform_name][-1]
@@ -551,7 +568,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
             line_color = LIFECYCLE_SCENARIO_LINE_COLORS[scenario["id"]]
             ax.text(
                 label_x,
-                end_value,
+                label_ys[scenario["id"]],
                 label_text,
                 ha="left",
                 va="center",
@@ -562,7 +579,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
 
     ax.text(
         0.02,
-        0.95,
+        0.82,
         "Cross-Organisation Sharing Platform",
         transform=ax.transAxes,
         ha="left",
@@ -574,7 +591,7 @@ def render_lifecycle_total_evolution_figure(years, y_top):
 
     ax.text(
         0.02,
-        0.35,
+        0.24,
         "Internal Sharing Platform",
         transform=ax.transAxes,
         ha="left",

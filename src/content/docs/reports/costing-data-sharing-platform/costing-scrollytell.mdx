@@ -239,7 +239,7 @@ The three strategies differ in when new active curated data moves to S3 Glacier 
 
 **Lean retention** moves curated outputs to S3 Glacier Deep Archive after one year.
 
-New projects are spread across each year. Opening active data is treated as newly active, while existing archived data remains archived. Costs are calculated month by month and summed into annual spend; archive transition and retrieval fees are not included.
+New projects are spread across each year. Opening active data is assumed to be evenly aged across the retention window, so it moves to the archive gradually, while existing archived data remains archived. As a result, Lean and Balanced spend is highest early on and then settles: Lean's first year is more expensive than its second because the opening stock is still being archived through year 1. Costs are calculated month by month and summed into annual spend; archive transition and retrieval fees are not included.
 
 The scenarios below show how standing, storage, and data-movement costs contribute to annual spending and accumulate over seven years for both platforms. The charts and table use the same calculated estimates, with annual values shown separately from the seven-year cumulative total.
 
