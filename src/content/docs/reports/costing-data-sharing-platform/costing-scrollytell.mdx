@@ -229,7 +229,7 @@ The charts below show how these components combine for each scenario. Hover over
 
 Platform costs change as data accumulates and ages. One important choice is when to move older data from faster, more expensive storage to a lower-cost archive tier. This seven-year illustration shows how that choice affects costs for internal and cross-organisation platforms.
 
-The model starts with the active and archived curated datasets described in the storage assumptions, then adds 25 ISP or 50 CSP projects each year, at 150 GB of curated data per project. It focuses on curated outputs; transient and intermediate data are not modeled. Standing and data-movement costs are held constant so the comparison highlights the effect of storage choices.
+The model starts from an empty platform at launch, with no existing data, and adds 25 ISP or 50 CSP projects each year, at 150 GB of curated data per project. The monthly cost tables above describe a mature platform, so these lifecycle figures are a launch-to-year-seven projection rather than a continuation of those tables. It focuses on curated outputs; transient and intermediate data are not modeled. Standing and data-movement costs are held constant so the comparison highlights the effect of storage choices.
 
 The three strategies differ in what happens to curated data as it ages. They are deliberately extreme bookends rather than realistic policies:
 
@@ -237,9 +237,9 @@ The three strategies differ in what happens to curated data as it ages. They are
 
 **Balanced retention** moves curated outputs to S3 Glacier Deep Archive after two years.
 
-**Lean retention** deletes curated outputs after one year. Nothing is archived, and the existing archived outputs are deleted at the start.
+**Lean retention** deletes curated outputs after one year. Nothing is archived.
 
-New projects are spread across each year. Opening active data is assumed to be evenly aged across the retention window, so it is archived (Balanced) or deleted (Lean) gradually, while existing archived data remains archived under Full and Balanced. As a result, Lean and Balanced spend is highest early on and then settles: Lean's first year is more expensive than its second because the opening stock is still being deleted through year 1. Costs are calculated month by month and summed into annual spend; archive transition, retrieval and early-deletion fees are not included, and metadata costs are held constant.
+New projects are spread across each year, so storage grows from zero. Lean spend levels off once a full year of projects is held, Balanced storage keeps growing more slowly as the archive fills, and Full grows steadily. Costs are calculated month by month and summed into annual spend; archive transition, retrieval and early-deletion fees are not included, and metadata costs are held constant.
 
 The scenarios below show how standing, storage, and data-movement costs contribute to annual spending and accumulate over seven years for both platforms. The charts and table use the same calculated estimates, with annual values shown separately from the seven-year cumulative total.
 
@@ -272,7 +272,6 @@ export const lifecycleSceneData = [
         heading: 'What this means:',
         items: [
           'Keep new curated outputs in S3 Standard',
-          'Existing archived outputs remain in Deep Archive',
           'Transient and intermediate data are outside this model',
         ],
       },
@@ -331,7 +330,7 @@ export const lifecycleSceneData = [
         items: [
           'Keep new curated outputs in S3 Standard for one year',
           'Then delete them; nothing moves to Deep Archive',
-          'Existing archived outputs are deleted at the start',
+          'Nothing is retained beyond the one-year window',
         ],
       },
       {
@@ -339,7 +338,7 @@ export const lifecycleSceneData = [
         items: [
           'Standing costs remain stable',
           'Stored data is capped at about one year of projects',
-          'Annual storage spend settles after the opening stock is deleted',
+          'Annual storage spend levels off once a year of projects is held',
         ],
       },
     ],

@@ -195,9 +195,8 @@ MOVEMENT_SCENARIOS = {
 # Lifecycle model assumptions from the agreed seven-year scenarios. Annual
 # project additions are spread evenly across months, and new projects enter at
 # the active storage volume before the policy archives or deletes them at the
-# policy age. Opening active data is evenly aged across the retention window,
-# so it is archived or deleted gradually. Opening archive data stays archived,
-# except under the delete policy, which keeps nothing beyond the window.
+# policy age. The platform starts empty at launch, so storage grows only from
+# new projects.
 # Standing and movement charges remain fixed at their current monthly estimates.
 LIFECYCLE_MONTHS = 7 * 12
 NEW_PROJECTS_PER_YEAR = {
@@ -518,23 +517,8 @@ def calculate_lifecycle_costs():
     for strategy, (archive_after_months, expiry_action) in LIFECYCLE_POLICIES.items():
         annual_costs[strategy] = {}
         for platform, storage_assumptions in STORAGE_SCENARIOS.items():
-            active_gb = (
-                storage_assumptions["active_projects"]
-                * storage_assumptions["active_output_gb_per_project"]
-            )
-            archived_gb = (
-                storage_assumptions["archived_projects"]
-                * storage_assumptions["archived_output_gb_per_project"]
-            )
-            if expiry_action == "delete":
-                archived_gb = Decimal("0")
-            if archive_after_months is None:
-                active_cohorts = [(0, active_gb)]
-            else:
-                active_cohorts = [
-                    (age, active_gb / archive_after_months)
-                    for age in range(archive_after_months)
-                ]
+            archived_gb = Decimal("0")
+            active_cohorts = []
             new_project_gb_per_month = (
                 NEW_PROJECTS_PER_YEAR[platform]
                 * storage_assumptions["active_output_gb_per_project"]
