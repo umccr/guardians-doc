@@ -7,7 +7,7 @@ import CostTable from '../../../../components/costing-data-sharing/CostTable.ast
 import CostPieCharts from '../../../../components/costing-data-sharing/CostPieCharts.astro';
 
 
-**v 1.0**
+**v 2.0**
 
 Felipe Jiménez-Ibarra
 
@@ -16,6 +16,7 @@ Felipe Jiménez-Ibarra
 | Version | Date     | Who | Change Summary                                    |
 | ------- | -------- | --- | ------------------------------------------------- |
 | 1.0     | Jul 2026 | FJI | Initial version with preliminary cost estimates.  |
+| 2.0     | Oct 2026 | FJI | Estimates calculated from stated assumptions; lifecycle model revised. |
 
 
 ## Introduction
@@ -227,19 +228,21 @@ The charts below show how these components combine for each scenario. Hover over
 ## Costs over time - the impact of lifecycle decisions
 
 
-Platform costs don't stay static—they evolve as data accumulates, your platform grows, and requirements change. But one of the most powerful levers you control is **how you manage your data as it ages**. Data has a natural lifecycle: recently created data is highly accessible and frequently moved, but over time, some data becomes less relevant, less frequently accessed, or less valuable. How well you understand and manage this lifecycle is a key factor in determining your platform's long-term costs. Different retention strategies lead to dramatically different cost trajectories.
+Platform costs change as data accumulates and ages. One important choice is when to move older data from faster, more expensive storage to a lower-cost archive tier. This seven-year illustration shows how that choice affects costs for internal and cross-organisation platforms.
 
-In this section, we'll explore different retention strategies for internal and cross-organisation data-sharing platforms. We use a 7-year timeframe to illustrate how lifecycle decisions—what data to keep, what to archive, and what to delete—compound over time and reshape your total spending.
+The model starts from an empty platform at launch, with no existing data, and adds 25 ISP or 50 CSP projects each year, at 150 GB of curated data per project. The monthly cost tables above describe a mature platform, so these lifecycle figures are a launch-to-year-seven projection rather than a continuation of those tables. It focuses on curated outputs; transient and intermediate data are not modeled. Standing and data-movement costs are held constant so the comparison highlights the effect of storage choices.
 
-For that, we compare three retention strategies:
+The three strategies differ in what happens to curated data as it ages. They are deliberately extreme bookends rather than realistic policies:
 
-**Full retention** keeps most data indefinitely with minimal deletion. Maximises historical coverage and reproducibility, but costs the most over time.
+**Full retention** keeps new curated outputs in S3 Standard throughout the model period.
 
-**Balanced retention** keeps valuable curated data long-term while archiving or deleting transient data. Balances accessibility, compliance, and cost control.
+**Balanced retention** moves curated outputs to S3 Glacier Deep Archive after two years.
 
-**Lean retention** removes temporary and low-value data quickly, keeping only essential curated outputs. Minimises long-term costs but requires strict governance and clear data policies.
+**Lean retention** deletes curated outputs after one year. Nothing is archived.
 
-Below, we explore the yearly cost evolution for each retention strategy. For each scenario, you'll see how the three cost dimensions (standing, storage, and data movement; described in [above](#three-main-cost-dimensions)) contribute to your yearly costs and how your total cost builds up over 7 years for both an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). Watch how the cost trajectories diverge as lifecycle decisions compound over time.
+New projects are spread across each year, so storage grows from zero. Lean spend levels off once a full year of projects is held, Balanced storage keeps growing more slowly as the archive fills, and Full grows steadily. Costs are calculated month by month and summed into annual spend; archive transition, retrieval and early-deletion fees are not included, and metadata costs are held constant.
+
+The scenarios below show how standing, storage, and data-movement costs contribute to annual spending and accumulate over seven years for both platforms. The charts and table use the same calculated estimates, with annual values shown separately from the seven-year cumulative total.
 
 
 
@@ -264,28 +267,27 @@ export const lifecycleSceneData = [
   {
     id: 'lifecycle-scene1',
     title: 'Full Retention',
-    intro: 'Keep most data indefinitely. Storage grows continuously, making this the most expensive strategy over time.',
+    intro: 'Keep new curated outputs in S3 Standard throughout the seven-year model.',
     sections: [
       {
         heading: 'What this means:',
         items: [
-          'Retain most outputs and intermediates long-term',
-          'Limited archival and minimal deletion',
-          'Data accumulates year after year',
+          'Keep new curated outputs in S3 Standard',
+          'Transient and intermediate data are outside this model',
         ],
       },
       {
         heading: 'How costs evolve:',
         items: [
           'Standing costs remain stable',
-          'Storage becomes the dominant cost driver',
-          'Total cost grows steadily each year',
+          'Storage costs rise as new projects are added',
+          'No curated data is deleted in this scenario',
         ],
       },
     ],
     note: {
       label: 'Bottom line',
-      text: 'Simple to operate, but the most expensive path over 7 years.',
+      text: 'Provides the fastest access to retained curated outputs, with the highest modeled storage costs.',
     },
     image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
@@ -293,28 +295,28 @@ export const lifecycleSceneData = [
   {
     id: 'lifecycle-scene2',
     title: 'Balanced Retention',
-    intro: 'Keep valuable curated data long-term while archiving or deleting transient data. A pragmatic middle ground.',
+    intro: 'Move curated outputs to S3 Glacier Deep Archive after two years.',
     sections: [
       {
         heading: 'What this means:',
         items: [
-          'Retain curated outputs for reuse and reproducibility',
-          'Archive older data and delete intermediates automatically',
-          'Apply lifecycle rules tuned by project and data type',
+          'Keep new curated outputs in S3 Standard for two years',
+          'Then move them to Deep Archive',
+          'Retain curated outputs; deletion is not modeled',
         ],
       },
       {
         heading: 'How costs evolve:',
         items: [
           'Standing costs remain stable',
-          'Storage grows moderately, then plateaus',
-          'Total cost stabilises in later years',
+          'Older data costs less to store after archiving',
+          'Total stored data and annual storage spend continue to grow',
         ],
       },
     ],
     note: {
       label: 'Bottom line',
-      text: 'Balances accessibility, compliance, and cost control.',
+      text: 'Trades some access speed for lower storage costs while retaining curated data.',
     },
     image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
@@ -322,28 +324,28 @@ export const lifecycleSceneData = [
   {
     id: 'lifecycle-scene3',
     title: 'Lean Retention',
-    intro: 'Remove temporary and low-value data early. Keeps long-term storage growth minimal and costs lowest.',
+    intro: 'Delete curated outputs after one year; nothing is archived.',
     sections: [
       {
         heading: 'What this means:',
         items: [
-          'Short retention windows for intermediates and scratch data',
-          'Rapid transition to archive tiers where needed',
-          'Strict, automated deletion policies',
+          'Keep new curated outputs in S3 Standard for one year',
+          'Then delete them; nothing moves to Deep Archive',
+          'Nothing is retained beyond the one-year window',
         ],
       },
       {
         heading: 'How costs evolve:',
         items: [
           'Standing costs remain stable',
-          'Storage curve flattens quickly after initial growth',
-          'Total cost stabilises at the lowest level',
+          'Stored data is capped at about one year of projects',
+          'Annual storage spend levels off once a year of projects is held',
         ],
       },
     ],
     note: {
       label: 'Bottom line',
-      text: 'Lowest long-term cost, but requires strong governance and clear data policies.',
+      text: 'The lowest-cost bookend, but curated data older than one year is no longer available.',
     },
     image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
     imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
@@ -359,9 +361,9 @@ export const lifecycleSceneData = [
 
 ## Cost trajectories: full view
 
-The chart below compares the complete 7-year cost picture for all three retention strategies. Each line represents a different strategy, and you can see how dramatically they diverge over time. The labels at the end of each line show the 7-year cumulative total—the total amount you'll spend over the entire period.
+Each line represents a strategy, with labels showing its cumulative total over seven years.
 
-Notice the stark differences: Full retention costs grow continuously and end up being 50% more expensive than Lean retention for an ISP, and 44% more for a CSP. Even Balanced retention—the middle ground—saves significant money compared to keeping everything.
+Earlier archiving lowers the modeled storage cost, but it does not stop total spending from rising: the model continues to add projects, and keeps all curated outputs.
 
 <div class="not-prose" style={{ margin: '1rem 0 2rem', background: 'rgb(156, 163, 174, 0.08)', borderRadius: '0.5rem', padding: '1rem' }}>
   <img
@@ -371,7 +373,7 @@ Notice the stark differences: Full retention costs grow continuously and end up 
   />
 </div>
 
-The table below captures the same evolution shown in the plot, with snapshots at Year 1, Year 3, and Year 7. Notice how the strategies start similarly but diverge sharply by Year 7. Costs shown in USD. 
+The table below shows annual spend for Years 1, 3, and 7, plus the cumulative seven-year total. Costs are shown in USD.
 
 <CostTable table="lifecycle" />
 
@@ -382,6 +384,6 @@ The cost of a data-sharing platform isn't fixed—it depends on your design choi
 
 Many costs aren't obvious at first glance. There are costs imposed by moving data—especially when sharing with external partners or across regions—that don't feel like "real" costs until you see them on your bill. There are also hidden costs from maintaining the platform itself: the networking, security, monitoring, and infrastructure that run 24/7 whether anyone is using it or not. Understanding these [standing costs](../standing-costs/) and [data movement costs](../data-movement-egress/) is crucial for budgeting.
 
-The biggest lever you control is how you manage data over time. Your [retention strategy](#costs-over-time---the-impact-of-lifecycle-decisions)—what you keep, what you archive, and what you delete—can save 20–30% of your long-term costs. And [storage decisions](../storage/) compound over years: the difference between keeping everything hot and using a balanced approach can mean tens of thousands of dollars.
+The biggest lever you control is how you manage data over time. Your [retention strategy](#costs-over-time---the-impact-of-lifecycle-decisions)—what you keep and when you archive it—affects storage costs over the life of the platform. The illustration above models archiving curated data, not deleting it; actual savings depend on data growth, retention policies, access needs, and archive-related charges.
 
 Start by understanding your platform's characteristics. Are you internal or cross-organisation? What's your data growth rate? How long do you need to keep data? Then explore the detailed cost guides to see where your money goes and where you have levers to control it.

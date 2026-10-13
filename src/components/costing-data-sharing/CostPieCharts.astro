@@ -1,7 +1,7 @@
 ---
-import costCsv from '../../../scripts/costing-data-sharing/cost_tables.csv?raw';
+import costCsv from '../../../scripts/costing-data-sharing/cost_table.csv?raw';
 
-// Component rows (not totals) of each cost table; slice value = midpoint of min-max.
+// Component rows (not totals) of each cost table.
 const splitLine = (line: string) =>
 	[...line.matchAll(/("([^"]|"")*"|[^,]*)(,|$)/g)]
 		.slice(0, -1)
@@ -12,7 +12,7 @@ const rows = costCsv
 	.split('\n')
 	.slice(1)
 	.map(splitLine)
-	.map(([table, , row, , column, min, max, total]) => ({ table, row, column, min, max, total }))
+	.map(([table, , row, , column, value, total]) => ({ table, row, column, value, total }))
 	.filter((r) => r.total !== '1');
 
 const TABLES = [
@@ -33,7 +33,7 @@ const scenarios = Object.fromEntries(
 		TABLES.map(({ table }) =>
 			rows
 				.filter((r) => r.table === table && r.column.includes(`(${platform})`))
-				.map((r) => (Number(r.min) + Number(r.max)) / 2)
+				.map((r) => Number(r.value))
 		),
 	])
 );
@@ -76,7 +76,7 @@ const scenarios = Object.fromEntries(
   <script>
     (function () {
       const rootEl = document.querySelector('[data-cost-pie-root]');
-      // Category names, colours and per-scenario values are built from cost_tables.csv
+      // Category names, colours and per-scenario values are built from cost_table.csv.
       const CATEGORIES = JSON.parse(rootEl.dataset.categories);
       const SCENARIOS = JSON.parse(rootEl.dataset.scenarios);
 

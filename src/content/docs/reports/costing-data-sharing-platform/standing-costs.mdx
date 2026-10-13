@@ -77,14 +77,15 @@ NAT Gateways charge hourly per gateway, plus data processing charges per GB.
 Before any project uploads data, a data‑sharing platform must have foundational storage and indexing:
 
 - **S3 buckets** ([AWS's object storage service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html))
- hold shared datasets, platform configuration, catalogues, and logs. S3 charges primarily for data volume stored, 
+ hold platform configuration and logs. Shared analysis-ready datasets and their catalogue are covered under
+ [storage costs](../storage/). S3 charges primarily for data volume stored,
  but there is always a **minimum baseline** of platform data that persists month to month. Storage optimization 
  is covered in [Storing data](../storage/) and [Looking after data](../data-lifecycle/).
 
-- **Metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html)) 
+- **Operational metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html))
 or **RDS** ([a relational database](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)) 
-index datasets, track permissions, and record sharing history. These often incur a **minimum monthly charge** 
-even when lightly used.
+hold platform configuration, access policies, and sharing-workflow state. The dataset catalogue and its
+growing index are counted separately under [storage costs](../storage/) to avoid counting them twice.
 
 💡 Unlike networking, storage cost scales with data volume, so it is not purely "fixed". 
 However, the platform's own metadata and configuration occupy a small but persistent footprint,
@@ -199,17 +200,15 @@ An [internal sharing platform (ISP)](#internal-sharing-platform) typically has a
 
 
 The table below summarises indicative monthly standing‑cost ranges for each component in an ISP and a CSP. 
-The underlying estimation details are described in the 
-[Assumptions and estimates](#assumptions-and-estimates) section. Costs shown in USD.
+The following section describes the representative setups behind those ranges. Costs shown in USD.
 
 <CostTable table="standing" />
 
 
 
-### Assumptions and estimates
+## Assumptions
 
-Below, we describe the representative setups we assumed for an ISP and a CSP,
- and the corresponding estimates for each of the five components.
+The assumptions below define the services and usage for each standing-cost component in both platform scenarios.
 
 
 
@@ -217,17 +216,17 @@ Below, we describe the representative setups we assumed for an ISP and a CSP,
 
 **ISP**
 
-- 1 VPC in a single region – no direct monthly fee for the VPC itself  
-- 1 NAT Gateway – around \$40/month including light data processing  
-- 3 VPC interface endpoints (e.g. S3, CloudWatch Logs, Secrets Manager) – together roughly \$30–50/month in endpoint‑hour and data processing charges  
-- 1 regional HTTP API in API Gateway with low request volume – about \$5–10/month  
+- 1 VPC in 1 region
+- 1 NAT Gateway, processing 100 GB of data per month
+- 3 VPC interface endpoints (S3, CloudWatch Logs, and Secrets Manager), each running 730 hours per month and processing 100 GB total per month
+- 1 regional HTTP API in API Gateway, receiving 100,000 requests per month
 
 **CSP**
 
-- 2 production VPCs (e.g. internal and partner‑facing), peered or linked – no direct monthly fee for the VPCs themselves  
-- 2 NAT Gateways – together around \$100–120/month with higher data volumes  
-- 6 VPC interface endpoints (internal and external accounts) – together roughly \$80–150/month  
-- 2 regional HTTP APIs in API Gateway – together about \$50–100/month at higher request volume  
+- 2 VPCs in 1 region (internal and partner-facing)
+- 2 NAT Gateways, each processing 500 GB of data per month
+- 6 VPC interface endpoints (S3, CloudWatch Logs, and Secrets Manager across the 2 accounts), each running 730 hours per month and processing 500 GB total per month
+- 2 regional HTTP APIs in API Gateway, each receiving 500,000 requests per month
 
 AWS pricing references:  
 [NAT Gateway](https://aws.amazon.com/vpc/pricing/), [VPC interface endpoints / PrivateLink](https://aws.amazon.com/privatelink/pricing/), [API Gateway](https://aws.amazon.com/api-gateway/pricing/).
@@ -239,13 +238,13 @@ AWS pricing references:
 
 **ISP**
 
-- 1–2 S3 buckets for platform configuration, catalogues and logs – together around \$20–40/month for ~100 GB of Standard storage and a modest request volume  
-- 1 small metadata store (e.g. DynamoDB table or small RDS instance) – around \$30–60/month for baseline capacity and light usage  
+- 2 S3 buckets for platform configuration and logs, holding 100 GB total in S3 Standard; assume 100,000 GET requests and 10,000 PUT requests per month
+- 1 on-demand DynamoDB table for operational metadata (access policies and sharing-workflow state), with 100,000 read request units and 10,000 write request units per month; dataset catalogue records are counted under storage costs
 
 **CSP**
 
-- Several S3 buckets across accounts for catalogues, logs and shared config – together around \$50–100/month for ~200 GB of storage and more requests  
-- 2–3 metadata stores (e.g. per‑partner or per‑domain DynamoDB tables or RDS instances) – together around \$50–100/month for baseline capacity  
+- 4 S3 buckets across 2 accounts for logs and shared configuration, holding 200 GB total in S3 Standard; assume 500,000 GET requests and 50,000 PUT requests per month
+- 2 on-demand DynamoDB tables for operational metadata (access policies and sharing-workflow state), each with 250,000 read request units and 25,000 write request units per month; dataset catalogue records are counted under storage costs
 
 AWS pricing references:  
 [S3](https://aws.amazon.com/s3/pricing/), [DynamoDB](https://aws.amazon.com/dynamodb/pricing/), [RDS](https://aws.amazon.com/rds/pricing/).
@@ -255,15 +254,15 @@ AWS pricing references:
 
 **ISP**
 
-- 1 CloudTrail trail recording management events in a single account – around \$20–40/month for event recording and S3 log storage  
-- A small number of customer‑managed KMS keys for platform data – around \$5–20/month in key fees and request charges  
-- Integration with an organisational IdP (via IAM Identity Center or similar) – typically low direct AWS cost for standing usage  
+- 1 AWS account with 1 CloudTrail trail recording management events only
+- 2 customer-managed KMS keys, with 100,000 cryptographic requests per month in total
+- 1 organisational identity provider integrated through IAM Identity Center
 
 **CSP**
 
-- CloudTrail trails in 2–3 accounts, plus selected data events on key S3 buckets – together around \$100–300/month depending on event volume and retention  
-- More KMS keys and higher request volumes (e.g. per‑partner or per‑dataset keys) – together around \$20–50/month  
-- More complex identity federation (multiple external IdPs or cross‑account roles) – some additional operational overhead, but often small direct AWS cost
+- 2 AWS accounts, each with 1 CloudTrail trail recording management events and S3 data events for 2 designated buckets; assume 1 million data events per month in total
+- 6 customer-managed KMS keys, with 500,000 cryptographic requests per month in total
+- 2 external identity providers federated through cross-account roles
 
 AWS pricing references:  
 [CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [IAM Identity Center](https://aws.amazon.com/iam/identity-center/pricing/).
@@ -273,20 +272,18 @@ AWS pricing references:
 
 **ISP**
 
-- CloudWatch metrics for core services (CPU, requests, errors) – around $20–40/month for a modest number of custom metrics
-- CloudWatch Logs for application and platform logs, with moderate retention (e.g. 30–90 days) – around $50–150/month depending on GB ingested and stored
-- CloudTrail trail recording management events – around $20–40/month for event recording and S3 log storage
-- S3 buckets for log aggregation and archival – around $20–50/month for catalogue and log storage
-- Occasional use of dashboards and alarms – typically a small additional cost compared to metrics and logs
+- 20 CloudWatch custom metrics, 1 dashboard, and 10 alarms
+- CloudWatch Logs ingestion of 20 GB per month, with 30-day retention
+- CloudTrail event recording is included under Identity and security; its log storage is included under Core storage and metadata
+- No additional managed threat-detection services
 
 
 **CSP**
 
-- More CloudWatch metrics and log streams across multiple accounts and VPCs – together around $200–500/month
-- Longer log retention to meet cross‑organisational audit requirements – adding another $300–500/month depending on volume
-- CloudTrail trails in 2–3 accounts, plus selected data events on key S3 buckets – together around $100–300/month depending on event volume and retention
-- S3 buckets for log aggregation and archival across multiple accounts – around $50–150/month for larger and more detailed log footprints
-- Optional security monitoring services (e.g. GuardDuty, Security Hub) – which can contribute additional tens to hundreds of dollars per month
+- 100 CloudWatch custom metrics, 5 dashboards, and 50 alarms across both accounts
+- CloudWatch Logs ingestion of 100 GB per month, with 365-day retention
+- CloudTrail event recording is included under Identity and security; its log storage is included under Core storage and metadata
+- No additional managed threat-detection services
 
 AWS pricing references:  
 [CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), [CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [S3](https://aws.amazon.com/s3/pricing/), [GuardDuty](https://aws.amazon.com/guardduty/pricing/), [Security Hub](https://aws.amazon.com/security-hub/pricing/).
@@ -296,13 +293,13 @@ AWS pricing references:
 
 **ISP**
 
-- A small set of always‑on compute (e.g. 1–2 EC2 instances or EKS/ECS worker nodes for control‑plane services) – together around \$100–300/month depending on instance type and region  
-- Light use of serverless components (e.g. Lambda functions for housekeeping) – typically a small additional monthly cost for low invocation volumes  
+- 2 Linux EC2 t3.small instances, On-Demand, running 730 hours each per month
+- 100,000 Lambda invocations per month, each using 256 MB of memory for 100 ms
 
 **CSP**
 
-- A larger or multi‑account control‑plane footprint (e.g. 3–6 EC2 instances or worker nodes across environments) – together around \$300–1,000/month  
-- More frequent use of Lambda or Fargate for partner‑facing jobs and workflows – adding roughly \$200–500/month at moderate scale  
+- 4 Linux EC2 t3.medium instances, On-Demand, running 730 hours each per month
+- 1 million Lambda invocations per month, each using 512 MB of memory for 200 ms
 
 AWS pricing references:  
 [EC2](https://aws.amazon.com/ec2/pricing/), [ECS](https://aws.amazon.com/ecs/pricing/), [EKS](https://aws.amazon.com/eks/pricing/), [Lambda](https://aws.amazon.com/lambda/pricing/), [Fargate](https://aws.amazon.com/fargate/pricing/).
