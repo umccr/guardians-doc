@@ -21,8 +21,7 @@ We can consider data movement as two main contributions:
 within a region, across regions, or out to the internet.
 
 In general, there is a key asymmetry: **uploading data into AWS is free; moving data out costs money.** This asymmetry applies not just 
-to external egress, but also to movement between storage tiers, where moving data out of a lower-tier storage class can incur significant charges 
-(see [Looking after data](../data-lifecycle/) for details).
+to external egress, but also to movement between storage tiers, where moving data out of a lower-tier storage class can incur significant charges.
 
 Unlike storage cost (which grows gradually with data volume), data movement cost is **event-driven**: sudden spikes occur when datasets are 
 shared with new partners, replicated to additional regions, moved between storage tiers, or accessed at scale.

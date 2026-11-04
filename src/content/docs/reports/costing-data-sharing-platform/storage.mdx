@@ -22,7 +22,7 @@ These choices compound over time. A platform that keeps everything hot forever w
 over time, while one with thoughtful archiving and deletion policies can keep costs much flatter.
 
 Here we will describe the cost of different storage classes and data volumes. 
-The strategies on managing storage cost over time through lifecycle policies are addressed in [Looking after data](../data-lifecycle/).
+The strategies on managing storage cost over time through lifecycle policies are addressed in the [Costs over time](../costing-scrollytell/#costs-over-time---the-impact-of-lifecycle-decisions) section.
 
 <div style={{ textAlign: 'center', margin: '2rem 0' }}>
   <LinkButton href="#storage-cost-at-a-glance">
@@ -116,7 +116,10 @@ quickly even if per-project output volumes are similar to an ISP.
 
 **Storage cost shape**: more volatile than ISP. Sudden partner requests, new compliance rules, or additional replication 
 can create cost spikes. Strict lifecycle policies and careful replication management are essential to keep costs under 
-control. See [Looking after data](../data-lifecycle/).
+control. See [Costs over time](../costing-scrollytell/#costs-over-time---the-impact-of-lifecycle-decisions).
+
+
+
 
 ## Design choices
 
@@ -164,8 +167,8 @@ Different datasets warrant different storage classes. A frequently shared refere
 might use Standard, while validated results from completed projects might use Glacier Instant, and 
 compliance archives might use Deep Archive.
 
-Also consider that as datasets age, their access patterns may change. Moving data between storage classes can
- optimise cost. This is covered in detail in [Looking after data](../data-lifecycle/).
+Also consider that as datasets age, their access patterns may change. Moving data between storage classes can optimise cost. This is covered in detail in the[Costs over time](../costing-scrollytell/#costs-over-time---the-impact-of-lifecycle-decisions) section.
+
 
 ### Replication strategy
 
