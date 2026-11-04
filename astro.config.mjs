@@ -140,6 +140,7 @@ export default defineConfig({
             label: 'Reports',
             items: [
                 "reports/costing-data-sharing-platform/costing-scrollytell",
+                "reports/sustainability/sustainability-report",
             ],
             },
         ],
