@@ -1,0 +1,389 @@
+---
+title: Costing a data‑sharing platform
+---
+
+import ReportScrolly from '../../../../components/costing-data-sharing/ReportScrolly.astro';
+import CostTable from '../../../../components/costing-data-sharing/CostTable.astro';
+import CostPieCharts from '../../../../components/costing-data-sharing/CostPieCharts.astro';
+
+
+**v 2.0**
+
+Felipe Jiménez-Ibarra
+
+## Document History
+
+| Version | Date     | Who | Change Summary                                    |
+| ------- | -------- | --- | ------------------------------------------------- |
+| 1.0     | Jul 2026 | FJI | Initial version with preliminary cost estimates.  |
+| 2.0     | Oct 2026 | FJI | Estimates calculated from stated assumptions; lifecycle model revised. |
+
+
+## Introduction
+
+
+Running a data-sharing platform on cloud infrastructure costs money in ways that aren't always obvious. Beyond the data itself, you pay to keep infrastructure running, secure access working, and datasets available when needed. Understanding these costs is essential for sustainability, funding conversations, and making smart architectural choices.
+
+This report breaks down the costs of operating a genomics data-sharing platform on **AWS** (Amazon Web Services) **after primary analysis is complete**—focusing on what it takes to store finished datasets, share them with your team or partners, and keep them accessible over time. We don't cover raw sequencing or analysis compute costs, which are typically managed separately. Instead, we focus on the costs of running and maintaining the sharing platform itself: the infrastructure, storage, access, and governance that make data discoverable and shareable.
+
+The total cost depends heavily on how you design your platform and who uses it. To show this, we compare two scenarios: an internal platform used by one organisation, and a shared platform that regularly exchanges data with external partners. Both incur baseline costs just to stay ready, but they differ significantly in complexity, governance needs, and total spending over time.
+
+
+## Two scenarios: Internal vs Cross-Organisation
+
+We use two scenarios throughout this report as bookends for cost comparison. They're not exhaustive, but they illustrate the key cost drivers and trade-offs you'll face when designing your platform.
+
+### Internal Sharing Platform
+
+An **internal platform** serves a single organisation. Users are a limited number of employees or trusted collaborators within the same institution. Data is managed centrally and rarely leaves the organisation. An internal platform has these characteristics:
+
+- Simpler access control: users authenticate via your organisation's existing systems.
+- Centralised data management: typically one primary location, with optional backup for resilience.
+- Internal governance: audit and compliance requirements are set by your organisation alone.
+- Flexible operations: platform components can scale down during low activity periods.
+- Limited external dependencies: no need to manage external partner access or cross-organisation agreements.
+
+Since all data and operations stay within your organisation and under your control, an internal platform can be designed for simplicity and cost efficiency. You make all the decisions about what data to keep, how long to retain it, and who can access it.
+
+### Cross-Organisation Sharing Platform
+
+A **cross-organisation platform** regularly shares data with external partners—other institutions, research groups, or collaborators outside your organisation. Partners may be in different locations, different cloud environments, or entirely outside the cloud.
+
+A cross-organisation platform has these characteristics:
+
+- Complex access control: you must manage multiple external login systems and establish trust relationships with partners.
+- Distributed data management: data may be replicated across multiple locations to meet compliance requirements or serve geographically distant partners.
+- Stringent governance: audit trails, access logs, and compliance requirements are often dictated by external agreements or regulations.
+- Need for higher availability: external sharing is often asynchronous, so you have less control over when data is accessed and transfers are completed. Some data and sharing infrastructure (e.g. a Globus endpoint or staging data in a hot S3 bucket) may therefore need to remain available and the ability to scale down them is limited.
+- Multi-stakeholder coordination: decisions about data retention, access, and sharing involve multiple organisations with different needs.
+
+Because a cross-organisation platform must serve external partners reliably and meet stricter governance standards, it requires more infrastructure, more careful management, and more operational overhead.
+
+
+
+---
+## Three main cost dimensions
+
+We identify three main components that contribute to the cost of a sharing platform. **Standing costs** are the baseline expenses of keeping your platform ready: networking, security, monitoring, and the core infrastructure that runs whether or not anyone is using it. **Storage costs** cover the month-to-month expense of keeping data accessible. **Data movement costs** arise when data is transferred between users, locations, or external partners. Unlike many HPC and on-premises environments, cloud providers may charge for data transfers in certain circumstances.
+
+These estimates do not include staffing costs. Operating and supporting a platform—including administration, user support, security, governance, and partner coordination—can be a significant expense that grows with the platform. This report focuses on cloud infrastructure and related services.
+
+Below, we explore how these three components contribute to costs for both scenarios: an Internal Sharing Platform (ISP) and a Cross-Organisation Sharing Platform (CSP). The bars show cumulative monthly costs across the three dimensions, in USD.
+
+For detailed documentation, assumptions, and calculations, follow the “Explore” buttons below.
+
+
+<br />
+<br />
+<br />
+<br />
+
+
+export const sceneData = [
+  {
+    id: 'scene1',
+    title: 'Standing Costs',
+    intro: 'The baseline cost of keeping your platform ready, even when no one is using it. These are the costs that exist simply because the platform exists.',
+    costTable: 'standing',
+    sections: [
+      {
+        heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
+        items: [
+          'Simpler networking: one location, minimal external access points',
+          'Lighter security and audit requirements',
+          'Platform components can scale down during quiet periods',
+        ],
+      },
+      {
+        heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
+        items: [
+          'More complex networking: highly available external access points',
+          'Complex security and identity management for external partners',
+          'Detailed audit logging and compliance tracking',
+          'Services must remain operational around the clock',
+        ],
+      },
+    ],
+    note: {
+      label: 'What makes up standing costs',
+      text: 'Networking infrastructure, core storage and metadata systems, identity and security services, monitoring and audit logging, and baseline compute capacity.',
+    },
+    image: '/plots/costing-data-sharing/standing-costs.svg',
+    link: '../standing-costs/',
+    linkText: 'Explore standing costs',
+  },
+  {
+    id: 'scene2',
+    title: 'Storage Costs',
+    intro: 'The cost of keeping analysis-ready data at rest. Storage costs grow with how much data you keep and how long you keep it.',
+    costTable: 'storage',
+    sections: [
+      {
+        heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
+        items: [
+          'Centralised storage: data in one location, managed by your team',
+          'Mix of hot storage (frequently accessed) and archived data (older projects)',
+          'Curated outputs kept; intermediates often deleted after validation',
+          'Optional backup to a second location for resilience',
+        ],
+      },
+      {
+        heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
+        items: [
+          'Distributed storage: data replicated across multiple locations for partners',
+          'More data kept hot to serve external partners quickly',
+          'Longer retention periods due to compliance and governance requirements',
+          'Multiple copies of datasets across regions and partner accounts',
+        ],
+      },
+    ],
+    note: {
+      label: 'What drives storage costs',
+      text: 'The amount of data stored, which storage tier you use (fast and expensive vs slow and cheap), how long you keep data, and whether data is replicated across multiple locations.',
+    },
+    image: '/plots/costing-data-sharing/storage-costs.svg',
+    link: '../storage/',
+    linkText: 'Explore storage costs',
+  },
+  {
+    id: 'scene3',
+    title: 'Data Movement Costs',
+    intro: 'The cost of moving data around—between users, between locations, or to external partners. Unlike storage, these costs spike when you make specific decisions.',
+    costTable: 'data-movement',
+    sections: [
+      {
+        heading: 'Internal Sharing Platform:',
+        platform: 'ISP',
+        items: [
+          'Most data movement stays within your organisation and one location: free or negligible',
+          'Simple infrastructure to coordinate data sharing and access',
+          'Occasional replication to a backup location for resilience',
+          'Minimal external downloads; data rarely leaves the organisation',
+        ],
+      },
+      {
+        heading: 'Cross-Organisation Sharing Platform:',
+        platform: 'CSP',
+        items: [
+          'Data regularly moves to external partners across multiple locations',
+          'More complex infrastructure to orchestrate sharing and manage access',
+          'Routine replication of datasets to partner regions for compliance and performance',
+          'External downloads and transfers to partners (whether to other cloud providers or on-premises systems) become a significant cost driver',
+          'Data movement often becomes the dominant cost in cross-organisation platforms',
+        ],
+      },
+    ],
+    note: {
+      label: 'What drives data movement costs',
+      text: 'Where data moves (within or between regions, or outside the cloud; AWS charges egress fees in some scenarios), how often it moves, the infrastructure needed to coordinate transfers, and whether data is replicated across multiple locations.',
+    },
+    image: '/plots/costing-data-sharing/data-movement-egress.svg',
+    link: '../data-movement-egress/',
+    linkText: 'Explore data movement costs',
+  }
+];
+
+
+
+<ReportScrolly steps={sceneData} activationLineRatio={0.33} />
+
+
+## Total cost breakdown
+
+We can break down each cost dimension into its sub-components to see in more detail where the money is going. The balance between these components shifts depending on whether you're running an internal or cross-organisation platform, but we can identify a few common building blocks for each.
+
+
+**Standing costs** are made up of five building blocks:
+- **Networking infrastructure** – the systems that connect your platform and allow access
+- **Core storage and metadata systems** – databases that index and track your datasets
+- **Identity and security services** – systems that manage who can access what
+- **Monitoring and audit systems** – tools that track activity and maintain compliance records
+- **Baseline compute capacity** – the servers or processing power that keeps things running
+
+These exist whether or not anyone is using your platform.
+
+**Storage costs** come from five sources:
+- **Hot storage** – keeping frequently accessed data fast and ready
+- **Cold storage** – archiving older data in cheaper, slower tiers
+- **Metadata and indexing** – systems that help users find and understand datasets
+- **Logs and audit trails** – records of access and activity for compliance
+- **Replication** – keeping copies of data across multiple locations
+
+**Data movement costs** arise from four areas:
+- **Orchestration infrastructure** – systems that coordinate data transfers and sharing
+- **Internal movement** – moving data within your platform (usually free)
+- **Cross-region movement** – moving data between geographic locations
+- **External egress** – moving data to external partners or systems outside the cloud
+
+
+The charts below show how these components combine for each scenario. Hover over any segment to see its exact cost and what percentage it represents. The two scenarios tell very different stories: the Internal platform is dominated by standing costs, while the Cross-Organisation platform spreads costs more evenly across all three dimensions with data movement becoming a major factor. Prices are per month and shown in USD.
+
+<CostPieCharts /> 
+
+---
+## Costs over time - the impact of lifecycle decisions
+
+
+Platform costs change as data accumulates and ages. One important choice is when to move older data from faster, more expensive storage to a lower-cost archive tier. This seven-year illustration shows how that choice affects costs for internal and cross-organisation platforms.
+
+The model starts from an empty platform at launch, with no existing data, and adds 25 ISP or 50 CSP projects each year, at 150 GB of curated data per project. The monthly cost tables above describe a mature platform, so these lifecycle figures are a launch-to-year-seven projection rather than a continuation of those tables. It focuses on curated outputs; transient and intermediate data are not modeled. Standing and data-movement costs are held constant so the comparison highlights the effect of storage choices.
+
+The three strategies differ in what happens to curated data as it ages. They are deliberately extreme bookends rather than realistic policies:
+
+**Full retention** keeps new curated outputs in S3 Standard throughout the model period.
+
+**Balanced retention** moves curated outputs to S3 Glacier Deep Archive after two years.
+
+**Lean retention** deletes curated outputs after one year. Nothing is archived.
+
+New projects are spread across each year, so storage grows from zero. Lean spend levels off once a full year of projects is held, Balanced storage keeps growing more slowly as the archive fills, and Full grows steadily. Costs are calculated month by month and summed into annual spend; archive transition, retrieval and early-deletion fees are not included, and metadata costs are held constant.
+
+The scenarios below show how standing, storage, and data-movement costs contribute to annual spending and accumulate over seven years for both platforms. The charts and table use the same calculated estimates, with annual values shown separately from the seven-year cumulative total.
+
+
+
+<br />
+<br />
+<br />
+<br />
+
+
+
+export const lifecycleAnimationFrameCount = 49;
+export const lifecycleAnimationSubdir = 'lifecycle-progression';
+export const lifecycleAnimationFrames = (id) =>
+  Array.from({ length: lifecycleAnimationFrameCount }, (_, index) =>
+    `/plots/costing-data-sharing/${lifecycleAnimationSubdir}/${id}-anim-${String(index).padStart(2, '0')}.svg`
+  );
+
+
+
+
+export const lifecycleSceneData = [
+  {
+    id: 'lifecycle-scene1',
+    title: 'Full Retention',
+    intro: 'Keep new curated outputs in S3 Standard throughout the seven-year model.',
+    sections: [
+      {
+        heading: 'What this means:',
+        items: [
+          'Keep new curated outputs in S3 Standard',
+          'Transient and intermediate data are outside this model',
+        ],
+      },
+      {
+        heading: 'How costs evolve:',
+        items: [
+          'Standing costs remain stable',
+          'Storage costs rise as new projects are added',
+          'No curated data is deleted in this scenario',
+        ],
+      },
+    ],
+    note: {
+      label: 'Bottom line',
+      text: 'Provides the fastest access to retained curated outputs, with the highest modeled storage costs.',
+    },
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-keep-everything-anim-00.svg',
+    imageSequence: lifecycleAnimationFrames('lifecycle-keep-everything'),
+  },
+  {
+    id: 'lifecycle-scene2',
+    title: 'Balanced Retention',
+    intro: 'Move curated outputs to S3 Glacier Deep Archive after two years.',
+    sections: [
+      {
+        heading: 'What this means:',
+        items: [
+          'Keep new curated outputs in S3 Standard for two years',
+          'Then move them to Deep Archive',
+          'Retain curated outputs; deletion is not modeled',
+        ],
+      },
+      {
+        heading: 'How costs evolve:',
+        items: [
+          'Standing costs remain stable',
+          'Older data costs less to store after archiving',
+          'Total stored data and annual storage spend continue to grow',
+        ],
+      },
+    ],
+    note: {
+      label: 'Bottom line',
+      text: 'Trades some access speed for lower storage costs while retaining curated data.',
+    },
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-balanced-strategy-anim-00.svg',
+    imageSequence: lifecycleAnimationFrames('lifecycle-balanced-strategy'),
+  },
+  {
+    id: 'lifecycle-scene3',
+    title: 'Lean Retention',
+    intro: 'Delete curated outputs after one year; nothing is archived.',
+    sections: [
+      {
+        heading: 'What this means:',
+        items: [
+          'Keep new curated outputs in S3 Standard for one year',
+          'Then delete them; nothing moves to Deep Archive',
+          'Nothing is retained beyond the one-year window',
+        ],
+      },
+      {
+        heading: 'How costs evolve:',
+        items: [
+          'Standing costs remain stable',
+          'Stored data is capped at about one year of projects',
+          'Annual storage spend levels off once a year of projects is held',
+        ],
+      },
+    ],
+    note: {
+      label: 'Bottom line',
+      text: 'The lowest-cost bookend, but curated data older than one year is no longer available.',
+    },
+    image: '/plots/costing-data-sharing/lifecycle-progression/lifecycle-aggressive-deleting-anim-00.svg',
+    imageSequence: lifecycleAnimationFrames('lifecycle-aggressive-deleting'),
+  }
+];
+
+
+
+<ReportScrolly steps={lifecycleSceneData} compact playSequenceOnEnter sequenceDurationMs={600} />
+
+<br />
+<br />
+
+## Cost trajectories: full view
+
+Each line represents a strategy, with labels showing its cumulative total over seven years.
+
+Earlier archiving lowers the modeled storage cost, but it does not stop total spending from rising: the model continues to add projects, and keeps all curated outputs.
+
+<div class="not-prose" style={{ margin: '1rem 0 2rem', background: 'rgb(156, 163, 174, 0.08)', borderRadius: '0.5rem', padding: '1rem' }}>
+  <img
+    src={`${import.meta.env.BASE_URL}/plots/costing-data-sharing/lifecycle-scenario-comparison.svg`}
+    alt="Total cost evolution curves over 7 years for full, balanced, and lean retention strategies"
+    style={{ width: '100%', display: 'block' }}
+  />
+</div>
+
+The table below shows annual spend for Years 1, 3, and 7, plus the cumulative seven-year total. Costs are shown in USD.
+
+<CostTable table="lifecycle" />
+
+
+## Key takeaways
+
+The cost of a data-sharing platform isn't fixed—it depends on your design choices, how much data you keep, and who you share it with. But before you can make smart decisions, you need to understand your data: what you have, how it's accessed, and how it ages over time. These insights are essential for controlling costs.
+
+Many costs aren't obvious at first glance. There are costs imposed by moving data—especially when sharing with external partners or across regions—that don't feel like "real" costs until you see them on your bill. There are also hidden costs from maintaining the platform itself: the networking, security, monitoring, and infrastructure that run 24/7 whether anyone is using it or not. Understanding these [standing costs](../standing-costs/) and [data movement costs](../data-movement-egress/) is crucial for budgeting.
+
+The biggest lever you control is how you manage data over time. Your [retention strategy](#costs-over-time---the-impact-of-lifecycle-decisions)—what you keep and when you archive it—affects storage costs over the life of the platform. The illustration above models archiving curated data, not deleting it; actual savings depend on data growth, retention policies, access needs, and archive-related charges.
+
+Start by understanding your platform's characteristics. Are you internal or cross-organisation? What's your data growth rate? How long do you need to keep data? Then explore the detailed cost guides to see where your money goes and where you have levers to control it.

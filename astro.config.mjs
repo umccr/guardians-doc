@@ -99,8 +99,7 @@ export default defineConfig({
                     // "genomic-data-nodes/vision",
                     "genomic-data-nodes/architecture",
                     "genomic-data-nodes/work-packages",
-                    "genomic-data-nodes/legal-trust-concepts",
-                    "genomic-data-nodes/thin-operator-model"
+                    "genomic-data-nodes/legal-trust-concepts"
                 ]
             },
             {
@@ -143,9 +142,13 @@ export default defineConfig({
                     "guides/using-aaf-with-oidc",
                     "guides/aws-native-data-sharing",
                 ]
-            }
-
-
+            },
+            {
+            label: 'Reports',
+            items: [
+                "reports/costing-data-sharing-platform/costing-scrollytell",
+            ],
+            },
         ],
     })],
     vite: {

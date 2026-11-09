@@ -1,0 +1,143 @@
+---
+/**
+ * Renders one table from scripts/costing-data-sharing/cost_table.csv.
+ *
+ * Usage: <CostTable table="standing" />
+ *
+ * CSV columns: table, group, row, link, column, value, total
+ *  - table:  which table the line belongs to (the `table` prop)
+ *  - group:  optional section header row, "Title — description"
+ *  - row/column: the cell position (first-appearance order is kept)
+ *  - link:   optional anchor for the row label
+ *  - value: the calculated estimate for the row
+ *  - table="lifecycle" is derived from the annual "lifecycle-series" rows
+ *  - total: 1 marks a total row (bold)
+ */
+import csv from '../../../scripts/costing-data-sharing/cost_table.csv?raw';
+
+interface Props {
+  table: string;
+}
+const { table } = Astro.props;
+
+function parseCsv(text: string): Record<string, string>[] {
+  const records: string[][] = [];
+  let field = '';
+  let record: string[] = [];
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') { record.push(field); field = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      record.push(field); field = '';
+      records.push(record); record = [];
+    } else field += ch;
+  }
+  if (field || record.length) { record.push(field); records.push(record); }
+  const [header, ...body] = records;
+  return body.filter((r) => r.length > 1).map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
+}
+
+function formatCell(rawValue: string, column: string): string {
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) throw new Error(`CostTable: invalid value "${rawValue}" for "${column}"`);
+  if (column.endsWith('-year total')) return `~$${Math.round(value / 1000).toLocaleString('en-US')}K`;
+  if (value >= 1000) return `~$${(value / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+  if (value < 10) return `~$${value.toFixed(2)}`;
+  return `~$${Math.round(value).toLocaleString('en-US')}`;
+}
+
+const records = parseCsv(csv);
+
+const PLATFORM_LABELS: Record<string, string> = {
+  ISP: 'ISP',
+  CSP: 'CSP',
+};
+
+function deriveLifecycle(): Record<string, string>[] {
+  const series = records.filter((r) => r.table === 'lifecycle-series');
+  const out: Record<string, string>[] = [];
+  for (const group of [...new Set(series.map((r) => r.group))]) {
+    for (const platform of Object.keys(PLATFORM_LABELS)) {
+      const mine = series.filter((r) => r.group === group && r.row.startsWith(`${platform} / `));
+      const annualSpend = (year: number) =>
+        mine.filter((r) => r.column === `Year ${year}`).reduce((sum, r) => sum + Number(r.value), 0);
+      const years = [...new Set(mine.map((r) => Number(r.column.match(/^Year (\d+)$/)?.[1])))]
+        .filter(Number.isFinite)
+        .sort((a, b) => a - b);
+      const total = years.reduce((sum, year) => sum + annualSpend(year), 0);
+      const cells: [string, number][] = [
+        ['Year 1 (annual spend)', annualSpend(1)],
+        ['Year 3 (annual spend)', annualSpend(3)],
+        ['Year 7 (annual spend)', annualSpend(7)],
+        [`${years.length}-year total`, total],
+      ];
+      for (const [column, value] of cells) {
+        out.push({ table, group, row: PLATFORM_LABELS[platform], link: '', column, value: String(value), total: '' });
+      }
+    }
+  }
+  return out;
+}
+
+const lines = table === 'lifecycle' ? deriveLifecycle() : records.filter((r) => r.table === table);
+if (lines.length === 0) throw new Error(`CostTable: no rows for table "${table}" in cost_table.csv`);
+
+const columns = [...new Set(lines.map((r) => r.column))];
+const groups = [...new Set(lines.map((r) => r.group))];
+
+const sections = groups.map((group) => {
+  const groupLines = lines.filter((r) => r.group === group);
+  const [title, ...rest] = group.split(' — ');
+  const rowNames = [...new Set(groupLines.map((r) => r.row))];
+  return {
+    title: group ? title : '',
+    note: rest.join(' — '),
+    rows: rowNames.map((name) => {
+      const cells = groupLines.filter((r) => r.row === name);
+      const total = cells[0].total === '1';
+      return {
+        name,
+        link: cells[0].link,
+        total,
+        values: columns.map((c) => {
+          const cell = cells.find((r) => r.column === c);
+          return cell ? formatCell(cell.value, c) : '';
+        }),
+      };
+    }),
+  };
+});
+---
+
+<table>
+  <tr>
+    <th>{lines.some((r) => r.group) ? 'Platform' : ' '}</th>
+    {columns.map((c) => <th>{c}</th>)}
+  </tr>
+  {sections.map((section) => (
+    <>
+      {section.title && (
+        <tr>
+          <td colspan={columns.length + 1}>
+            <strong>{section.title}</strong>{section.note && ` — ${section.note}`}
+          </td>
+        </tr>
+      )}
+      {section.rows.map((row) => (
+        <tr>
+          <td>
+            {row.total ? <strong>{row.name}</strong> : row.link ? <a href={row.link}>{row.name}</a> : row.name}
+          </td>
+          {row.values.map((v) => <td>{row.total ? <strong>{v}</strong> : v}</td>)}
+        </tr>
+      ))}
+    </>
+  ))}
+</table>
