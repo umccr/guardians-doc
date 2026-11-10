@@ -22,12 +22,12 @@ forward: **curtrail** (replaced by AWS CloudWatch Logs in Parquet format),
 
 The components carried into Phase II are:
 
-- **htsget-rs.** Production server for streaming regions of genomic files (BAM, CRAM, VCF) without copying whole datasets. In production at CCGCM and other organisations.
+- **htsget-rs.** Production server for streaming regions of genomic files (BAM, CRAM, VCF) without copying whole datasets. In production at CCGCM and other organisations. Also a possible future route to production IGV in CCGCM's own production service.
 - **REMS Terraform Provider.** Manages REMS data access forms, workflows, licences and catalogue items as code. Production grade, with no alternative available.
 - **Seqera setup with Terraform.** Creates paired AWS accounts and Seqera workspaces on the BioCommons Seqera instance. Phase II will use it to provision research environments.
-- **AAF integration.** Institutional login through the Australian Access Federation, central to our production authentication.
+- **AAF integration.** Institutional login through the Australian Access Federation, central to our production authentication, including production portal logins for the centre.
 - **VPC Lattice.** A production-grade way to connect AWS accounts securely, and our intended approach for AWS networking in Phase II.
-- **steps-s3-copy (with lifecycle support).** Large-scale, verified copying into the data node, including restore from cold storage and pre-run cost estimates. Kept because it meets specialist requirements that similar AWS, Cloudflare and Google services do not, and costs less to run.
+- **steps-s3-copy (with lifecycle support).** Large-scale, verified copying into the data node, including restore from cold storage and pre-run cost estimates. Kept because it meets specialist requirements that similar AWS, Cloudflare and Google services do not, and costs less to run. Also used in CCGCM's own production service to move data.
 - **copyrite.** Checksumming and copying with verified integrity. AWS and Google now offer whole-object checksums natively, which covers some of its use cases, but it remains part of our Phase II copy tooling.
 
 
