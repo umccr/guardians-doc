@@ -3,6 +3,15 @@ title: Sustainability Plan
 description: How the GUARDIANS Genomic Data Nodes could be sustained beyond the project's grant funding.
 ---
 
+**v 0.1**
+
+Felipe Jiménez-Ibarra
+
+## Document History
+
+| Version | Date     | Who | Change Summary |
+| ------- | -------- | --- | -------------- |
+| 0.1     | Nov 2026 | FJI | First draft.   |
 
 Building research infrastructure is a project. Keeping it running is a commitment. Grants fund the first, and rarely the second.
 
@@ -14,14 +23,14 @@ In the pages that follow, we look at what exists today, why sustaining it is har
 
 ### Genomic data node capabilities
 
-Phase I has produced a working set of genomic data node capabilities: secure data copying and staging, region-level data access with htsget (a standard for streaming parts of genomic files), access management with the Resource Entitlement Management System (REMS), authentication through the Australian Access Federation (AAF), cross-account AWS networking, and initial exploration of the Seqera Platform, a cloud analysis platform, as a research environment. Most are already in production at CCGCM, and htsget-rs is also used by other organisations.
+Phase I has produced a working set of genomic data node capabilities: secure data copying and staging, region-level data access with htsget (a standard for streaming parts of genomic files), access management with the Resource Entitlement Management System (REMS), authentication through the Australian Access Federation (AAF), cross-account networking on Amazon Web Services (AWS), and initial exploration of the Seqera Platform, a cloud analysis platform, as a research environment. Most are already in production at CCGCM, and htsget-rs is also used by other organisations.
 
 ### Components in use
 
 The genomic data node concept still holds, alongside a Trusted Research Environment (TRE) rather than replacing it. Many of the Phase I tools for moving, checking and granting access to data will be used directly in Phase II, the next stage of the project.
 
 - **htsget-rs.** A production server that streams regions of genomic files (BAM, CRAM, VCF) without copying whole datasets. In production at CCGCM and other organisations, and the basis of our cross-organisation data sharing.
-- **REMS Terraform Provider.** Manages data access forms, workflows, licences and catalogue items in REMS as version-controlled code. Production grade, with no alternative available.
+- **REMS Terraform Provider.** Manages data access forms, workflows, licences and catalogue items in REMS as version-controlled code, using Terraform, an infrastructure-as-code tool. Production grade, with no alternative available.
 - **Seqera setup with Terraform.** Production tooling that creates paired AWS accounts and Seqera workspaces on the BioCommons Seqera instance. Phase II will use it to provision research environments.
 - **AAF integration.** Institutional login through the AAF is central to our production authentication. The Phase I explorations set the level of AAF support we start Phase II with.
 - **VPC Lattice.** An AWS service that connects AWS accounts securely. It is production grade, and our intended approach for AWS networking in Phase II.
@@ -34,7 +43,7 @@ As the innovation component of GUARDIANS Phase I, CCGCM explored a number of ave
 
 ### Already in CCGCM's own production service
 
-Several of these components are also used in CCGCM's own production service, irrespective of national data sharing. steps-s3-copy is used to move data, and AAF handles production portal logins for the centre. htsget is a possible way CCGCM would do production use of the Integrative Genomics Viewer (IGV) in the future.
+Several of these components are also used in CCGCM's own production service, irrespective of national data sharing. steps-s3-copy is used to move data, and AAF handles production portal logins for the centre. htsget is a possible future way for CCGCM to run the Integrative Genomics Viewer (IGV) in production.
 
 Designing components for use in both our own production service and national data sharing ensures there is at least an economic motivation to keep them sustained from the ongoing production work.
 
@@ -44,7 +53,7 @@ All CCGCM software is open source and accepts community contributions. CCGCM wil
 
 ### Grant-funded development
 
-Maintenance depends on future project funding. Like most academic open-source software, CCGCM's has no formal institutional backing. Its development has been grant funded, and without sustained community uptake or long-term funding, individual tools risk becoming unmaintained over time.
+Maintenance depends on future project funding. Like most academic open-source software, CCGCM's software has no formal institutional backing. Its development has been grant funded, and without sustained community uptake or long-term funding, individual tools risk becoming unmaintained over time.
 
 ### No national mandate
 
@@ -100,7 +109,7 @@ The operator's funding would combine a public base budget with cost recovery fro
 
 ### Free access, cost recovery on use
 
-The base budget should be sized so that core data access stays free at the point of use. User fees for access would exclude researchers with limited resources and work against equitable use of national datasets. Cost recovery should therefore apply to activities that grow with use (storage, compute and transfer), not to access itself. The [Phase I costing report](../../costing-data-sharing-platform/costing-scrollytell/) provides a starting point for estimating the standing costs of each element.
+The base budget should be sized so that core data access stays free at the point of use. User fees for access would exclude researchers with limited resources and work against equitable use of national datasets. Cost recovery should therefore apply to activities that grow with use (storage, compute and transfer), not to access itself.
 
 ## Next steps
 
