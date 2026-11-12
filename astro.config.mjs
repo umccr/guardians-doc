@@ -1,56 +1,8 @@
 // @ts-check
 import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
-import {readFileSync} from 'node:fs';
-import {resolve, dirname} from 'node:path';
-import {fileURLToPath} from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// Workaround for Vite 8/Rolldown issue with CSS ?url imports.
-// Starlight's Page.astro imports print.css?url&no-inline which triggers a
-// broken code path in Rolldown's CSS URL asset handling.
-function starlightPrintCssWorkaround() {
-    const printCssPath = resolve(__dirname, 'node_modules/@astrojs/starlight/style/print.css');
-    let base = '/';
-    let isBuild = false;
-
-    return /** @type {import('vite').Plugin} */ ({
-        name: 'starlight-print-css-workaround',
-        enforce: 'pre',
-        config(_, env) {
-            isBuild = env.command === 'build';
-        },
-        configResolved(config) {
-            base = config.base || '/';
-        },
-        resolveId(source) {
-            if (source.endsWith('style/print.css?url&no-inline')) {
-                if (!isBuild) {
-                    // In dev, let Vite serve the file normally with just ?url
-                    return printCssPath + '?url';
-                }
-                return '\0virtual:starlight-print-css';
-            }
-        },
-        load(id) {
-            if (id === '\0virtual:starlight-print-css') {
-                // Export the base-prefixed URL that the asset will live at
-                const assetUrl = base.endsWith('/') ? `${base}_astro/print.css` : `${base}/_astro/print.css`;
-                return `export default ${JSON.stringify(assetUrl)};`;
-            }
-        },
-        generateBundle() {
-            this.emitFile({
-                type: 'asset',
-                fileName: '_astro/print.css',
-                source: readFileSync(printCssPath, 'utf-8'),
-            });
-        }
-    });
-}
 
 // https://astro.build/config
 export default defineConfig({
@@ -69,6 +21,12 @@ export default defineConfig({
             ThemeProvider: './src/components/ThemeProvider.astro',
         },
         sidebar: [
+            {
+                label: 'Stories',
+                items: [
+                    "stories/introduction",
+                ]
+            },
             {
                 label: 'Requirements',
                 items: [
@@ -93,6 +51,7 @@ export default defineConfig({
                     // "genomic-data-nodes/vision",
                     "genomic-data-nodes/architecture",
                     "genomic-data-nodes/work-packages",
+                    "genomic-data-nodes/legal-trust-concepts"
                 ]
             },
             {
@@ -134,6 +93,7 @@ export default defineConfig({
                     "guides/seqera-setup",
                     "guides/using-aaf-with-oidc",
                     "guides/aws-native-data-sharing",
+                    "guides/apply-and-use-cup-data",
                 ]
             },
             {
@@ -141,11 +101,12 @@ export default defineConfig({
             items: [
                 "reports/costing-data-sharing-platform/costing-scrollytell",
                 "reports/sustainability/sustainability-report",
+                "reports/seqera-ux-report",
             ],
             },
         ],
     })],
     vite: {
-        plugins: [/** @type {any} */ (tailwindcss()), starlightPrintCssWorkaround()],
+        plugins: [/** @type {any} */ (tailwindcss())],
     },
 });

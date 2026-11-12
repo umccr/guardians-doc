@@ -1,0 +1,137 @@
+---
+title: Seqera UX report
+---
+
+**v 1.0**
+
+Peter Diakumis
+
+## Document History
+
+| Version | Date     | Who | Change Summary                                    |
+| ------- | -------- | --- | ------------------------------------------------- |
+| 1.0     | Nov 2026 | PD  | Created                                           |
+
+## Introduction
+
+Here we collect feedback from users of the Centre's Seqera Platform (provided by Australian
+Biocommons). It covers what worked well,
+what got in the way, and the smaller issues that were noticeable but did not block work.
+Users ran upstream Nextflow pipelines over large cohorts and used Studios
+for downstream analysis, including editing and running scripts directly against large BAM files.
+
+Specific blocking bugs have been raised with the Seqera team via Australian Biocommons (and
+mostly fixed).
+
+## User summary
+
+|        | Role                       | Group          | Platform use                                              | Typical work                                                      | Exposure to setup |
+|--------|----------------------------|----------------|-----------------------------------------------------------|-------------------------------------------------------------------|-------------------|
+| User 1 | Junior bioinformatician    | Internal team  | Nextflow pipelines over large cohorts, Studios downstream | Launching and monitoring runs, debugging steps, exploring outputs | High              |
+| User 2 | Senior bioinformatician    | External group | Studios only, as a guest testing data access              | Editing and running scripts against full BAMs, producing plots    | None              |
+| User 3 | Research software engineer | Internal team  | Nextflow pipelines and studios. Testing only.             | Testing various features to ensure correctness of setup.          | High              |
+| User 4 | Senior bioinformatician | Internal team  |              |           |               |
+
+## Summary
+
+| Theme                                         | Experience  |
+| --------------------------------------------- | ----------- |
+| Monitoring large pipeline runs                | Good        |
+| Analysing data in place with Studios          | Good        |
+| Reproducibility and standardisation           | Good        |
+| Easier access for non-command-line users      | Good        |
+| Studio responsiveness and running scripts     | Good        |
+| Studio editor delay and session drop-out      | Indifferent |
+| Initial setup of Studios and environments     | Bad         |
+| Slow turnaround for small tasks and debugging | Bad         |
+| Waiting for AWS to start tasks                | Bad         |
+| AWS Spot instance interruptions               | Bad         |
+
+Overall, users valued being able to work with large genomic data where it is stored,
+without moving it around. The main complaints were about how long tasks take
+to start and how hard the initial setup was. They were not about the platform's interface.
+
+## The Good
+
+### Monitoring large cohorts
+
+When a run covers hundreds or thousands of samples, the Seqera UI shows at a glance
+which samples succeeded or failed and how much CPU and memory they used. Users found
+this much quicker than reading through `.nextflow.log` files or HPC job logs on the command line.
+
+### Analysing data where it lives
+
+Studios let users open Jupyter, RStudio, or VS Code next to the data, in the cloud
+or on the cluster. This removes the need to download large BAM, VCF or matrix
+files to a local machine, which was described
+as fixing "a massive core pain point". Working directly with full BAMs, and editing
+scripts in place instead of moving subsets around, was called "very convenient".
+Final outputs such as plots were easy to download afterwards.
+
+### Reproducibility and standardisation
+
+Everyone across the Centre runs the same pipeline versions with the same configuration.
+Sharing one Studio environment extends this to downstream tertiary analysis,
+which helps with collaboration and data sharing.
+The Conda setup for Studio environments is particularly helpful
+for reproducibility, allowing users to manage software dependencies
+across Python, R and other languages.
+
+### Easier access
+
+Once a workflow has been set up, users who are not comfortable with
+HPC command lines can launch jobs by choosing parameters from
+dropdowns. This makes the platform much more usable for the Centre.
+
+### Responsiveness
+
+The setup was described as "pretty amazing, not laggy at all", and
+running scripts as "completely seamless". Users said they would
+happily use it again for future data access.
+
+## The Indifferent
+
+These issues were noticeable but did not get in the way of the work.
+
+### Delay when switching scripts
+
+In Studio sessions, switching between scripts sometimes brought up a red cursor, and editing was blocked for several seconds. This was described as "not too disruptive".
+
+### Session drop-out
+
+A Studio session occasionally disconnected, but reconnecting was easy.
+
+## The Bad
+
+### Setup was a black box
+
+Getting Studios to mount storage, use the right compute environments,
+and work through permissions and proxies was painful at first. For regular
+users these layers are hidden from view. When something breaks,
+users cannot fix it themselves and have to ask for support.
+
+### Slow turnaround for small tasks and debugging
+
+Running a short script or testing one step still goes through the full
+startup: pulling containers, preparing the environment, and so on.
+This can take 30 minutes or more. As one comment put it, "90% of the
+debugging process is just spent waiting for the job to start".
+
+### Waiting for tasks to start
+
+The time AWS takes to provision resources and pick up a task is often
+about the same as the time the task takes to run. Sometimes
+it is three to four times longer.
+
+### Spot instance interruptions
+
+In testing, about 5% of AWS Spot instances were terminated mid-task.
+Pipelines need automatic resubmission built in, for example
+`errorStrategy 'retry'`, so that these interruptions do not cause runs to fail.
+
+## Takeaways
+
+1. Keep the strengths. Analysing data in place with Studios and monitoring cohort-scale runs are the most valued features. They are good arguments for adopting the platform.
+2. Reduce setup friction. Document and template Studio storage mounts, compute environments, permissions and proxy settings. Make support easy to reach when they fail.
+3. Speed up small tasks. Waiting for tasks to start hurts most for debugging and short jobs. Options include always-on or warm compute for interactive work, pre-pulled or cached containers, and a lightweight route for running quick scripts.
+4. Plan for Spot interruptions. Make retry or resubmission the default in shared pipeline configurations, not something each user has to add.
