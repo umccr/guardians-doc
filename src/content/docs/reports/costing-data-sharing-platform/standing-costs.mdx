@@ -21,11 +21,9 @@ where you pay for the cost of keeping the data centre powered on, the network ru
 and the core systems ready—even on a quiet weekend when nobody is using anything. This principle is the same in AWS:
  certain services incur charges simply by existing and being ready to serve requests, regardless of whether traffic is flowing through them.
 
-{/* TODO: Link to Oliver's sustainability document here: This baseline is critical for sustainability ... */}
-
 Understanding standing cost is essential for setting a baseline budget for the platform: 
 the minimum you'll spend each month, regardless of activity.
- This baseline is critical for sustainability planning and funding conversations, and 
+ This baseline is critical for [sustainability planning](../../sustainability/sustainability-report/) and funding conversations, and 
  it informs strategic decisions, such as whether to keep a platform running or 
   consolidate it with others, and
    what architectural choices best balance cost efficiency with the functionality and resilience
@@ -79,8 +77,7 @@ Before any project uploads data, a data‑sharing platform must have foundationa
 - **S3 buckets** ([AWS's object storage service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html))
  hold platform configuration and logs. Shared analysis-ready datasets and their catalogue are covered under
  [storage costs](../storage/). S3 charges primarily for data volume stored,
- but there is always a **minimum baseline** of platform data that persists month to month. Storage optimization 
- is covered in [Storing data](../storage/) and [Looking after data](../data-lifecycle/).
+ but there is always a **minimum baseline** of platform data that persists month to month. Storage cost is covered in detail on [Storing data](../storage/).
 
 - **Operational metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html))
 or **RDS** ([a relational database](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)) 
@@ -199,8 +196,8 @@ even when nothing much is happening. It comes from five main sources:
 An [internal sharing platform (ISP)](#internal-sharing-platform) typically has a lower standing cost because it can rely on simpler networking, lighter audit requirements, and more flexible scaling. A [cross‑organisation sharing platform (CSP)](#cross-organisation-sharing-platform) typically has a higher standing cost because it must keep external entry points ready, support complex identity federation, maintain detailed audit trails, and often use multi‑account architectures for isolation.
 
 
-The table below summarises indicative monthly standing‑cost ranges for each component in an ISP and a CSP. 
-The following section describes the representative setups behind those ranges. Costs shown in USD.
+The table below summarises modeled monthly standing costs for each component in the ISP and CSP scenarios.
+The assumptions behind these estimates are described in the following section. Costs are shown in USD.
 
 <CostTable table="standing" />
 
