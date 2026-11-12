@@ -141,6 +141,7 @@ export default defineConfig({
                     "guides/seqera-setup",
                     "guides/using-aaf-with-oidc",
                     "guides/aws-native-data-sharing",
+                    "guides/apply-and-use-cup-data",
                 ]
             },
             {
