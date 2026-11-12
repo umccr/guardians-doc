@@ -1,0 +1,9 @@
+---
+interface Props {
+    content: string | number;
+}
+const { content } = Astro.props;
+---
+  <div class="flex items-center justify-center w-16 h-16 rounded-full bg-accent-700 text-white text-3xl font-extrabold">
+    {content}
+  </div>
