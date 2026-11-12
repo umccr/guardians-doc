@@ -1,44 +1,121 @@
 ---
 title: Sustainability Plan
-description: Strategies for maintaining and extending the GUARDIANS Genomic Data Nodes system beyond Phase I.
+description: How the GUARDIANS Genomic Data Nodes could be sustained beyond the project's grant funding.
 ---
 
-## Keeping the nodes running
+
+Building research infrastructure is a project. Keeping it running is a commitment. Grants fund the first, and rarely the second.
+
+That gap is what this sustainability plan sets out to close. GUARDIANS is a project piloting genomic data nodes, governed places where research data is staged and released to the environments researchers work in, with delivery overseen by Australian BioCommons. In its first stage, Phase I, the Collaborative Centre for Genomic Cancer Medicine (CCGCM) and its partners built the tools for these nodes, and most are already in production. Whether they stay maintained, usable and open to researchers across Australia depends on funding and ownership that no single project grant can provide.
+
+In the pages that follow, we look at what exists today, why sustaining it is hard, and how other national programmes have solved the same problem. We then propose a funding model built around a national operator, and set out the next steps and risks that come with it.
 
 ## What exists today
 
 ### Genomic data node capabilities
 
+Phase I has produced a working set of genomic data node capabilities: secure data copying and staging, region-level data access with htsget (a standard for streaming parts of genomic files), access management with the Resource Entitlement Management System (REMS), authentication through the Australian Access Federation (AAF), cross-account AWS networking, and initial exploration of the Seqera Platform, a cloud analysis platform, as a research environment. Most are already in production at CCGCM, and htsget-rs is also used by other organisations.
+
 ### Components in use
+
+The genomic data node concept still holds, alongside a Trusted Research Environment (TRE) rather than replacing it. Many of the Phase I tools for moving, checking and granting access to data will be used directly in Phase II, the next stage of the project.
+
+- **htsget-rs.** A production server that streams regions of genomic files (BAM, CRAM, VCF) without copying whole datasets. In production at CCGCM and other organisations, and the basis of our cross-organisation data sharing.
+- **REMS Terraform Provider.** Manages data access forms, workflows, licences and catalogue items in REMS as version-controlled code. Production grade, with no alternative available.
+- **Seqera setup with Terraform.** Production tooling that creates paired AWS accounts and Seqera workspaces on the BioCommons Seqera instance. Phase II will use it to provision research environments.
+- **AAF integration.** Institutional login through the AAF is central to our production authentication. The Phase I explorations set the level of AAF support we start Phase II with.
+- **VPC Lattice.** An AWS service that connects AWS accounts securely. It is production grade, and our intended approach for AWS networking in Phase II.
+- **steps-s3-copy.** In production for large-scale, verified copying of data into the data node, including restoring data from cold storage and estimating costs before a run. Similar services exist from AWS, Cloudflare and Google. We keep steps-s3-copy because it meets specialist requirements those services do not and costs less to run.
+- **copyrite.** A production tool for checksumming and copying with verified integrity. AWS and Google now offer whole-object checksums natively, which covers some of its main use cases. It remains part of our Phase II copy tooling.
 
 ### Explored and set aside
 
+As the innovation component of GUARDIANS Phase I, CCGCM explored a number of avenues that, while useful, will not be taken forward. This includes curtrail, replaced by AWS CloudWatch Logs in Parquet format; orcabus-elsa-data as an interface to CCGCM data sets, and our IPv6 exploration. Their findings have informed the Phase II design.
+
 ### Already in CCGCM's own production service
+
+Several of these components are also used in CCGCM's own production service, irrespective of national data sharing. steps-s3-copy is used to move data, and AAF handles production portal logins for the centre. htsget is a possible way CCGCM would do production use of the Integrative Genomics Viewer (IGV) in the future.
+
+Designing components for use in both our own production service and national data sharing ensures there is at least an economic motivation to keep them sustained from the ongoing production work.
 
 ## Why sustaining it is hard
 
+All CCGCM software is open source and accepts community contributions. CCGCM will keep maintaining the set of components listed above as the organisation plans to use a hardened Seqera platform as its own research environment, and as a step towards a TRE. This is not an institutional guarantee of long-term sustainability, and the resourcing approach comes with limitations.
+
 ### Grant-funded development
+
+Maintenance depends on future project funding. Like most academic open-source software, CCGCM's has no formal institutional backing. Its development has been grant funded, and without sustained community uptake or long-term funding, individual tools risk becoming unmaintained over time.
 
 ### No national mandate
 
+Beyond the GUARDIANS grant, current participants are not funded to maintain the software or to support its use by external partners, let alone at national scale.
+
+We regard this as a systemic issue: national infrastructure cannot be sustainably maintained or operated through project-based grant funding. Individual GUARDIANS partners have neither the incentive nor the legal remit to operate computational infrastructure for external users.
+
 ### Rising operating costs
+
+As research environments mature towards TREs, they need help desk support, continuous security monitoring and day-to-day operations. These are recurring staff costs that project grants are not designed to cover.
 
 ### Open questions and dependencies
 
+Continued coordination with Australian BioCommons on the Seqera tooling will be essential, given the platform's role as a shared research environment. We also intend to reuse these components, and fund further development, through current and future grants for TREs.
+
+We will seek alignment with Genomics Australia and with Medical Research Future Fund (MRFF) funding calls for TREs, including federated TREs. Long-term sustainability will nonetheless remain a risk until the National Collaborative Research Infrastructure Strategy (NCRIS), Bioplatforms Australia or a comparable body recognises genomic research environments as critical national infrastructure. That recognition would need to come with ongoing funding for an organisation able to take on their maintenance and development.
+
 ## What comparable programmes show
+
+Genomics infrastructure is sustained where a national health entity or independent organisation owns it as part of clinical service delivery. Where it relies on research grants, even large initiatives face funding cliffs.
 
 ### Initiatives compared
 
+| Initiative | How it is funded and run |
+| --- | --- |
+| Genomics England (UK) | Company wholly owned by the Department of Health and Social Care; delivers sequencing with the NHS and runs the National Genomic Research Library |
+| Genomic Medicine Sweden | Collaboration of seven healthcare regions and seven universities; annual government allocations. |
+| PRECISE (Singapore) | Funding over five years from the Ministry of Health; Phase III works through the public healthcare clusters |
+| All of Us (US) | Relied on time-limited legislative funding; budget reported down 72% since 2023 |
+| AnVIL (US) | Renewed at a flat US$8m a year for 2028–2032, on condition of sharing costs between submitters, users and NIH |
+
 ### Australia: NAGIM
+
+In Australia, the 2023 National Approach to Genomic Information Management (NAGIM) recommendations call for a funded pilot of research infrastructure, a national coordinating entity and an independent funding strategy, but provide no costings. The 2025 Clinical NAGIM report notes that national investment and progress have been limited, and directs implementation through Genomics Australia.
 
 ## A model that can last
 
 ### A national operator
 
+As part of the overall sustainability planning, we do recommend that GUARDIANS should be positioned as a funded research infrastructure pilot, as recommended by NAGIM. We propose that a national entity, such as Genomics Australia or any other NCRIS-funded organisation, become the long-term operator of genomic data node infrastructure, and that Phase II include a planned transition to it.
+
 ### Funding by cost activity
+
+The operator's funding would combine a public base budget with cost recovery from data submitters and users for activities that scale with use, where each cost activity can be matched to a funding source best suited to support it. We outline a starting point for further discussions:
+
+| Cost activity | Proposed funding source |
+| --- | --- |
+| Core operations: hosting, security monitoring, help desk, governance | Public base funding (NCRIS, Bioplatforms Australia or Genomics Australia) |
+| Software maintenance and new development | Public base funding for maintenance and keeping up with international developments; research grants and commercial partnerships for more experimental developments |
+| Data onboarding and storage | Federal funding as a key research resource |
+| Analysis compute and data transfer | Users, through their own cloud accounts or research environments as funded by grants and other research funding sources |
+| Shared research environment | Coordination with Australian BioCommons (Seqera) or commercial partner |
 
 ### Free access, cost recovery on use
 
+The base budget should be sized so that core data access stays free at the point of use. User fees for access would exclude researchers with limited resources and work against equitable use of national datasets. Cost recovery should therefore apply to activities that grow with use (storage, compute and transfer), not to access itself. The [Phase I costing report](../../costing-data-sharing-platform/costing-scrollytell/) provides a starting point for estimating the standing costs of each element.
+
 ## Next steps
 
+We recommend that the transition be planned from the start of Phase II, not left to its conclusion:
+
+1. **Agree the transition objective.** Confirm with the Australian BioCommons, Bioplatforms Australia, NCRIS and Genomics Australia that national operation is the intended end state, and who will organise the discussion.
+2. **Cost the operating model.** Extend the Phase I costing report into standing-cost and per-use estimates for a national node.
+3. **Prepare components for handover.** Keep documentation, infrastructure-as-code and security practices at a standard another operator can adopt without CCGCM staff.
+4. **Pilot cost-sharing.** Use the Cancer of Unknown Primary (CUP) dataset sharing and Seqera workspaces to test submitter and user contributions in practice.
+5. **Agree a handover point.** By the end of Phase II, either a national operator takes responsibility or the partners agree which components move to community maintenance.
+
 ## Risks
+
+Finally, the transition set out above is not without risk:
+
+- **No national operator emerges.** Without a decision by NCRIS, Bioplatforms Australia or Genomics Australia, the infrastructure remains dependent on grants and on CCGCM's own priorities.
+- **Cost recovery is insufficient.** Submitter and user contributions cannot cover fixed operating costs; a base budget remains essential.
+- **Cloud provider changes.** Providers change services and pricing, as with AWS deprecating CloudTrail Lake during Phase I. Tooling must be kept current.
