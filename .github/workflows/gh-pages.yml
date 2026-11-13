@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v5
       - name: Install D2
         run: curl -fsSL https://d2lang.com/install.sh | sh -s --
+      - name: Render Structurizr diagrams
+        run: ./scripts/architecture/render.sh
       - name: Install, build, and upload your site
         uses: withastro/action@v6
         with:
