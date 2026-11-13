@@ -2,3 +2,17 @@
     --sl-content-width: 60rem;
     color-scheme: light;
 }
+
+/* Compact hero on the landing page (Starlight default is very tall) */
+.hero {
+    padding-block: 1rem !important;
+    gap: 1rem;
+}
+
+.hero h1 {
+    font-size: var(--sl-text-5xl) !important;
+}
+
+.hero .stack {
+    gap: 1rem;
+}

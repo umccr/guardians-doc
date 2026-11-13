@@ -42,7 +42,22 @@ export default defineConfig({
             {
                 label: 'Solution Architecture',
                 items: [
-                    "solution-architecture/dataset-formatting",
+                    "solution-architecture/overview",
+                    "solution-architecture/context-and-scope",
+                    "solution-architecture/c4-overview",
+                    "solution-architecture/building-blocks",
+                    "solution-architecture/runtime-scenarios",
+                    "solution-architecture/deployment",
+                    "solution-architecture/data-architecture",
+                    "solution-architecture/security",
+                    "solution-architecture/operations",
+                    "solution-architecture/risks-and-technical-debt",
+                    {
+                        label: 'Detailed Designs',
+                        items: [
+                            "solution-architecture/dataset-formatting",
+                        ]
+                    },
                 ]
             },
             {

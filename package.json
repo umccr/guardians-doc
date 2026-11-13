@@ -10,7 +10,8 @@
     "start": "bunx --bun astro dev",
     "build": "bunx --bun astro build",
     "preview": "bunx --bun astro preview",
-    "astro": "bunx --bun astro"
+    "astro": "bunx --bun astro",
+    "diagrams": "./scripts/architecture/render.sh"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.10",
