@@ -80,7 +80,7 @@ Before any project uploads data, a data‑sharing platform must have foundationa
  hold platform configuration and logs. Shared analysis-ready datasets and their catalogue are covered under
  [storage costs](../storage/). S3 charges primarily for data volume stored,
  but there is always a **minimum baseline** of platform data that persists month to month. Storage optimization 
- is covered in [Storing data](../storage/) and [Looking after data](../data-lifecycle/).
+ is covered in [Storing data](../storage/) and [Costs over time](../costing-scrollytell/#costs-over-time---the-impact-of-lifecycle-decisions).
 
 - **Operational metadata stores** such as **DynamoDB** ([a managed database for fast lookups](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html))
 or **RDS** ([a relational database](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)) 
@@ -98,7 +98,7 @@ Secure data sharing requires identity and access control infrastructure:
 
 - **Identity Provider (IdP) integration** ([AWS IAM Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html) or [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-cognito.html)) enables user authentication. Integration with an existing organisational IdP typically has minimal standing cost, while managed services like AWS Cognito incur per-user or per-authentication charges.
 
-- **AWS IAM roles and policies** ([AWS Identity and Access Management](https://docs.aws.amazon.com/iam/latest/userguide/introduction.html)) define who can access what. While defining roles and policies is free, the infrastructure that evaluates them contributes to the platform's operational cost.
+- **AWS IAM roles and policies** ([AWS Identity and Access Management](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)) define who can access what. While defining roles and policies is free, the infrastructure that evaluates them contributes to the platform's operational cost.
 
 - **AWS KMS (Key Management Service)** ([AWS Key Management Service](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)) manages encryption keys for data at rest. Each customer‑managed key incurs a small monthly fee, plus charges per cryptographic operation.
 
@@ -265,7 +265,7 @@ AWS pricing references:
 - 2 external identity providers federated through cross-account roles
 
 AWS pricing references:  
-[CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [IAM Identity Center](https://aws.amazon.com/iam/identity-center/pricing/).
+[CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [IAM Identity Center](https://aws.amazon.com/iam/identity-center/faqs/) (no extra charge).
 
 
 #### Monitoring and audit

@@ -70,7 +70,7 @@ obligations. These include the Privacy Act 1988, state health records laws, the 
 in Human Research and Indigenous data governance, for example the CARE Principles.
 SATRE 1.1.01 is the requirement that gathers these legal, regulatory and ethical obligations, and 4.8 covers legal services.
 
-The group also discussed adding data sovereignty to this list.
+The group also discussed (Meeting #7) adding data sovereignty to this list.
 Some data must stay in Australia, and that limits where a TRE can store and process it.
 
 ### Needs shared with other fields
@@ -98,7 +98,7 @@ The data custodian, and the institutions accountable for the research, decide wh
 what research is acceptable, and when data must be deleted.
 In data protection terms, the operator is a data processor and not a data controller.
 
-The group also note that SATRE 3.1.01 asks for legal and regulatory implications to be assessed, but does not mention ethics.
+The group also noted that SATRE 3.1.01 asks for legal and regulatory implications to be assessed, but does not mention ethics.
 The view was that the operator should not be given the job of judging the ethics of research.
 Ethics approvals still set conditions that the TRE must be able to carry out, such as how long data may be held and when it must be deleted.
 SATRE 1.1.01 already requires the TRE to gather its legal, regulatory and ethical obligations.
@@ -139,7 +139,7 @@ Choosing which participants a project may use is the job of cohort construction,
 
 #### 1.4.04 End of project
 
-<Badge text="Note" variant="note" /> *Agreed (Meeting #5). The group asked for the TRE project model to be made explicit, the details of which is still an open question.*
+<Badge text="Note" variant="note" /> *Agreed (Meeting #5). The group asked for the TRE project model to be made explicit, the details of which are still an open question.*
 
 > **SATRE (Mandatory):** You must have standard processes in place for the end of a project, that follow all legal requirements and data security best practice.
 
@@ -169,7 +169,7 @@ Some custodians cannot publish this information.
 Indigenous data is one example, and the UK context that SATRE comes from has no direct equivalent.
 The group proposes to raise this with SATRE as general feedback.
 
-## Pillar 2: Computing Technology
+## Pillar 2: Computing Technology and Information Security
 
 ### 2.1 End User Computing
 
@@ -183,12 +183,12 @@ Draft note:
 - The clipboard rule protects against copying small amounts of identifying text, such as names in a spreadsheet.
 - For genomic data, the main risk is bulk exfiltration of large files, and the clipboard rule does not address it.
 - Platforms that run in a web browser, rather than a virtual desktop, find the rule hard to enforce.
-- Pasting code in is a form of ingress rather than an egress risk, and should be considered differently.
+- Pasting code in is arguably a form of ingress rather than an egress risk, and should be considered differently.
 - A genomics TRE should base this control on its own threat analysis. See [3.1.05](#3105-egress) and [3.3.07](#3307-outputs-that-cannot-be-checked-manually).
 
 #### 2.1.10 Software applications
 
-<Badge text="Note" variant="note" /> *Agreed (Meeting #6).*
+<Badge text="Note" variant="note" /> *Agreed (Meeting #6). Whether 2.1.10 is the right place for this note is still open.*
 
 > **SATRE (Mandatory):** Your TRE must provide software applications that are required by the data consumers working in the TRE.
 
@@ -215,7 +215,7 @@ The custodian should decide how open this access is.
 
 #### 2.1.14 Segregation on all compute
 
-<Badge text="Note" variant="note" /> *Open (Meeting #6). The wording on these points was proposed by not agreed on.*
+<Badge text="Note" variant="note" /> *Open (Meeting #6). The wording on these points was proposed but not agreed on.*
 
 > **SATRE (Mandatory):** Your TRE must maintain segregation of users and data from different projects when using all compute, including HPC.
 
@@ -228,7 +228,7 @@ On shared HPC, how segregation works depends on how the TRE is built, so it need
 
 #### 2.1.G1 Dynamic compute
 
-<Badge text="New" variant="tip" /> *Open (Meeting #7). The need is clear, but the level of wording was not settled; proposed as Mandatory.*
+<Badge text="New" variant="tip" /> *Open (Meeting #7). The need is clear and the direction of the wording was agreed, but the level was not settled; proposed as Mandatory.*
 
 **A genomics TRE must provide dynamic compute provisioning. Workflow engines must be able to create, use and destroy compute resources suited to each pipeline stage.**
 
@@ -250,7 +250,7 @@ The group asked for the statement above to be reworded in three ways:
 SATRE 2.1.15 (Recommended) already covers HPC or scalable compute "if required by users", and its guidance mentions
 dynamically created compute nodes. So the level could instead be set by raising 2.1.15 to Mandatory for genomics TREs.
 The group did not agree whether this should be Mandatory or Recommended, and describing it clearly may be more beneficial
-for the kinds of work genomic work that benefit from it.
+for the kinds of genomic work that benefit from it.
 
 #### 2.1.G2 Shared reference data
 
@@ -264,7 +264,7 @@ Central copies should be managed and versioned. Some reference data, such as COS
 
 Outside a TRE, most pipelines download reference data on every run.
 A TRE blocks that by default (see [2.2.11](#2211-outbound-connections)), so the TRE must offer another way.
-This was discussed as poteentially being a general infrastructure problem, not a TRE problem, however
+This was discussed as potentially being a general infrastructure problem, not a TRE problem, however
 a genomics TRE makes the problem unavoidable, so it's worth clarifying in the requirements.
 
 The meeting did not choose between three ways to solve it:
@@ -273,9 +273,9 @@ The meeting did not choose between three ways to solve it:
 - each researcher bringing in the files they need through ingress.
 
 The following points were considered for wording:
-- **A shared store can work.** For example, a HPC site could mount a read-only reference folder on every compute node.
+- **A shared store can work.** For example, one HPC site mounts a read-only reference folder on every compute node.
   When a user asks for a new genome or version, it is added for everyone.
-  Requests would settle after about six months, because only a few dozen reference genomes and gene models are in common use.
+  Requests settled after about six months, because only a few dozen reference genomes and gene models are in common use.
   The folder then covered about 90% of cases.
 - **Agreeing what to share is hard,** because projects differ. A small community can settle a list more easily than a national facility can.
 - **A shared store needs upkeep.** Users must be able to trust that a file is current and intact, for example through checksums, or they download their own copy.
@@ -290,7 +290,7 @@ Shared annotation services, such as a VEP cache, may matter more than shared fil
 
 #### 2.1.G3 Workflow engines
 
-<Badge text="New" variant="tip" /> *Proposed (Meeting #6), from the discussion of 2.1.10 and 2.1.11. Level and placement still to be agreed.*
+<Badge text="New" variant="tip" /> *Open (Meeting #6), from the discussion of 2.1.10 and 2.1.11. Level and placement still to be agreed.*
 
 **A genomics TRE must provide a workflow engine, such as Nextflow, Cromwell for WDL, or a CWL runner, that runs containerised steps and records how each run was done. Projects must not each have to build and run their own.**
 
@@ -409,7 +409,7 @@ Sites may differ in how much of this they want, so the notes should not be too p
 
 #### 3.1.03 Classification
 
-<Badge text="Note" variant="note" /> *Agreed as a note (Meeting #7). The meeting discussed and clarified the working of this.*
+<Badge text="Note" variant="note" /> *Agreed as a note (Meeting #7). The wording of this still needs to be clarified.*
 
 > **SATRE (Mandatory):** Information asset owners must classify data sets according to a common process and data classification methodology.
 
@@ -421,7 +421,7 @@ The custodian should resolve those differences before data is released into a TR
 A project should receive only the participants and files that it may use.
 For example, a multi-sample VCF file holds data from many participants.
 It must be filtered, or served through an API such as htsget, so that the project does not receive participants who have not consented.
-Inside a project, every useer can then use all of the project's data.
+Inside a project, every user can then use all of the project's data.
 
 The TRE's part is to give custodians a safe way to release exactly the approved data into a project.
 The governance rules for a dataset must be clear before it is ingressed, and whoever ingresses data must know the rules attached to it.
@@ -492,7 +492,7 @@ The following points were considered:
   Records about deleted data may still need to be kept.
 - **Ethics approvals often set the deletion terms.** The TRE must be able to carry them out (see [Operator and custodian roles](#operator-and-custodian-roles)).
 - **Volume makes the end of a project hard.** A project may hold 100 terabytes of derived data with nowhere to send it.
-  Researchers then ask to extend the project, to avoid deciding where the data goes.
+  Researchers may then ask to extend the project, to avoid deciding where the data goes.
 
 SATRE already requires a deletion policy. The open question for genomics is what tools a TRE needs to carry one out.
 
@@ -611,7 +611,7 @@ A genomics catalogue should describe sample counts, data types (WGS, WES, RNA-se
 
 ### 4.4 Financial Management
 
-<Badge text="New" variant="tip" /> *Agreed (Meeting #5): genomics cost management can be quite different from other TREs.*
+<Badge text="New" variant="tip" /> *Agreed (Meetings #5 and #7): genomics cost management can be quite different from other TREs.*
 
 In most TREs, a project rents a desktop for a known period, and an invoice covers it.
 Genomics projects use compute in bursts, and can spend thousands or tens of thousands of dollars in days.
@@ -631,18 +631,17 @@ In addition, a genomics TRE must give:
 - cost estimates, or estimating guidance, before a pipeline runs;
 - near real-time cost monitoring while it runs.
 
-Meeting #5 noted that accurate estimates are hard, so guidance and worked examples may be the practical level.
+Meeting #5 noted that accurate estimates are hard, and asked whether a disclaimer before work starts is enough, or whether something stronger, such as a credit or token system, is needed.
 
 #### 4.4.02 Tracking costs
 
-<Badge text="Change" variant="caution" /> *Proposed.*
+<Badge text="Change" variant="caution" /> *Open (Meeting #5).*
 
 > **SATRE (Recommended):** You should be able to track the costs associated with each TRE project.
 
-Proposed: raise to **Mandatory**.
+Proposed: raise to **Mandatory** (not yet discussed).
 Track costs per project, and per pipeline run where possible, so researchers can see which workflows are expensive.
-Thee group mentioned asking who controls the tracking: the TRE operator, the data custodian, or the researcher as well.
-That question is open.
+Who controls the tracking is an open question: the TRE operator, the data custodian, or the researcher as well.
 
 #### 4.4.04 Minimising cost
 
@@ -670,17 +669,17 @@ Neither meeting agreed that a hard stop should be required, because stopping a l
 For example, a two-day job could lose everything after a day and a half. There may be some flexibility to this cap, for
 the job may be allowed to finish, and then charged for the extra difference.
 
-The group agreed that this feature was necessary, but not every TRE needs it, which means that it may be a burden as a Mandatory line.
-This requiremeent is also not specific to genomics, and cloud providers often do not make budget enforcement easy to automate.
+The group agreed that this feature was useful, but not every TRE needs it, which means that it may be a burden as a Mandatory line.
+This requirement is also not specific to genomics, and cloud providers often do not make budget enforcement easy to automate.
 
-The group agreed that some limit is needed, because a misconfigured workflow can use up a large share of a cluster or a budget within hours.
+The group agreed that some limit is important, because a misconfigured workflow can use up a large share of a cluster or a budget within hours.
 Platforms differ here:
 - On the UK Biobank Research Analysis Platform, going over a billing account's spending limit stops users starting analyses, uploading data or egressing data ([billing](https://dnanexus.gitbook.io/uk-biobank-rap/administrator/billing-and-costs)).
 - DNAnexus can also be set to terminate all running jobs when a project's monthly limit is reached ([spending limits](https://documentation.dnanexus.com/admin/billing-and-account-management)).
 
 #### 4.4.G2 Payment models
 
-<Badge text="New" variant="tip" /> *Proposed.*
+<Badge text="New" variant="tip" /> *Open (Meeting #5).*
 
 **The TRE should support more than one way of paying:**
 - **the researcher's or institution's own cloud account;**
@@ -689,7 +688,7 @@ Platforms differ here:
 
 #### 4.4.G3 Who pays for what
 
-<Badge text="New" variant="tip" /> *Proposed (Meeting #5 has discussions).*
+<Badge text="New" variant="tip" /> *Open (Meeting #5).*
 
 **The TRE must make clear who pays for each kind of cost, and be able to charge them separately.** For example, the custodian may pay to store the dataset and any cached copy, while the project pays for compute and egress.
 
@@ -718,7 +717,7 @@ That means an asynchronous forum and a chat channel, where users coordinate and 
 
 ### Discussed and left unchanged
 
-1.3.05; 2.1.02, 2.1.05, 2.1.07, 2.1.08, 2.1.09 and 2.1.11.
+1.3.05; 2.1.02, 2.1.05, 2.1.07, 2.1.09 and 2.1.11.
 
 ### Not reviewed in detail
 
