@@ -1,0 +1,69 @@
+---
+// A list of genomics entries with one row for each entry. The SATRE map and the
+// lists in the report use this. A row has a mark, ID, title, type and
+// status. The mode controls what a press does, "open" means the row opens in
+// place and "link" means it is a link to a full entry.
+import { satreById } from '../../data/satre/satre';
+import { fullEntryHref, typeLabel, statusLabel } from '../../data/satre/genomics-entries';
+import type { GenomicsEntry } from '../../data/satre/genomics-entries';
+import { isDifference } from '../../data/satre/genomics-views';
+import './satre-shared.css';
+
+interface Props {
+	entries: GenomicsEntry[];
+	mode: 'open' | 'link';
+	group?: string;
+}
+const { entries, mode, group } = Astro.props;
+---
+
+<ul class="satre-entries">
+	{
+		entries.map((e) => {
+			const lines = (e.satre ?? []).flatMap((id) => satreById.get(id) ?? []);
+			const cells = (
+				<>
+					<i
+						class="satre-mark"
+						data-type={e.type}
+						data-status={isDifference(e) ? e.status : undefined}
+						aria-hidden="true"
+					/>
+					<span class="satre-entries__id">{e.label}</span>
+					<span class="satre-entries__title">{e.title}</span>
+					<span class="satre-entries__meta">
+						{typeLabel(e)} · {statusLabel(e.status)}
+					</span>
+				</>
+			);
+
+			return (
+				<li data-entry-id={e.id}>
+					{mode === 'link' ? (
+						<a class="satre-entries__row" href={fullEntryHref(e)}>
+							{cells}
+						</a>
+					) : (
+						<details class="satre-entries__row" name={group}>
+							<summary>{cells}</summary>
+							<div class="satre-entries__body">
+								{lines.map((r) => (
+									<blockquote>
+										<span class="satre-entries__source">
+											SATRE {r.id} · {r.importance}
+										</span>
+										{r.statement}
+									</blockquote>
+								))}
+								<p>{e.position}</p>
+								<p class="satre-entries__foot">
+									{e.statusText}. <a href={fullEntryHref(e)}>Read the full entry</a>
+								</p>
+							</div>
+						</details>
+					)}
+				</li>
+			);
+		})
+	}
+</ul>
