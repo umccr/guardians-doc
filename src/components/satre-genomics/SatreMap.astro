@@ -5,50 +5,47 @@
 // round mark at the end of the capability that it belongs to.
 //
 // Only the capabilities that have a genomics difference get a row of their
-// own. The other capabilities share one row at the end of their
-// pillar.
-import { getEntry, render } from 'astro:content';
+// own. The other capabilities share one row at the end of their pillar.
 import { SATRE_VERSION, SATRE_SPEC_URL } from '../../data/satre/satre';
-import { fullEntryHref, genomicsEntries, pageHref, statusLabel } from '../../data/satre/genomics-entries';
-import { pillarGroups, totals, isDifference, plural, STATUS_ORDER } from '../../data/satre/genomics-views';
+import { EntryStatus, fullEntryHref, statusLabels } from '../../data/satre/genomics-entries';
+import { mapTotals, pillarGroups, plural } from '../../data/satre/genomics-views';
 import type { CapabilityGroup } from '../../data/satre/genomics-views';
 import Mark from './Mark.astro';
 
-// Each row of the map links to its capability on the SATRE for Genomics page.
-const page = await getEntry('docs', 'requirements/satre-genomics');
-if (!page) throw new Error('SatreMap: the SATRE for Genomics page is missing');
-const { headings } = await render(page);
-const capabilityHref = (c: CapabilityGroup) => {
-	const entry = genomicsEntries.find((e) => e.id === c.index);
-	if (entry) return fullEntryHref(entry);
-	const heading = headings.find((h) => h.text === `${c.index} ${c.name}`);
-	if (!heading) throw new Error(`SatreMap: the SATRE for Genomics page has no heading "${c.index} ${c.name}"`);
-	return pageHref(heading.slug);
-};
+interface Props {
+	pillars?: string;
+}
+const groups = pillarGroups(Astro.props.pillars?.split(' '));
+const totals = mapTotals(groups);
 
-const describe = (c: CapabilityGroup) =>
-	[
-		plural(c.lineCount, 'SATRE requirement'),
-		c.lineDifferences > 0 && `${c.lineDifferences} with a genomics position`,
-		c.newCount > 0 && plural(c.newCount, 'new genomics requirement'),
+const capabilityHref = (c: CapabilityGroup) => fullEntryHref(c.overview ?? c.differences[0]);
+
+const describe = (c: CapabilityGroup) => {
+	const onRequirements = c.differences.length - c.newRequirements.length;
+	return [
+		plural(c.requirements.length, 'SATRE requirement'),
+		onRequirements > 0 && `${onRequirements} with a genomics position`,
+		c.newRequirements.length > 0 && plural(c.newRequirements.length, 'new genomics requirement'),
 	]
 		.filter(Boolean)
 		.join(', ');
+};
 ---
 
 <figure class="not-content my-6 text-sm">
 	<figcaption class="mb-3 text-base text-gray-700">
-		<strong class="text-gray-900">{totals.asWritten} of the {totals.lines} requirements</strong> in pillars 1 to 4 of{' '}
+		<strong class="text-gray-900">{totals.asWritten} of the {totals.requirements} requirements</strong> in pillars{' '}
+		{new Intl.ListFormat('en-AU').format(groups.map((p) => p.index))} of{' '}
 		<a href={SATRE_SPEC_URL} class="text-accent-600 underline">SATRE v{SATRE_VERSION}</a> apply to genomics as written.
-		Each square is one requirement. The coloured squares are the {totals.notes + totals.changes + totals.feedback} with
-		a genomics note or change, and the round marks are {totals.newRequirements} new requirements.
+		Each square is one requirement. The coloured squares are the {totals.changed} with a genomics difference, and the
+		round marks are {totals.newRequirements} new requirements.
 	</figcaption>
 
 	<ul class="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-gray-700">
 		{
-			STATUS_ORDER.map((s) => (
+			EntryStatus.options.map((s) => (
 				<li class="flex items-center gap-1.5">
-					<Mark status={s} /> {statusLabel(s)} <span class="text-gray-500">{totals.onMapByStatus[s]}</span>
+					<Mark status={s} /> {statusLabels[s]} <span class="text-gray-500">{totals.byStatus.get(s) ?? 0}</span>
 				</li>
 			))
 		}
@@ -59,7 +56,7 @@ const describe = (c: CapabilityGroup) =>
 
 	<div class="grid grid-cols-2 items-start gap-x-5 gap-y-4 md:grid-cols-4">
 		{
-			pillarGroups.map((pillar) => {
+			groups.map((pillar) => {
 				const rest = pillar.capabilities.filter((c) => c.differences.length === 0);
 				return (
 					<section class="break-inside-avoid">
@@ -78,8 +75,11 @@ const describe = (c: CapabilityGroup) =>
 										{c.index} {c.name}
 									</span>
 									<span class="flex flex-wrap gap-[3px]">
-										{c.cells.map(({ entry }) => (
-											<Mark status={entry && isDifference(entry) ? entry.status : undefined} round={entry?.type === 'new'} />
+										{c.requirements.map((e) => (
+											<Mark status={e?.status} />
+										))}
+										{c.newRequirements.map((e) => (
+											<Mark status={e.status} round />
 										))}
 									</span>
 								</a>
@@ -88,7 +88,7 @@ const describe = (c: CapabilityGroup) =>
 							<div class="py-1 text-xs text-gray-500">
 								<span class="mb-1 block">{plural(rest.length, 'capability', 'capabilities')} as written</span>
 								<span class="mb-1 flex flex-wrap gap-[3px]">
-									{rest.flatMap((c) => c.cells).map(() => <Mark />)}
+									{rest.flatMap((c) => c.requirements).map(() => <Mark />)}
 								</span>
 								{rest.map((c) => `${c.index} ${c.name}`).join(' · ')}
 							</div>

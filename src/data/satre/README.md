@@ -9,7 +9,7 @@ and the summary list on the [SATRE for Genomics](../../content/docs/requirements
 | `specification-v2.0.1.yaml` | The SATRE specification, copied unchanged from `docs/source/spec/specification.yaml` at tag `v2.0.1` of [sa-tre/satre-specification](https://github.com/sa-tre/satre-specification). |
 | `satre.ts` | Parses the YAML at build time into pillars, capabilities and requirements. |
 | `genomics-entries.ts` | Reads the working group's genomics entries from the `<Entry>` tags on the SATRE for Genomics page. |
-| `genomics-views.ts` | Groups those entries by SATRE capability and by topic, and counts them, for the components that show them. |
+| `genomics-views.ts` | Groups those entries by SATRE capability, and counts them by topic and status, for the components that show them. |
 
 ## Updating the SATRE specification
 
@@ -22,7 +22,7 @@ and the summary list on the [SATRE for Genomics](../../content/docs/requirements
    The script writes `specification-v2.1.0.yaml` and prints its checksum.
 2. Compare the new file with the old one, and check whether any requirement that an entry on the SATRE for Genomics page is about has changed or moved.
 3. Change the import, `SATRE_VERSION` and `SATRE_SPEC_URL` in `satre.ts`.
-4. Run `bun run build`. The build fails if an entry refers to a SATRE ID that no longer exists.
+4. Run `bun run build`.
 
 ## The genomics entries
 
@@ -30,7 +30,7 @@ Each entry is an `<Entry>` tag in `src/content/docs/requirements/satre-genomics.
 
 ```mdx
 <Entry id="1.4.01" title="Per-participant consent" heading="Legal, financial and ethical checks"
-  topic="governance" type="note" status="agreed"
+  topic="Governance and consent" type="note" status="agreed"
   statusText="Agreed (Meeting #5) as a strong note." />
 
 Consent in genomics often differs between participants.

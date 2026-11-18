@@ -4,16 +4,21 @@
 // full entry further down the same page.
 //
 // The filters are a <form>, and the script keeps the form's values in the
-// page address, for example `?topic=cost&status=open`.
-import { genomicsEntries, TOPICS, TYPES, STATUSES } from '../../data/satre/genomics-entries';
-import { isDifference } from '../../data/satre/genomics-views';
+// page address, for example `?topic=Scalable+compute&status=open`.
+import { EntryStatus, EntryType, statusLabels, topicsOf, typeLabels } from '../../data/satre/genomics-entries';
+import { differences as entries } from '../../data/satre/genomics-views';
 import EntryList from './EntryList.astro';
 
-const entries = genomicsEntries.filter(isDifference);
 const menus = [
-	{ name: 'topic', all: 'All topics', options: TOPICS },
-	{ name: 'type', all: 'All types', options: TYPES.filter((t) => entries.some((e) => e.type === t.id)) },
-	{ name: 'status', all: 'All statuses', options: STATUSES },
+	{ name: 'topic', all: 'All topics', options: topicsOf(entries).map((t) => ({ value: t, label: t })) },
+	{
+		name: 'type',
+		all: 'All types',
+		options: EntryType.options
+			.filter((t) => entries.some((e) => e.type === t))
+			.map((t) => ({ value: t, label: typeLabels[t] })),
+	},
+	{ name: 'status', all: 'All statuses', options: EntryStatus.options.map((s) => ({ value: s, label: statusLabels[s] })) },
 ];
 const control = 'rounded-md border border-gray-400 bg-white px-2 py-1.5';
 ---
@@ -34,7 +39,7 @@ const control = 'rounded-md border border-gray-400 bg-white px-2 py-1.5';
 				<select name={menu.name} aria-label={`Filter by ${menu.name}`} class={control}>
 					<option value="">{menu.all}</option>
 					{menu.options.map((o) => (
-						<option value={o.id}>{o.label}</option>
+						<option value={o.value}>{o.label}</option>
 					))}
 				</select>
 			))

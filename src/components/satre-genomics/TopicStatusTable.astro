@@ -2,15 +2,14 @@
 // A table that counts the genomics differences by topic and by status. Each
 // number links to the summary list on the SATRE for Genomics page, with the
 // matching filter set.
-import { summaryHref, statusLabel } from '../../data/satre/genomics-entries';
-import type { EntryStatus, Topic } from '../../data/satre/genomics-entries';
-import { topicGroups, totals, STATUS_ORDER } from '../../data/satre/genomics-views';
+import { EntryStatus, statusLabels, summaryHref, topicsOf } from '../../data/satre/genomics-entries';
+import { countBy, differences } from '../../data/satre/genomics-views';
 import Mark from './Mark.astro';
 
-const rows: { label: string; topic?: Topic; counts: Record<EntryStatus, number>; all: number }[] = [
-	...topicGroups.map((t) => ({ label: t.label, topic: t.id, counts: t.byStatus, all: t.differences.length })),
-	{ label: 'All topics', counts: totals.byStatus, all: totals.differences },
-];
+const rows = [
+	...topicsOf(differences).map((topic) => ({ topic, entries: differences.filter((e) => e.topic === topic) })),
+	{ topic: undefined, entries: differences },
+].map((row) => ({ ...row, counts: countBy(row.entries, 'status') }));
 ---
 
 <table class="tabular-nums max-sm:text-sm max-sm:[&_:is(th,td)]:px-1.5">
@@ -18,9 +17,9 @@ const rows: { label: string; topic?: Topic; counts: Record<EntryStatus, number>;
 		<tr>
 			<th scope="col">Topic</th>
 			{
-				STATUS_ORDER.map((s) => (
+				EntryStatus.options.map((s) => (
 					<th scope="col" class="text-right whitespace-nowrap">
-						<Mark status={s} class="max-sm:hidden" /> {statusLabel(s)}
+						<Mark status={s} class="max-sm:hidden" /> {statusLabels[s]}
 					</th>
 				))
 			}
@@ -32,19 +31,19 @@ const rows: { label: string; topic?: Topic; counts: Record<EntryStatus, number>;
 			rows.map((row) => (
 				<tr class:list={{ 'font-semibold': !row.topic }}>
 					<th scope="row" class:list={{ 'font-normal': !!row.topic }}>
-						{row.label}
+						{row.topic ?? 'All topics'}
 					</th>
-					{STATUS_ORDER.map((s) => (
+					{EntryStatus.options.map((s) => (
 						<td class="text-right">
-							{row.counts[s] > 0 ? (
-								<a href={summaryHref({ topic: row.topic, status: s })}>{row.counts[s]}</a>
+							{row.counts.get(s) ? (
+								<a href={summaryHref({ topic: row.topic, status: s })}>{row.counts.get(s)}</a>
 							) : (
 								<span class="text-gray-400">0</span>
 							)}
 						</td>
 					))}
 					<td class="text-right">
-						<a href={summaryHref({ topic: row.topic })}>{row.all}</a>
+						<a href={summaryHref({ topic: row.topic })}>{row.entries.length}</a>
 					</td>
 				</tr>
 			))

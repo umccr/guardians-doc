@@ -2,32 +2,37 @@
 // The genomics entries for one topic, as a list that opens in place. The
 // report puts one at the end of each topic section, so a reader can see the
 // entries behind that section without leaving it.
-import { fullEntryHref } from '../../data/satre/genomics-entries';
-import type { Topic } from '../../data/satre/genomics-entries';
-import { topicGroups, plural, statusPhrase } from '../../data/satre/genomics-views';
+import { fullEntryHref, genomicsEntries, isDifference } from '../../data/satre/genomics-entries';
+import { plural, statusPhrase } from '../../data/satre/genomics-views';
 import EntryList from './EntryList.astro';
 
 interface Props {
-	topic: Topic;
+	topic: string;
 }
+
 const { topic } = Astro.props;
-const group = topicGroups.find((t) => t.id === topic);
-if (!group) throw new Error(`TopicEntries: unknown topic "${topic}"`);
+const entries = genomicsEntries.filter((e) => e.topic === topic);
+if (entries.length === 0) {
+	throw new Error(`<TopicEntries topic="${topic}">: no entry on the SATRE for Genomics page has this topic`);
+}
+
+const differences = entries.filter(isDifference);
+const reviewed = entries.filter((e) => !isDifference(e));
 ---
 
-<details data-print-open>
-	<summary>
-		{plural(group.differences.length, 'entry', 'entries')} on {group.label.toLowerCase()}:{' '}
-		<span class="font-normal text-gray-500">{statusPhrase(group.byStatus)}</span>
-	</summary>
-	<EntryList entries={group.differences} />
-	{
-		group.reviewed.length > 0 && (
+{
+	<details data-print-open>
+		<summary>
+			{topic}: {plural(differences.length, 'entry', 'entries')}{' '}
+			{differences.length > 0 && <span class="font-normal text-gray-500">· {statusPhrase(differences)}</span>}
+		</summary>
+		<EntryList entries={differences} />
+		{reviewed.length > 0 && (
 			<p class="text-sm">
 				The group also reviewed and rejected a draft change to{' '}
-				{group.reviewed.map((e, i) => (
+				{reviewed.map((e, i) => (
 					<>
-						{i > 0 && (i === group.reviewed.length - 1 ? ' and ' : ', ')}
+						{i > 0 && (i === reviewed.length - 1 ? ' and ' : ', ')}
 						<a href={fullEntryHref(e)}>
 							{e.label} {e.title}
 						</a>
@@ -35,9 +40,9 @@ if (!group) throw new Error(`TopicEntries: unknown topic "${topic}"`);
 				))}
 				.
 			</p>
-		)
-	}
-</details>
+		)}
+	</details>
+}
 
 <script>
 	// A closed list would print as its one summary line. So open every list
