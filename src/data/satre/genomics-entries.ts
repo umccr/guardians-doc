@@ -1,10 +1,11 @@
-// The working group's genomics position on SATRE with an entry for each difference.
+// The working group's genomics position on SATRE, with an entry for each
+// difference and for each SATRE requirement it reviewed without change.
 //
 // The entries are written on the SATRE for Genomics page,
 // src/content/docs/requirements/satre-genomics.mdx. Each one is an <Entry> tag
 // that holds the fields of the entry, followed by its discussion:
 //
-//   <Entry id="2.1.G1" title="Dynamic compute"
+//   <Entry id="2.1.G1" capability="2.1" title="Dynamic compute"
 //     topic="Scalable compute" type="new" status="open"
 //     statusText="Open (Meeting #7)." />
 //
@@ -84,7 +85,7 @@ export interface GenomicsEntry {
 	 */
 	requirement?: SatreRequirement;
 	/**
-	 * The capability of a new requirement, e.g. "2.1".
+	 * The capability of a new requirement, or of an entry about a whole capability, e.g. "2.1".
 	 */
 	capability?: string;
 	/**

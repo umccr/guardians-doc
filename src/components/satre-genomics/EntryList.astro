@@ -26,7 +26,8 @@ const { entries } = Astro.props;
 					<span class="tabular-nums text-gray-600">{e.label}</span>
 					<span class="font-semibold">{e.title}</span>
 					<span class="col-start-3 flex items-center gap-2 text-xs text-gray-500 sm:col-start-auto">
-						<TypeBadge type={e.type} /> {statusLabels[e.status]}
+						<span class="w-[4.75rem]"><TypeBadge type={e.type} /></span>
+						<span class="w-16">{statusLabels[e.status]}</span>
 					</span>
 				</a>
 			</li>

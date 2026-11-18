@@ -13,36 +13,41 @@ GUARDIANS TRE Working Group
 ## Document History
 
 | Version | Date     | Who               | Change Summary  |
-|---------|----------|-------------------|-----------------|
+| ------- | -------- | ----------------- | --------------- |
 | 0.1     | Nov 2026 | TRE Working Group | Initial version |
 
 ## About this page
 
-This page lists the places where a genomics TRE differs from
-[SATRE v2.0.1](https://satre-specification.readthedocs.io/en/v2.0.1/).
-Any SATRE requirement that is not listed here applies to genomics unchanged.
-For the reasoning behind the main differences, see
-[What makes a genomics TRE different](../../reports/genomics-tre/).
+This page lists the places where a genomics TRE differs from [SATRE
+v2.0.1](https://satre-specification.readthedocs.io/en/v2.0.1/). Any SATRE requirement that is not listed here applies to
+genomics unchanged. For the reasoning behind the main differences, see [What makes a genomics TRE
+different](../../reports/genomics-tre/).
 
 Each entry has a **type**:
 
-- <TypeBadge type="change" /> alters the SATRE line for genomics, for example by raising its level or extending what it requires.
-- <TypeBadge type="new" /> is a genomics requirement that SATRE does not have. New requirements are numbered within the SATRE capability they belong to, for example `2.1.G1`. The G stands for genomics, so the number cannot be mistaken for a SATRE requirement.
-- <TypeBadge type="note" /> keeps the SATRE line as it is and adds genomics context for anyone building or evaluating a genomics TRE.
-- <TypeBadge type="feedback" /> is a concern with a SATRE line that is not specific to genomics. It is recorded here so it can be raised with SATRE.
+- <TypeBadge type="change" /> alters the SATRE line for genomics, for example by raising its level or extending what it
+  requires.
+- <TypeBadge type="new" /> is a genomics requirement that SATRE does not have. New requirements are numbered within the
+  SATRE capability they belong to, for example [`2.1.G1`](#2-1-g1). The G stands for genomics.
+- <TypeBadge type="note" /> keeps the SATRE line as it is and adds genomics context for anyone building or evaluating a
+  genomics TRE.
+- <TypeBadge type="feedback" /> is a concern with a SATRE line that is not specific to genomics. It is recorded here so
+  it can be raised with SATRE.
 
 Each entry also has a **status**:
 
 - **Agreed** means a working group meeting decided it.
 - **Open** means a meeting discussed it but did not decide.
-- **Proposed** means it comes from the review documents and has not been discussed yet. It is included by default until the group reviews it.
+- **Proposed** means it comes from the review documents and has not been discussed yet. It is included by default until
+  the group reviews it.
 
 ## Summary
 
 {/* This list is built from the <Entry> tags further down this page. The same tags drive the SATRE map,
     the lists of entries and the table of counts in the report. */}
-Find an entry by its ID or title, or filter the list by topic, type and status.
-Select an entry to go to its full text further down this page.
+
+Find an entry by its ID or title, or filter the list by topic, type and status. Select an entry to go to its full text
+further down this page.
 
 <SatreGenomicsSummary />
 
@@ -54,319 +59,470 @@ These notes apply across SATRE rather than to one requirement.
     The tag writes the heading, type, status and SATRE quotation of the entry here. The summary list
     above and the report read the same tags. */}
 
-<Entry id="general-expectations" title="Researcher and custodian expectations"
-  label="General" level="3" topic="General" type="note" status="agreed"
-  statusText="The group agreed (Meeting #5) that this is not a change to 1.3.05, but wanted it recorded." />
+<Entry
+  id="general-expectations"
+  title="Researcher and custodian expectations"
+  label="General"
+  level="3"
+  topic="General"
+  type="note"
+  status="agreed"
+  statusText="The group agreed (Meeting #5) that this is not a change to 1.3.05, but wanted it recorded."
+/>
 
-Researchers want as few barriers as possible. Data custodians want to keep risk as low as possible.
-This tension exists in every TRE, and SATRE Principle 1 (Usability) describes the trade-off.
-It is sharper in genomics because genomic analysis needs more tools, more compute and more data movement
-than tabular analysis, so each control costs the researcher more.
-A genomics TRE should let the custodian choose how strict the controls are for their data,
-and make that choice visible to researchers.
+Researchers want as few barriers as possible. Data custodians want to keep risk as low as possible. This tension exists
+in every TRE, and [SATRE Principle 1
+(Usability)](https://satre-specification.readthedocs.io/en/v2.0.1/principles.html#principle-1-usability) describes the
+trade-off. It is sharper in genomics because genomic analysis needs more tools, more compute and more data movement than
+tabular analysis, so each control costs the researcher more. A genomics TRE should let the custodian choose how strict
+the controls are for their data, and make that choice visible to researchers.
 
-<Entry id="general-australian-context" title="Australian legal and ethical context" heading="Australian context"
-  label="General" level="3" topic="Governance and consent" type="note" status="agreed"
-  statusText="The group agreed (Meeting #5) to add Australian notes." />
+<Entry
+  id="general-australian-context"
+  title="Australian legal and ethical context"
+  heading="Australian context"
+  label="General"
+  level="3"
+  topic="Governance and consent"
+  type="note"
+  status="agreed"
+  statusText="The group agreed (Meeting #5) to add Australian notes."
+/>
 
-SATRE refers to UK law and UK bodies. For example, 1.3.02 gives the Data Protection Impact Assessment (DPIA)
-as an example, and a DPIA is a UK GDPR process. An Australian TRE should read these references against Australian
-obligations. These include the Privacy Act 1988, state health records laws, the NHMRC National Statement on Ethical Conduct
-in Human Research and Indigenous data governance, for example the CARE Principles.
-SATRE 1.1.01 is the requirement that gathers these legal, regulatory and ethical obligations, and 4.8 covers legal services.
+SATRE refers to UK law and UK bodies. For example, [1.3.02] gives the Data Protection Impact Assessment (DPIA) as an
+example, and a DPIA is a UK GDPR process. An Australian TRE should read these references against Australian obligations.
+These include the Privacy Act 1988, state health records laws, the NHMRC National Statement on Ethical Conduct in Human
+Research and Indigenous data governance, for example the CARE Principles. SATRE [1.1.01] is the requirement that gathers
+these legal, regulatory and ethical obligations, and [4.8] covers legal services.
 
-The group also discussed (Meeting #7) adding data sovereignty to this list.
-Some data must stay in Australia, and that limits where a TRE can store and process it.
+The group also discussed (Meeting #7) adding data sovereignty to this list. Some data must stay in Australia, and that
+limits where a TRE can store and process it.
 
-<Entry id="general-shared-needs" title="Needs shared with other fields"
-  label="General" level="3" topic="General" type="note" status="agreed"
-  statusText="The group agreed (Meeting #7) on some shared needs, however this has not been applied yet to the list." />
+<Entry
+  id="general-shared-needs"
+  title="Needs shared with other fields"
+  label="General"
+  level="3"
+  topic="General"
+  type="note"
+  status="agreed"
+  statusText="The group agreed (Meeting #7) on some shared needs, however this has not been applied yet to the list."
+/>
 
-This page records what genomics needs from a TRE. Not every entry is unique to genomics.
-Medical imaging and AI research also work with very large datasets, shared reference data, GPUs and complex sets of tools.
-The difference matters when the group talks to TRE vendors and operators:
-- Vendors are likely to meet the needs that AI research has, such as GPUs and scalable compute, without the genomics community asking.
-SATRE's own guidance for 2.1.16 gives machine learning as the reason for GPUs.
+This page records what genomics needs from a TRE. Not every entry is unique to genomics. Medical imaging and AI research
+also work with very large datasets, shared reference data, GPUs and complex sets of tools. The difference matters when
+the group talks to TRE vendors and operators:
+
+- Vendors are likely to meet the needs that AI research has, such as GPUs and scalable compute, without the genomics
+  community asking. SATRE's own guidance for [2.1.16] gives machine learning as the reason for GPUs.
 - Vendors may miss the needs that only genomics has, unless this page specifies them.
 
-The group has not yet marked which entries are unique to genomics, and which are shared concerns that also occur in other fields.
+The group has not yet marked which entries are unique to genomics, and which are shared concerns that also occur in
+other fields.
 
-Often differences are common across many points so the report [What makes a genomics TRE different](../../reports/genomics-tre/) groups the
-differences under themes.
+Often differences are common across many points so the report [What makes a genomics TRE
+different](../../reports/genomics-tre/) groups the differences under themes.
 
-<Entry id="general-roles" title="Operator and custodian roles"
-  label="General" level="3" topic="Governance and consent" type="note" status="agreed"
-  statusText="The group agreed (Meeting #7) on the following roles." />
+<Entry
+  id="general-roles"
+  title="Operator and custodian roles"
+  label="General"
+  level="3"
+  topic="Governance and consent"
+  type="note"
+  status="agreed"
+  statusText="The group agreed (Meeting #7) on the following roles."
+/>
 
-The TRE operator provides the tools that carry out governance decisions. It does not make those decisions.
-The data custodian, and the institutions accountable for the research, decide which data a project may use,
-what research is acceptable, and when data must be deleted.
-In data protection terms, the operator is a data processor and not a data controller.
+The TRE operator provides the tools that carry out governance decisions. It does not make those decisions. The data
+custodian, and the institutions accountable for the research, decide which data a project may use, what research is
+acceptable, and when data must be deleted. In data protection terms, the operator is a data processor and not a data
+controller.
 
-The group also noted that SATRE 3.1.01 asks for legal and regulatory implications to be assessed, but does not mention ethics.
-The view was that the operator should not be given the job of judging the ethics of research.
-Ethics approvals still set conditions that the TRE must be able to carry out, such as how long data may be held and when it must be deleted.
-SATRE 1.1.01 already requires the TRE to gather its legal, regulatory and ethical obligations.
+The group also noted that SATRE [3.1.01] asks for legal and regulatory implications to be assessed, but does not mention
+ethics. The view was that the operator should not be given the job of judging the ethics of research. Ethics approvals
+still set conditions that the TRE must be able to carry out, such as how long data may be held and when it must be
+deleted. SATRE [1.1.01] already requires the TRE to gather its legal, regulatory and ethical obligations.
 
 ### Scope
 
-SATRE Pillar 5 (Federation) has not been assessed.
+[SATRE Pillar 5 (Federation)](https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#federation) has
+not been assessed.
 
 ## Pillar 1: Information Governance
 
 ### 1.3 Risk Management
 
-<Entry id="1.3.02" title="Data processing assessment"
-  topic="Governance and consent" type="note" status="agreed"
-  statusText="Agreed (Meeting #5)." />
+<Entry
+  id="1.3.02"
+  title="Data processing assessment"
+  topic="Governance and consent"
+  type="note"
+  status="agreed"
+  statusText="Agreed (Meeting #5)."
+/>
 
-Genomic data processing assessments should give extra weight to three risks.
-None of them is unique to genomics, but all are stronger there.
+Genomic data processing assessments should give extra weight to three risks. None of them is unique to genomics, but all
+are stronger there.
+
 - Re-identification risk does not fall over time, because a genome does not change and reference databases keep growing.
 - A participant's genome reveals information about biological relatives who did not consent.
 - Removing direct identifiers does not make genomic data anonymous.
 
 ### 1.4 Study Management
 
-<Entry id="1.4.01" title="Per-participant consent" heading="Legal, financial and ethical checks"
-  topic="Governance and consent" type="note" status="agreed"
-  statusText="Agreed (Meeting #5) as a strong note. The group judged it close to being a requirement of its own." />
+<Entry
+  id="1.4.01"
+  title="Per-participant consent"
+  heading="Legal, financial and ethical checks"
+  topic="Governance and consent"
+  type="note"
+  status="agreed"
+  statusText="Agreed (Meeting #5) as a strong note. The group judged it close to being a requirement of its own."
+/>
 
-Consent in genomics often differs between participants.
-One dataset can hold participants whose consent allows different uses.
-One participant's data can also be of interest to several studies, institutions and investigators.
-So the checks need to work per participant, not only per project.
-Choosing which participants a project may use is the job of cohort construction, which happens before data reaches the TRE.
+Consent in genomics often differs between participants. One dataset can hold participants whose consent allows different
+uses. One participant's data can also be of interest to several studies, institutions and investigators. So the checks
+need to work per participant, not only per project. Choosing which participants a project may use is the job of cohort
+construction, which happens before data reaches the TRE.
 
-<Entry id="1.4.04" title="End of project"
-  topic="Storage and data lifecycle" type="note" status="agreed"
-  statusText="Agreed (Meeting #5). The group asked for the TRE project model to be made explicit, the details of which are still an open question." />
+<Entry
+  id="1.4.04"
+  title="End of project"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="agreed"
+  statusText="Agreed (Meeting #5). The group asked for the TRE project model to be made explicit, the details of which are still an open question."
+/>
 
-Here "project" means a TRE project, which is a time-limited period of access and analysis.
-It does not mean the dataset. Core genomic datasets exist before and after any TRE project, and their custodian holds them.
+Here "project" means a TRE project, which is a time-limited period of access and analysis. It does not mean the dataset.
+Core genomic datasets exist before and after any TRE project, and their custodian holds them.
 
 At the end of a TRE project, the end-of-project process must:
+
 - remove access;
 - remove working data, such as intermediate alignment files, which can be very large;
 - decide what happens to derived data.
 
-Derived data worth keeping should leave through the normal egress process. With the original custodian's permission, it then becomes a new dataset.
-The group discussed that curated findings, such as variant classifications, may be worth keeping in the TRE as a shared resource.
-At genomics scale, keeping everything just in case is expensive, so someone must own the retention decision.
+Derived data worth keeping should leave through the normal egress process. With the original custodian's permission, it
+then becomes a new dataset. The group discussed that curated findings, such as variant classifications, may be worth
+keeping in the TRE as a shared resource. At genomics scale, keeping everything just in case is expensive, so someone
+must own the retention decision.
 
 ### 1.7 Public Involvement and Engagement
 
-<Entry id="1.7.02" title="Public details of projects"
-  topic="Governance and consent" type="feedback" status="agreed"
-  statusText="Agreed (Meeting #5)." />
+<Entry
+  id="1.7.02"
+  title="Public details of projects"
+  topic="Governance and consent"
+  type="feedback"
+  status="agreed"
+  statusText="Agreed (Meeting #5)."
+/>
 
-This is not specific to genomics.
-The group's view is that whether project details are made public should be the data custodian's decision, not a mandatory TRE requirement.
-Some custodians cannot publish this information.
-Indigenous data is one example, and the UK context that SATRE comes from has no direct equivalent.
-The group proposes to raise this with SATRE as general feedback.
+This is not specific to genomics. The group's view is that whether project details are made public should be the data
+custodian's decision, not a mandatory TRE requirement. Some custodians cannot publish this information. Indigenous data
+is one example, and the UK context that SATRE comes from has no direct equivalent. The group proposes to raise this with
+SATRE as general feedback.
 
 ## Pillar 2: Computing Technology and Information Security
 
 ### 2.1 End User Computing
 
-<Entry id="2.1.01" title="System clipboard"
-  topic="Egress and output checking" type="note" status="open"
-  statusText="Open (Meeting #6). This was flagged for a threat analysis." />
+<Entry
+  id="2.1.01"
+  title="System clipboard"
+  topic="Egress and output checking"
+  type="note"
+  status="open"
+  statusText="Open (Meeting #6). This was flagged for a threat analysis."
+/>
 
 Draft note:
+
 - The clipboard rule protects against copying small amounts of identifying text, such as names in a spreadsheet.
 - For genomic data, the main risk is bulk exfiltration of large files, and the clipboard rule does not address it.
 - Platforms that run in a web browser, rather than a virtual desktop, find the rule hard to enforce.
 - Pasting code in is arguably a form of ingress rather than an egress risk, and should be considered differently.
 - A genomics TRE should base this control on its own threat analysis. See [3.1.05](#3-1-05) and [3.3.07](#3-3-07).
 
-<Entry id="2.1.10" title="Software that changes the infrastructure" heading="Software applications"
-  topic="Workflow management" type="note" status="agreed"
-  statusText="Agreed (Meeting #6). Whether 2.1.10 is the right place for this note is still open." />
+<Entry
+  id="2.1.10"
+  title="Software that changes the infrastructure"
+  heading="Software applications"
+  topic="Workflow management"
+  type="note"
+  status="agreed"
+  statusText="Agreed (Meeting #6). Whether 2.1.10 is the right place for this note is still open."
+/>
 
-SATRE's examples, such as Python, R and IDEs, can be installed within a workspace.
-Some genomics software instead changes the infrastructure that the TRE must provide:
+SATRE's examples, such as Python, R and IDEs, can be installed within a workspace. Some genomics software instead
+changes the infrastructure that the TRE must provide:
+
 - **Workflow engines** create compute and pull containers.
 - **Distributed analytics**, such as Spark clusters for Hail, need a cluster.
 
-A researcher cannot reasonably set these up inside their workspace, so the TRE must plan for them.
-See [2.1.G1](#2-1-g1) and [2.1.G3](#2-1-g3).
-Ordinary command-line bioinformatics tools need no special treatment.
+A researcher cannot reasonably set these up inside their workspace, so the TRE must plan for them. See [2.1.G1](#2-1-g1)
+and [2.1.G3](#2-1-g3). Ordinary command-line bioinformatics tools need no special treatment.
 
-<Entry id="2.1.12" title="Container registries" heading="Software repositories and container registries"
-  topic="Workflow management" type="change" status="open"
-  statusText="Open (Meeting #6). It was not decided between raising the level and adding a note; phrased as a change here." />
+<Entry
+  id="2.1.12"
+  title="Container registries"
+  heading="Software repositories and container registries"
+  topic="Workflow management"
+  type="change"
+  status="open"
+  statusText="Open (Meeting #6). It was not decided between raising the level and adding a note; phrased as a change here."
+/>
 
-Proposed: raise to **Recommended** for genomics TREs.
-Most Nextflow and WDL pipelines pull a container for each task.
-A lot of genomics software comes from GitHub, Bioconda and container registries such as BioContainers.
-Without access to these sources, or to internal mirrors of them, most pipelines cannot run.
-The custodian should decide how open this access is.
+Proposed: raise to **Recommended** for genomics TREs. Most Nextflow and WDL pipelines pull a container for each task. A
+lot of genomics software comes from GitHub, Bioconda and container registries such as BioContainers. Without access to
+these sources, or to internal mirrors of them, most pipelines cannot run. The custodian should decide how open this
+access is.
 
-<Entry id="2.1.14" title="Segregation at the workflow layer" heading="Segregation on all compute"
-  topic="Scalable compute" type="note" status="open"
-  statusText="Open (Meeting #6). The wording on these points was proposed but not agreed on." />
+<Entry
+  id="2.1.14"
+  title="Segregation at the workflow layer"
+  heading="Segregation on all compute"
+  topic="Scalable compute"
+  type="note"
+  status="open"
+  statusText="Open (Meeting #6). The wording on these points was proposed but not agreed on."
+/>
 
-Workflow engines create and remove many short-lived compute nodes in each run.
-So segregation must hold in the workflow engine itself, not only on the compute nodes.
-A project's workflow logs, work directories and job lists must be visible only to that project.
-Some workflow engines have written every user's logs as one service user, so that seeing your own logs meant seeing everyone's.
-Even knowing that another project runs a particular tool can reveal what it is researching.
-On shared HPC, how segregation works depends on how the TRE is built, so it needs a site-specific risk sign-off.
+Workflow engines create and remove many short-lived compute nodes in each run. So segregation must hold in the workflow
+engine itself, not only on the compute nodes. A project's workflow logs, work directories and job lists must be visible
+only to that project. Some workflow engines have written every user's logs as one service user, so that seeing your own
+logs meant seeing everyone's. Even knowing that another project runs a particular tool can reveal what it is
+researching. On shared HPC, how segregation works depends on how the TRE is built, so it needs a site-specific risk
+sign-off.
 
-<Entry id="2.1.G1" capability="2.1" title="Dynamic compute"
-  topic="Scalable compute" type="new" status="open"
-  statusText="Open (Meeting #7). The need is clear and the direction of the wording was agreed, but the level was not settled; proposed as Mandatory." />
+<Entry
+  id="2.1.G1"
+  capability="2.1"
+  title="Dynamic compute"
+  topic="Scalable compute"
+  type="new"
+  status="open"
+  statusText="Open (Meeting #7). The need is clear and the direction of the wording was agreed, but the level was not settled; proposed as Mandatory."
+/>
 
-**A genomics TRE must provide dynamic compute provisioning. Workflow engines must be able to create, use and destroy compute resources suited to each pipeline stage.**
+**A genomics TRE must provide dynamic compute provisioning. Workflow engines must be able to create, use and destroy
+compute resources suited to each pipeline stage.**
 
-A single pipeline run can need a high-memory node for one step, GPUs for another,
-and hundreds of small nodes in parallel for per-sample work.
-Fixed desktops, or one large virtual machine, cannot run population-scale analyses in a reasonable time,
-and paying for that capacity while it sits idle is not affordable.
-The [taxonomy of compute types](../researcher-environments/#taxonomy-of-compute-types-provided-in-tres) calls this "dynamic compute".
+A single pipeline run can need a high-memory node for one step, GPUs for another, and hundreds of small nodes in
+parallel for per-sample work. Fixed desktops, or one large virtual machine, cannot run population-scale analyses in a
+reasonable time, and paying for that capacity while it sits idle is not affordable. The [taxonomy of compute
+types](../researcher-environments/#taxonomy-of-compute-types-provided-in-tres) calls this "dynamic compute".
 
 The group asked for the statement above to be reworded in three ways:
-- **State the capability, not the implementation.** Researchers need easy access from inside the TRE to many nodes, large-memory nodes or GPU nodes.
-  Whether an HPC cluster or an autoscaling cloud provides them is the operator's choice, and each choice has different consequences.
-- **Cover more than one form.** Members described three forms: compute that a workflow engine scales automatically,
-  a cluster such as Spark that a researcher starts and stops, and a GPU or large machine hired for some hours.
-  The group did not want any one of them named as the correct form. The final text should state an abstract requirement and give these as examples.
-- **Require clean-up.** When the work ends, the TRE must remove the compute and purge the data on it, so that nothing reaches the next user, which
-  is a step that can often be forgotten.
 
-SATRE 2.1.15 (Recommended) already covers HPC or scalable compute "if required by users", and its guidance mentions
-dynamically created compute nodes. So the level could instead be set by raising 2.1.15 to Mandatory for genomics TREs.
-The group did not agree whether this should be Mandatory or Recommended, and describing it clearly may be more beneficial
-for the kinds of genomic work that benefit from it.
+- **State the capability, not the implementation.** Researchers need easy access from inside the TRE to many nodes,
+  large-memory nodes or GPU nodes. Whether an HPC cluster or an autoscaling cloud provides them is the operator's
+  choice, and each choice has different consequences.
+- **Cover more than one form.** Members described three forms: compute that a workflow engine scales automatically, a
+  cluster such as Spark that a researcher starts and stops, and a GPU or large machine hired for some hours. The group
+  did not want any one of them named as the correct form. The final text should state an abstract requirement and give
+  these as examples.
+- **Require clean-up.** When the work ends, the TRE must remove the compute and purge the data on it, so that nothing
+  reaches the next user, which is a step that can often be forgotten.
 
-<Entry id="2.1.G2" capability="2.1" title="Shared reference data"
-  topic="Workflow management" type="new" status="open"
-  statusText="Open (Meeting #7). The group agreed that a genomics TRE must solve access to reference data, but not how; proposed as Mandatory." />
+SATRE [2.1.15] (Recommended) already covers HPC or scalable compute "if required by users", and its guidance mentions
+dynamically created compute nodes. So the level could instead be set by raising [2.1.15] to Mandatory for genomics TREs.
+The group did not agree whether this should be Mandatory or Recommended, and describing it clearly may be more
+beneficial for the kinds of genomic work that benefit from it.
 
-**A genomics TRE must provide reference datasets, such as reference genomes, annotation databases and known-sites VCFs, as shared read-only resources available to all projects.**
+<Entry
+  id="2.1.G2"
+  capability="2.1"
+  title="Shared reference data"
+  topic="Workflow management"
+  type="new"
+  status="open"
+  statusText="Open (Meeting #7). The group agreed that a genomics TRE must solve access to reference data, but not how; proposed as Mandatory."
+/>
 
-Almost every analysis uses reference data such as GRCh38, gnomAD and ClinVar.
-This data is not about participants. It is tens to hundreds of gigabytes, and should not need to be ingressed by every project.
-Central copies should be managed and versioned. Some reference data, such as COSMIC, comes with licence conditions.
+**A genomics TRE must provide reference datasets, such as reference genomes, annotation databases and known-sites VCFs,
+as shared read-only resources available to all projects.**
 
-Outside a TRE, most pipelines download reference data on every run.
-A TRE blocks that by default (see [2.2.11](#2-2-11)), so the TRE must offer another way.
-This was discussed as potentially being a general infrastructure problem, not a TRE problem, however
-a genomics TRE makes the problem unavoidable, so it's worth clarifying in the requirements.
+Almost every analysis uses reference data such as GRCh38, gnomAD and ClinVar. This data is not about participants. It is
+tens to hundreds of gigabytes, and should not need to be ingressed by every project. Central copies should be managed
+and versioned. Some reference data, such as COSMIC, comes with licence conditions.
+
+Outside a TRE, most pipelines download reference data on every run. A TRE blocks that by default (see
+[2.2.11](#2-2-11)), so the TRE must offer another way. This was discussed as potentially being a general infrastructure
+problem, not a TRE problem, however a genomics TRE makes the problem unavoidable, so it's worth clarifying in the
+requirements.
 
 The meeting did not choose between three ways to solve it:
+
 - a curated, shared, read-only store, as proposed above;
 - an allow-list of trusted sources that pipelines can still download from;
 - each researcher bringing in the files they need through ingress.
 
 The following points were considered for wording:
-- **A shared store can work.** For example, one HPC site mounts a read-only reference folder on every compute node.
-  When a user asks for a new genome or version, it is added for everyone.
-  Requests settled after about six months, because only a few dozen reference genomes and gene models are in common use.
-  The folder then covered about 90% of cases.
-- **Agreeing what to share is hard,** because projects differ. A small community can settle a list more easily than a national facility can.
-- **A shared store needs upkeep.** Users must be able to trust that a file is current and intact, for example through checksums, or they download their own copy.
-  Someone must also pay for the storage and the curation.
-- **Every option needs curation.** Someone has to approve each new source, whether it goes into a shared store or onto an allow-list.
+
+- **A shared store can work.** For example, one HPC site mounts a read-only reference folder on every compute node. When
+  a user asks for a new genome or version, it is added for everyone. Requests settled after about six months, because
+  only a few dozen reference genomes and gene models are in common use. The folder then covered about 90% of cases.
+- **Agreeing what to share is hard,** because projects differ. A small community can settle a list more easily than a
+  national facility can.
+- **A shared store needs upkeep.** Users must be able to trust that a file is current and intact, for example through
+  checksums, or they download their own copy. Someone must also pay for the storage and the curation.
+- **Every option needs curation.** Someone has to approve each new source, whether it goes into a shared store or onto
+  an allow-list.
 - **Pipelines must use the shared copy.** A workflow engine may otherwise still copy the reference files to every node.
-- **The restriction can help.** It may push groups to maintain reference data properly, and it stops researchers picking the wrong genome build by accident.
+- **The restriction can help.** It may push groups to maintain reference data properly, and it stops researchers picking
+  the wrong genome build by accident.
 
-As a counterpoint (under 2.1.07), many pipelines fetch reference data on every run because it is cheap compared to aligning and calling a genome.
-Pipelines also often name an exact genome build and patch.
-Shared annotation services, such as a VEP cache, may matter more than shared files.
+As a counterpoint (under [2.1.07]), many pipelines fetch reference data on every run because it is cheap compared to
+aligning and calling a genome. Pipelines also often name an exact genome build and patch. Shared annotation services,
+such as a VEP cache, may matter more than shared files.
 
-<Entry id="2.1.G3" capability="2.1" title="Workflow engines"
-  topic="Workflow management" type="new" status="open"
-  statusText="Open (Meeting #6), from the discussion of 2.1.10 and 2.1.11. Level and placement still to be agreed." />
+<Entry
+  id="2.1.G3"
+  capability="2.1"
+  title="Workflow engines"
+  topic="Workflow management"
+  type="new"
+  status="open"
+  statusText="Open (Meeting #6), from the discussion of 2.1.10 and 2.1.11. Level and placement still to be agreed."
+/>
 
-**A genomics TRE must provide a workflow engine, such as Nextflow, Cromwell for WDL, or a CWL runner, that runs containerised steps and records how each run was done. Projects must not each have to build and run their own.**
+**A genomics TRE must provide a workflow engine, such as Nextflow, Cromwell for WDL, or a CWL runner, that runs
+containerised steps and records how each run was done. Projects must not each have to build and run their own.**
 
-The group agreed that workflow engines are how genomics work is done, not just reproducibility best practice.
-They were also clear that this must be stated somewhere.
-Keeping the engine current matters, because older engine versions cannot run newer community pipelines.
+The group agreed that workflow engines are how genomics work is done, not just reproducibility best practice. They were
+also clear that this must be stated somewhere. Keeping the engine current matters, because older engine versions cannot
+run newer community pipelines.
 
 ### 2.2 Infrastructure Management
 
-<Entry id="2.2.02" title="Automated deployment"
-  topic="Scalable compute" type="change" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.2.02"
+  title="Automated deployment"
+  topic="Scalable compute"
+  type="change"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Proposed: raise to **Mandatory** for genomics TREs.
-Workflow-driven compute is created and destroyed all the time, so manual deployment does not scale.
-Custodians also need deployments they can inspect and audit, and infrastructure-as-code (for example Terraform) provides that.
+Proposed: raise to **Mandatory** for genomics TREs. Workflow-driven compute is created and destroyed all the time, so
+manual deployment does not scale. Custodians also need deployments they can inspect and audit, and
+infrastructure-as-code (for example Terraform) provides that.
 
-<Entry id="2.2.07" title="Provider availability"
-  topic="Scalable compute" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.2.07"
+  title="Provider availability"
+  topic="Scalable compute"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Genomics compute can sit idle for long periods, and then run pipelines for hours or days.
-What matters is that a running job completes, rather than constant uptime.
-So understand provider guarantees in those terms. That includes how often spot or preemptible capacity is interrupted.
+Genomics compute can sit idle for long periods, and then run pipelines for hours or days. What matters is that a running
+job completes, rather than constant uptime. So understand provider guarantees in those terms. That includes how often
+spot or preemptible capacity is interrupted.
 
-<Entry id="2.2.08" title="Availability statement"
-  topic="Scalable compute" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.2.08"
+  title="Availability statement"
+  topic="Scalable compute"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
 An availability statement for a genomics TRE should cover three things:
+
 - whether submitted pipelines run to completion;
 - whether datasets can be read when needed, including how long it takes to restore archived data;
 - how long a submitted job waits before compute starts.
 
-<Entry id="2.2.11" title="Outbound connections"
-  topic="Workflow management" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.2.11"
+  title="Outbound connections"
+  topic="Workflow management"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Pipelines commonly need to pull containers, fetch reference data and talk to workflow orchestration services.
-In practice, a TRE meets this with internal mirrors of container registries, package repositories and Git, or with a list of allowed outbound endpoints.
-Each exception should be approved and recorded. See [2.1.12](#2-1-12).
+Pipelines commonly need to pull containers, fetch reference data and talk to workflow orchestration services. In
+practice, a TRE meets this with internal mirrors of container registries, package repositories and Git, or with a list
+of allowed outbound endpoints. Each exception should be approved and recorded. See [2.1.12](#2-1-12).
 
-<Entry id="2.2.15" title="Resource usage records" heading="Resource usage"
-  topic="Financial and cost management" type="change" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.2.15"
+  title="Resource usage records"
+  heading="Resource usage"
+  topic="Financial and cost management"
+  type="change"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Proposed: raise to **Mandatory** for genomics TREs.
-Compute, storage and network costs per pipeline run can be large and hard to predict.
-So the TRE must record usage per project, and per pipeline run where possible.
-See [4.4](#4-4).
+Proposed: raise to **Mandatory** for genomics TREs. Compute, storage and network costs per pipeline run can be large and
+hard to predict. So the TRE must record usage per project, and per pipeline run where possible. See [4.4](#4-4).
 
 ### 2.3 Capacity Management
 
-<Entry id="2.3.01" title="Resources and costs before a project"
-  topic="Financial and cost management" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.3.01"
+  title="Resources and costs before a project"
+  topic="Financial and cost management"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Genomics resource needs are hard to state in advance, because the shape of a run changes from stage to stage.
-So describe resources as on-demand capacity, quotas and burst limits, and explain the cost model, rather than offering a fixed allocation.
-HPC schemes where groups apply months ahead for a fixed allocation suit this work poorly. Schemes that allow ad hoc use suit it better.
+Genomics resource needs are hard to state in advance, because the shape of a run changes from stage to stage. So
+describe resources as on-demand capacity, quotas and burst limits, and explain the cost model, rather than offering a
+fixed allocation. HPC schemes where groups apply months ahead for a fixed allocation suit this work poorly. Schemes that
+allow ad hoc use suit it better.
 
-<Entry id="2.3.03" title="Allocating resources"
-  topic="Scalable compute" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.3.03"
+  title="Allocating resources"
+  topic="Scalable compute"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-In a cloud genomics TRE, allocation is dynamic.
-One researcher submitting 50 samples at once can start hundreds of compute nodes.
-The allocation procedure must cope with bursts like this, and stop one project from starving the others.
+In a cloud genomics TRE, allocation is dynamic. One researcher submitting 50 samples at once can start hundreds of
+compute nodes. The allocation procedure must cope with bursts like this, and stop one project from starving the others.
 This is closer to cloud quota management than to fixed allocation.
 
-<Entry id="2.3.04" title="Overspending"
-  topic="Financial and cost management" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.3.04"
+  title="Overspending"
+  topic="Financial and cost management"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-SATRE's guidance already suggests restricting consumption per project in cloud TREs.
-For how this works in genomics, see [4.4.G1](#4-4-g1).
+SATRE's guidance already suggests restricting consumption per project in cloud TREs. For how this works in genomics, see
+[4.4.G1](#4-4-g1).
 
 ### 2.6 Cyber Resilience
 
-<Entry id="2.6.01" title="Backups"
-  topic="Storage and data lifecycle" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="2.6.01"
+  title="Backups"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
 Decide what to back up by type of data:
+
 - **Outputs and results generated by researchers:** high priority.
 - **Reference data that can be fetched again:** low priority.
-- **Original participant data:** the custodian's data layer should hold and back this up. The TRE should not duplicate hundreds of terabytes.
+- **Original participant data:** the custodian's data layer should hold and back this up. The TRE should not duplicate
+  hundreds of terabytes.
 
 SATRE's guidance already asks whether sensitive input data should be backed up at all.
 
@@ -374,70 +530,97 @@ SATRE's guidance already asks whether sensitive input data should be backed up a
 
 ### 3.1 Data Lifecycle Management
 
-The group reviewed the proposals for 3.1.03 to 3.1.05 together.
-It agreed that they are notes about the size of the challenge, and that none of them asks a genomics TRE to do something radically different.
-Sites may differ in how much of this they want, so the notes should not be too prescriptive.
+The group reviewed the proposals for [3.1.03] to [3.1.05] together. It agreed that they are notes about the size of the
+challenge, and that none of them asks a genomics TRE to do something radically different. Sites may differ in how much
+of this they want, so the notes should not be too prescriptive.
 
-<Entry id="3.1.03" title="Classification"
-  topic="Storage and data lifecycle" type="note" status="agreed"
-  statusText="Agreed as a note (Meeting #7). The wording of this still needs to be clarified." />
+<Entry
+  id="3.1.03"
+  title="Classification"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="agreed"
+  statusText="Agreed as a note (Meeting #7). The wording of this still needs to be clarified."
+/>
 
-Treat genomic data as highly sensitive by default.
-Removing direct identifiers does not make it non-identifiable, and the TRE operator often cannot judge the content itself.
+Treat genomic data as highly sensitive by default. Removing direct identifiers does not make it non-identifiable, and
+the TRE operator often cannot judge the content itself.
 
-Consent often differs between participants in one dataset (see [1.4.01](#1-4-01)).
-The custodian should resolve those differences before data is released into a TRE project, not inside it.
-A project should receive only the participants and files that it may use.
-For example, a multi-sample VCF file holds data from many participants.
-It must be filtered, or served through an API such as htsget, so that the project does not receive participants who have not consented.
+Consent often differs between participants in one dataset (see [1.4.01](#1-4-01)). The custodian should resolve those
+differences before data is released into a TRE project, not inside it. A project should receive only the participants
+and files that it may use. For example, a multi-sample VCF file holds data from many participants. It must be filtered,
+or served through an API such as htsget, so that the project does not receive participants who have not consented.
 Inside a project, every user can then use all of the project's data.
 
-The TRE's part is to give custodians a safe way to release exactly the approved data into a project.
-The governance rules for a dataset must be clear before it is ingressed, and whoever ingresses data must know the rules attached to it.
+The TRE's part is to give custodians a safe way to release exactly the approved data into a project. The governance
+rules for a dataset must be clear before it is ingressed, and whoever ingresses data must know the rules attached to it.
 
-<Entry id="3.1.04" title="Ingress at scale" heading="Ingress"
-  topic="Storage and data lifecycle" type="note" status="agreed"
-  statusText="Agreed as a note (Meeting #7)." />
+<Entry
+  id="3.1.04"
+  title="Ingress at scale"
+  heading="Ingress"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="agreed"
+  statusText="Agreed as a note (Meeting #7)."
+/>
 
 Genomics ingress works at a different scale:
+
 - single objects of hundreds of gigabytes;
 - datasets of many small objects;
 - transfers that could take days;
 - objects that may need to first be restored from archive storage.
 
 The ingress process must support:
+
 - long-running transfers that continue without the requester staying online;
 - copying only selected objects, for governance reasons;
 - integrity checks, such as checksums.
 
-The GUARDIANS [Data Copying](../data-copying/) requirements describe a service that does this. [Globus](../../technology/globus/)
-may be a candidate tool for ingress and egress that could be further investigated.
+The GUARDIANS [Data Copying](../data-copying/) requirements describe a service that does this.
+[Globus](../../technology/globus/) may be a candidate tool for ingress and egress that could be further investigated.
 
-<Entry id="3.1.05" title="Egress"
-  topic="Egress and output checking" type="note" status="agreed"
-  statusText="Agreed as a note (Meeting #7)." />
+<Entry
+  id="3.1.05"
+  title="Egress"
+  topic="Egress and output checking"
+  type="note"
+  status="agreed"
+  statusText="Agreed as a note (Meeting #7)."
+/>
 
 Genomics makes egress harder in three ways:
+
 - Nobody can review binary formats such as BAM and CRAM by eye.
 - At genomics scale, egress can cost a lot.
-- Some access is through APIs such as htsget rather than file downloads, so the egress process must also cover streaming and query access.
+- Some access is through APIs such as htsget rather than file downloads, so the egress process must also cover streaming
+  and query access.
 
-The main threat is bulk exfiltration of individual-level files.
-For example, the UK Biobank Research Analysis Platform does not allow individual-level data to be downloaded.
-It never allows exome or genome sequence data to be downloaded, and it is adding an airlock to all downloads
-([download guidance](https://community.ukbiobank.ac.uk/hc/en-gb/articles/31972311370013-Guidance-on-Data-Downloads-and-Exemptions),
+The main threat is bulk exfiltration of individual-level files. For example, the UK Biobank Research Analysis Platform
+does not allow individual-level data to be downloaded. It never allows exome or genome sequence data to be downloaded,
+and it is adding an airlock to all downloads ([download
+guidance](https://community.ukbiobank.ac.uk/hc/en-gb/articles/31972311370013-Guidance-on-Data-Downloads-and-Exemptions),
 [reopening plan](https://community.ukbiobank.ac.uk/hc/en-gb/articles/37284428443933-When-will-the-UKB-RAP-re-open)).
 
 The following comments have not been discussed yet:
+
 - Should egress have a new genomics requirement that names file types and file sizes?
-- Should 3.1.07, which lets egress need approval from someone outside the project, be raised from Optional to Recommended?
+- Should [3.1.07], which lets egress need approval from someone outside the project, be raised from Optional to
+  Recommended?
 
-<Entry id="3.1.09" title="Deletion"
-  topic="Storage and data lifecycle" type="note" status="open"
-  statusText="Open (Meeting #7). This was discussed and judged as worthy of a note, with disagreements on wording." />
+<Entry
+  id="3.1.09"
+  title="Deletion"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="open"
+  statusText="Open (Meeting #7). This was discussed and judged as worthy of a note, with disagreements on wording."
+/>
 
-Securely deleting hundreds of terabytes, including backups and archive copies, takes time and costs money.
-The deletion policy must reconcile three pressures:
+Securely deleting hundreds of terabytes, including backups and archive copies, takes time and costs money. The deletion
+policy must reconcile three pressures:
+
 - deletion when consent requires it;
 - retention for re-analysis as reference genomes and methods improve;
 - the cost of storage.
@@ -445,252 +628,435 @@ The deletion policy must reconcile three pressures:
 Deleting the TRE's copy does not delete the custodian's dataset (see [1.4.04](#1-4-04)).
 
 The following points were considered:
-- **A project starts and ends with no data.** The TRE is not a long-term archive.
-  A project's input dataset is built when the project is created, to match the project's approvals, and it goes away at the end.
-- **Withdrawal takes effect at the next data release.** The data given to a running project is not changed part-way through.
-  Projects may run for a long time, and participants have the right to have their data deleted.
-- **The policy and the technology must agree.** If a custodian offers dynamic consent but releases data once a year,
-  the most it can promise is that the participant is left out of the next release.
-- **Kinds of data differ.** A deletion policy should treat results worth keeping, logs, and copies of input data separately.
-  Records about deleted data may still need to be kept.
-- **Ethics approvals often set the deletion terms.** The TRE must be able to carry them out (see [Operator and custodian roles](#general-roles)).
+
+- **A project starts and ends with no data.** The TRE is not a long-term archive. A project's input dataset is built
+  when the project is created, to match the project's approvals, and it goes away at the end.
+- **Withdrawal takes effect at the next data release.** The data given to a running project is not changed part-way
+  through. Projects may run for a long time, and participants have the right to have their data deleted.
+- **The policy and the technology must agree.** If a custodian offers dynamic consent but releases data once a year, the
+  most it can promise is that the participant is left out of the next release.
+- **Kinds of data differ.** A deletion policy should treat results worth keeping, logs, and copies of input data
+  separately. Records about deleted data may still need to be kept.
+- **Ethics approvals often set the deletion terms.** The TRE must be able to carry them out (see [Operator and custodian
+  roles](#general-roles)).
 - **Volume makes the end of a project hard.** A project may hold 100 terabytes of derived data with nowhere to send it.
   Researchers may then ask to extend the project, to avoid deciding where the data goes.
 
 SATRE already requires a deletion policy. The open question for genomics is what tools a TRE needs to carry one out.
 
-<Entry id="3.1.13" title="Data minimisation"
-  topic="Storage and data lifecycle" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.1.13"
+  title="Data minimisation"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Do not copy large genomic datasets into each project.
-Instead, give several projects read-only access to a single copy, use API access (see [3.1.G2](#3-1-g2)), or use copy-on-write storage.
-This keeps both risk and storage cost down.
+Do not copy large genomic datasets into each project. Instead, give several projects read-only access to a single copy,
+use API access (see [3.1.G2](#3-1-g2)), or use copy-on-write storage. This keeps both risk and storage cost down.
 
-<Entry id="3.1.G1" capability="3.1" title="Ingress from archive storage"
-  topic="Storage and data lifecycle" type="new" status="proposed"
-  statusText="Proposed as Mandatory." />
+<Entry
+  id="3.1.G1"
+  capability="3.1"
+  title="Ingress from archive storage"
+  topic="Storage and data lifecycle"
+  type="new"
+  status="proposed"
+  statusText="Proposed as Mandatory."
+/>
 
-**The TRE must support ingress of data from archive storage tiers, such as AWS Glacier or tape, with control over how fast data is restored and visibility of what the restore costs.**
+**The TRE must support ingress of data from archive storage tiers, such as AWS Glacier or tape, with control over how
+fast data is restored and visibility of what the restore costs.**
 
-Genomic objects often sit in archive storage because of their size and how rarely they are read.
-Restores take hours to days, and faster restores cost more.
-See `DCREQ‑6` and `DCREQ‑7` in [Data Copying](../data-copying/).
+Genomic objects often sit in archive storage because of their size and how rarely they are read. Restores take hours to
+days, and faster restores cost more. See `DCREQ‑6` and `DCREQ‑7` in [Data Copying](../data-copying/).
 
-<Entry id="3.1.G2" capability="3.1" title="API access to genomic data"
-  topic="Storage and data lifecycle" type="new" status="proposed"
-  statusText="Proposed as Recommended." />
+<Entry
+  id="3.1.G2"
+  capability="3.1"
+  title="API access to genomic data"
+  topic="Storage and data lifecycle"
+  type="new"
+  status="proposed"
+  statusText="Proposed as Recommended."
+/>
 
-**The TRE should support API-based streaming access to genomic data, such as the GA4GH htsget protocol, as an alternative to bulk file ingress.**
+**The TRE should support API-based streaming access to genomic data, such as the GA4GH htsget protocol, as an
+alternative to bulk file ingress.**
 
-htsget lets an analysis fetch only the genomic regions or samples it needs, instead of whole BAM or CRAM files.
-This supports [3.1.13](#3-1-13) and avoids copying hundreds of terabytes into each workspace.
-See [htsget-rs](../../technology/htsget-rs/).
+htsget lets an analysis fetch only the genomic regions or samples it needs, instead of whole BAM or CRAM files. This
+supports [3.1.13](#3-1-13) and avoids copying hundreds of terabytes into each workspace. See
+[htsget-rs](../../technology/htsget-rs/).
 
 ### 3.2 Identity and Access Management
 
-<Entry id="3.2.03" title="Access by data type and participant" heading="Least access"
-  topic="Governance and consent" type="change" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.2.03"
+  title="Access by data type and participant"
+  heading="Least access"
+  topic="Governance and consent"
+  type="change"
+  status="proposed"
+  statusText="Proposed."
+/>
 
 Proposed: for genomics, the access model must support three things:
+
 - **Restrictions by data type.** A project may be approved to see variants but not raw reads for the same participants.
 - **Restrictions by participant subset,** because consent varies between participants.
 - **Time-limited access** that expires automatically.
 
-The group decided in Meeting #5 that consent withdrawal belongs to cohort construction, not the TRE (see [rejected proposals](#rejected-proposals)).
-The same reasoning may apply to participant subsets.
+The group decided in Meeting #5 that consent withdrawal belongs to cohort construction, not the TRE (see [rejected
+proposals](#rejected-proposals)). The same reasoning may apply to participant subsets.
 
 ### 3.3 Output Management
 
-<Entry id="3.3.01" title="Classifying outputs"
-  topic="Egress and output checking" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.3.01"
+  title="Classifying outputs"
+  topic="Egress and output checking"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
 Output classification needs genomics-specific rules:
+
 - Allele frequencies aggregated over many people are usually safe.
 - Individual-level variant calls are sensitive.
 - A single germline variant can reveal ancestry or family relationships.
 - Summary statistics from small groups can be disclosive.
 
-<Entry id="3.3.06" title="Statistical basis for output checking"
-  topic="Egress and output checking" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.3.06"
+  title="Statistical basis for output checking"
+  topic="Egress and output checking"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Standard statistical disclosure control, such as minimum cell counts, does not map directly onto genomic outputs.
-The field has no agreed thresholds for allele counts, for GWAS summary statistics from small cohorts, or for polygenic risk scores.
-Our Future Health's published rules are one example of practice
-([safe outputs](https://dnanexus.gitbook.io/ofh/airlock/safe-outputs-data-guidelines-for-export)):
+Standard statistical disclosure control, such as minimum cell counts, does not map directly onto genomic outputs. The
+field has no agreed thresholds for allele counts, for GWAS summary statistics from small cohorts, or for polygenic risk
+scores. Our Future Health's published rules are one example of practice ([safe
+outputs](https://dnanexus.gitbook.io/ofh/airlock/safe-outputs-data-guidelines-for-export)):
+
 - at least 10 participants behind any allele or genotype count;
 - no variants seen in only one participant;
 - a minor allele count of at least 10 for each SNP in GWAS summary statistics.
 
-<Entry id="3.3.07" title="Outputs that cannot be checked by hand" heading="Outputs that cannot be checked manually"
-  topic="Egress and output checking" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.3.07"
+  title="Outputs that cannot be checked by hand"
+  heading="Outputs that cannot be checked manually"
+  topic="Egress and output checking"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Nobody can meaningfully inspect BAM, CRAM or VCF files by hand, and even derived outputs can contain individual-level genomic data.
-The policy should state which genomic output types are safe by design and which are sensitive by default.
-Safe by design includes figures, and aggregates above agreed thresholds.
-Sensitive by default includes individual variant calls and alignments.
-SATRE's guidance already names "very large numeric files" as hard to check.
-For example, Our Future Health does not currently allow VCF files to be exported
-([export rules](https://dnanexus.gitbook.io/ofh/airlock/exporting-files-from-a-restricted-project)).
+Nobody can meaningfully inspect BAM, CRAM or VCF files by hand, and even derived outputs can contain individual-level
+genomic data. The policy should state which genomic output types are safe by design and which are sensitive by default.
+Safe by design includes figures, and aggregates above agreed thresholds. Sensitive by default includes individual
+variant calls and alignments. SATRE's guidance already names "very large numeric files" as hard to check. For example,
+Our Future Health does not currently allow VCF files to be exported ([export
+rules](https://dnanexus.gitbook.io/ofh/airlock/exporting-files-from-a-restricted-project)).
 
-<Entry id="3.3.08" title="Semi-automated output checks"
-  topic="Egress and output checking" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.3.08"
+  title="Semi-automated output checks"
+  topic="Egress and output checking"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-A TRE could keep a register of approved pipelines whose output types are known and already classified.
-This would reduce how much checking each output needs.
-SATRE's guidance says fully automated checking, with no person involved, is unlikely to be appropriate.
-So a person should still review the outputs.
+A TRE could keep a register of approved pipelines whose output types are known and already classified. This would reduce
+how much checking each output needs. SATRE's guidance says fully automated checking, with no person involved, is
+unlikely to be appropriate. So a person should still review the outputs.
 
 ### 3.4 Information Search and Discovery
 
-<Entry id="3.4.01" title="Metadata catalogue"
-  topic="Storage and data lifecycle" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="3.4.01"
+  title="Metadata catalogue"
+  topic="Storage and data lifecycle"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
 GA4GH Beacon and similar APIs answer the question "is there data that matches these criteria?" without exposing records.
-Answers can be graded: yes or no, a count, or more detail.
-A genomics catalogue should describe sample counts, data types (WGS, WES, RNA-seq), consent scope and access conditions.
+Answers can be graded: yes or no, a count, or more detail. A genomics catalogue should describe sample counts, data
+types (WGS, WES, RNA-seq), consent scope and access conditions.
 
 ## Pillar 4: Supporting Capabilities
 
-<Entry id="4.4" capability="4.4" title="Dynamic cost management" heading="Financial Management" level="3"
-  topic="Financial and cost management" type="note" status="agreed"
-  statusText="Agreed (Meetings #5 and #7). Genomics cost management can be quite different from other TREs." />
+<Entry
+  id="4.4"
+  capability="4.4"
+  title="Dynamic cost management"
+  heading="Financial Management"
+  level="3"
+  topic="Financial and cost management"
+  type="note"
+  status="agreed"
+  statusText="Agreed (Meetings #5 and #7). Genomics cost management can be quite different from other TREs."
+/>
 
-In most TREs, a project rents a desktop for a known period, and an invoice covers it.
-Genomics projects use compute in bursts, and can spend thousands or tens of thousands of dollars in days.
-Different organisations may also pay for different parts: the custodian for storage, and the project for compute.
+In most TREs, a project rents a desktop for a known period, and an invoice covers it. Genomics projects use compute in
+bursts, and can spend thousands or tens of thousands of dollars in days. Different organisations may also pay for
+different parts: the custodian for storage, and the project for compute.
 
-The group confirmed that the main subject is cost transparency: an estimate before a job starts, and the actual cost afterwards.
-Enforcing limits comes second, and is harder to build.
-The group also noted that cost tracking is not unique to genomics, because AI workloads are expensive too.
+The group confirmed that the main subject is cost transparency: an estimate before a job starts, and the actual cost
+afterwards. Enforcing limits comes second, and is harder to build. The group also noted that cost tracking is not unique
+to genomics, because AI workloads are expensive too.
 
-<Entry id="4.4.01" title="Cost estimates and monitoring" heading="Awareness of costs"
-  topic="Financial and cost management" type="change" status="agreed"
-  statusText="Agreed in principle (Meeting #5)." />
+<Entry
+  id="4.4.01"
+  title="Cost estimates and monitoring"
+  heading="Awareness of costs"
+  topic="Financial and cost management"
+  type="change"
+  status="agreed"
+  statusText="Agreed in principle (Meeting #5)."
+/>
 
 In addition, a genomics TRE must give:
+
 - cost estimates, or estimating guidance, before a pipeline runs;
 - near real-time cost monitoring while it runs.
 
-Meeting #5 noted that accurate estimates are hard, and asked whether a disclaimer before work starts is enough, or whether something stronger, such as a credit or token system, is needed.
+Meeting #5 noted that accurate estimates are hard, and asked whether a disclaimer before work starts is enough, or
+whether something stronger, such as a credit or token system, is needed.
 
-<Entry id="4.4.02" title="Tracking costs"
-  topic="Financial and cost management" type="change" status="open"
-  statusText="Open (Meeting #5)." />
+<Entry
+  id="4.4.02"
+  title="Tracking costs"
+  topic="Financial and cost management"
+  type="change"
+  status="open"
+  statusText="Open (Meeting #5)."
+/>
 
-Proposed: raise to **Mandatory** (not yet discussed).
-Track costs per project, and per pipeline run where possible, so researchers can see which workflows are expensive.
-Who controls the tracking is an open question: the TRE operator, the data custodian, or the researcher as well.
+Proposed: raise to **Mandatory** (not yet discussed). Track costs per project, and per pipeline run where possible, so
+researchers can see which workflows are expensive. Who controls the tracking is an open question: the TRE operator, the
+data custodian, or the researcher as well.
 
-<Entry id="4.4.04" title="Minimising cost"
-  topic="Financial and cost management" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="4.4.04"
+  title="Minimising cost"
+  topic="Financial and cost management"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
 The main cost levers in genomics are:
+
 - spot or preemptible capacity for stages that can restart;
 - automatic shutdown of idle resources;
 - storage tiering;
 - right-sizing compute for each pipeline stage;
 - reusing cached results.
 
-Let researchers trade time for cost where their work can tolerate restarts (see `DCREQ‑14` and `DCNF‑5` in [Data Copying](../data-copying/)).
+Let researchers trade time for cost where their work can tolerate restarts (see `DCREQ‑14` and `DCNF‑5` in [Data
+Copying](../data-copying/)).
 
-<Entry id="4.4.G1" capability="4.4" title="Budget limits"
-  topic="Financial and cost management" type="new" status="open"
-  statusText="Open (Meetings #5 and #7). The discussed level favoured Recommended while the original proposal was Mandatory." />
+<Entry
+  id="4.4.G1"
+  capability="4.4"
+  title="Budget limits"
+  topic="Financial and cost management"
+  type="new"
+  status="open"
+  statusText="Open (Meetings #5 and #7). The discussed level favoured Recommended while the original proposal was Mandatory."
+/>
 
-**The TRE should let a budget limit be set for each project. It should alert the project, and the custodian or operator, as spending approaches the limit. When the limit is reached, it should take the action that the operator or custodian has chosen: alert only, block new work, or stop running work.**
+**The TRE should let a budget limit be set for each project. It should alert the project, and the custodian or operator,
+as spending approaches the limit. When the limit is reached, it should take the action that the operator or custodian
+has chosen: alert only, block new work, or stop running work.**
 
-The original proposal was a Mandatory hard cap that stops jobs automatically.
-Neither meeting agreed that a hard stop should be required, because stopping a long run near its end can waste more than it saves.
-For example, a two-day job could lose everything after a day and a half. There may be some flexibility to this cap, for
-the job may be allowed to finish, and then charged for the extra difference.
+The original proposal was a Mandatory hard cap that stops jobs automatically. Neither meeting agreed that a hard stop
+should be required, because stopping a long run near its end can waste more than it saves. For example, a two-day job
+could lose everything after a day and a half. There may be some flexibility to this cap, for the job may be allowed to
+finish, and then charged for the extra difference.
 
-The group agreed that this feature was useful, but not every TRE needs it, which means that it may be a burden as a Mandatory line.
-This requirement is also not specific to genomics, and cloud providers often do not make budget enforcement easy to automate.
+The group agreed that this feature was useful, but not every TRE needs it, which means that it may be a burden as a
+Mandatory line. This requirement is also not specific to genomics, and cloud providers often do not make budget
+enforcement easy to automate.
 
-The group agreed that some limit is important, because a misconfigured workflow can use up a large share of a cluster or a budget within hours.
-Platforms differ here:
-- On the UK Biobank Research Analysis Platform, going over a billing account's spending limit stops users starting analyses, uploading data or egressing data ([billing](https://dnanexus.gitbook.io/uk-biobank-rap/administrator/billing-and-costs)).
-- DNAnexus can also be set to terminate all running jobs when a project's monthly limit is reached ([spending limits](https://documentation.dnanexus.com/admin/billing-and-account-management)).
+The group agreed that some limit is important, because a misconfigured workflow can use up a large share of a cluster or
+a budget within hours. Platforms differ here:
 
-<Entry id="4.4.G2" capability="4.4" title="Payment models"
-  topic="Financial and cost management" type="new" status="open"
-  statusText="Open (Meeting #5)." />
+- On the UK Biobank Research Analysis Platform, going over a billing account's spending limit stops users starting
+  analyses, uploading data or egressing data
+  ([billing](https://dnanexus.gitbook.io/uk-biobank-rap/administrator/billing-and-costs)).
+- DNAnexus can also be set to terminate all running jobs when a project's monthly limit is reached ([spending
+  limits](https://documentation.dnanexus.com/admin/billing-and-account-management)).
+
+<Entry
+  id="4.4.G2"
+  capability="4.4"
+  title="Payment models"
+  topic="Financial and cost management"
+  type="new"
+  status="open"
+  statusText="Open (Meeting #5)."
+/>
 
 **The TRE should support more than one way of paying:**
+
 - **the researcher's or institution's own cloud account;**
 - **a pre-paid allocation with a limit, for example from a grant;**
 - **invoicing and cost recovery, including subsidised use.**
 
-<Entry id="4.4.G3" capability="4.4" title="Who pays for what"
-  topic="Financial and cost management" type="new" status="open"
-  statusText="Open (Meeting #5)." />
+<Entry
+  id="4.4.G3"
+  capability="4.4"
+  title="Who pays for what"
+  topic="Financial and cost management"
+  type="new"
+  status="open"
+  statusText="Open (Meeting #5)."
+/>
 
-**The TRE must make clear who pays for each kind of cost, and be able to charge them separately.** For example, the custodian may pay to store the dataset and any cached copy, while the project pays for compute and egress.
+**The TRE must make clear who pays for each kind of cost, and be able to charge them separately.** For example, the
+custodian may pay to store the dataset and any cached copy, while the project pays for compute and egress.
 
-The custodian and the TRE operator may be different organisations.
-Without a clear split, nobody knows who is responsible for an unexpected bill.
+The custodian and the TRE operator may be different organisations. Without a clear split, nobody knows who is
+responsible for an unexpected bill.
 
 ### 4.7 Relationship Management
 
-<Entry id="4.7.01" title="User community" heading="Stakeholder feedback"
-  topic="General" type="note" status="proposed"
-  statusText="Proposed." />
+<Entry
+  id="4.7.01"
+  title="User community"
+  heading="Stakeholder feedback"
+  topic="General"
+  type="note"
+  status="proposed"
+  statusText="Proposed."
+/>
 
-Besides a feedback process, bioinformatics users expect an active community around shared infrastructure.
-That means an asynchronous forum and a chat channel, where users coordinate and share what they learn.
+Besides a feedback process, bioinformatics users expect an active community around shared infrastructure. That means an
+asynchronous forum and a chat channel, where users coordinate and share what they learn.
 
 ## Reviewed without change
 
 ### Rejected proposals
 
-<Entry id="rejected-1.3-risk" title="Risk assessment for genomic data" heading="New risk assessment requirement for genomic data (1.3)"
-  label="1.3 (new)" topic="Governance and consent" type="unchanged" status="agreed"
-  statusText="Rejected (Meeting #5)." />
+<Entry
+  id="rejected-1.3-risk"
+  title="Risk assessment for genomic data"
+  heading="New risk assessment requirement for genomic data (1.3)"
+  label="1.3 (new)"
+  topic="Governance and consent"
+  type="unchanged"
+  status="agreed"
+  statusText="Rejected (Meeting #5)."
+/>
 
 It repeated the [1.3.02](#1-3-02) note.
 
-<Entry id="rejected-1.4-withdrawal" title="Technical enforcement of consent withdrawal" heading="Technical enforcement of consent withdrawal (1.4)"
-  label="1.4 (new)" topic="Governance and consent" type="unchanged" status="agreed"
-  statusText="Rejected (Meeting #5) as out of scope for a TRE." />
+<Entry
+  id="rejected-1.4-withdrawal"
+  title="Technical enforcement of consent withdrawal"
+  heading="Technical enforcement of consent withdrawal (1.4)"
+  label="1.4 (new)"
+  topic="Governance and consent"
+  type="unchanged"
+  status="agreed"
+  statusText="Rejected (Meeting #5) as out of scope for a TRE."
+/>
 
-Cohort construction decides what a project may use before the data reaches the TRE.
-Consent usually applies by data release. A participant who withdraws is left out of the next release, and the next release should replace the previous one.
+Cohort construction decides what a project may use before the data reaches the TRE. Consent usually applies by data
+release. A participant who withdraws is left out of the next release, and the next release should replace the previous
+one.
 
 ### Discussed and left unchanged
 
-<Entry id="1.3.05" title="Risk appetite"
-  topic="Governance and consent" type="unchanged" status="agreed"
-  statusText="Agreed (Meeting #5)." />
+<Entry
+  id="1.3.05"
+  title="Risk appetite"
+  topic="Governance and consent"
+  type="unchanged"
+  status="agreed"
+  statusText="Agreed (Meeting #5)."
+/>
 
-<Entry id="2.1.02" title="Familiar environment"
-  topic="General" type="unchanged" status="agreed"
-  statusText="Agreed (Meeting #6)." />
+<Entry
+  id="2.1.02"
+  title="Familiar environment"
+  topic="General"
+  type="unchanged"
+  status="agreed"
+  statusText="Agreed (Meeting #6)."
+/>
 
-<Entry id="2.1.05" title="Guidance on tools and data"
-  topic="General" type="unchanged" status="agreed"
-  statusText="Agreed (Meeting #6)." />
+<Entry
+  id="2.1.05"
+  title="Guidance on tools and data"
+  topic="General"
+  type="unchanged"
+  status="agreed"
+  statusText="Agreed (Meeting #6)."
+/>
 
-<Entry id="2.1.07" title="Shared services within a project"
-  topic="Workflow management" type="unchanged" status="agreed"
-  statusText="Agreed (Meeting #6)." />
+<Entry
+  id="2.1.07"
+  title="Shared services within a project"
+  topic="Workflow management"
+  type="unchanged"
+  status="agreed"
+  statusText="Agreed (Meeting #6)."
+/>
 
-<Entry id="2.1.09" title="Software that needs telemetry"
-  topic="Workflow management" type="unchanged" status="agreed"
-  statusText="Agreed (Meeting #6)." />
+<Entry
+  id="2.1.09"
+  title="Software that needs telemetry"
+  topic="Workflow management"
+  type="unchanged"
+  status="agreed"
+  statusText="Agreed (Meeting #6)."
+/>
 
-<Entry id="2.1.11" title="Tools for reproducible analysis"
-  topic="Workflow management" type="unchanged" status="agreed"
-  statusText="Agreed (Meeting #6)." />
+<Entry
+  id="2.1.11"
+  title="Tools for reproducible analysis"
+  topic="Workflow management"
+  type="unchanged"
+  status="agreed"
+  statusText="Agreed (Meeting #6)."
+/>
 
 ### Not reviewed in detail
 
-The review documents made no proposals for capabilities 1.1, 1.2, 1.5, 1.6, 2.4, 2.5, 2.7, 2.8, 2.9, 4.1, 4.2, 4.3, 4.5, 4.6 and 4.8.
-These are assumed to apply unchanged.
+The review documents made no proposals for capabilities [1.1], [1.2], [1.5], [1.6], [2.4], [2.5], [2.7], [2.8], [2.9],
+[4.1], [4.2], [4.3], [4.5], [4.6] and [4.8]. These are assumed to apply unchanged.
+
+[1.3.02]: #1-3-02
+[2.1.07]: #2-1-07
+[3.1.03]: #3-1-03
+[3.1.05]: #3-1-05
+[1.1.01]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-1-1-01
+[2.1.15]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-1-15
+[2.1.16]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-1-16
+[3.1.01]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-3-1-01
+[3.1.07]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-3-1-07
+[1.1]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-1-1-01
+[1.2]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-1-2-01
+[1.5]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-1-5-01
+[1.6]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-1-6-01
+[2.4]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-4-01
+[2.5]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-5-01
+[2.7]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-7-01
+[2.8]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-8-01
+[2.9]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-9-01
+[4.1]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-4-1-01
+[4.2]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-4-2-01
+[4.3]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-4-3-01
+[4.5]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-4-5-01
+[4.6]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-4-6-01
+[4.8]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-4-8-01

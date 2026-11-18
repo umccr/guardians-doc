@@ -1,11 +1,11 @@
 ---
 // A map of SATRE, with one square for each requirement, grouped by pillar and
 // capability. A square is coloured by the status of the genomics entry on that
-// requirement, and grey if there is none. A new genomics requirement is a
-// round mark at the end of the capability that it belongs to.
+// requirement, and grey if it has no genomics difference. A new genomics
+// requirement is a round mark at the end of the capability that it belongs to.
 //
-// Only the capabilities that have a genomics difference get a row of their
-// own. The other capabilities share one row at the end of their pillar.
+// Every capability gets a row of its own, in SATRE's order. A row with a
+// genomics difference links to its entries, and a row without one is grey.
 import { SATRE_VERSION, SATRE_SPEC_URL } from '../../data/satre/satre';
 import { EntryStatus, fullEntryHref, statusLabels } from '../../data/satre/genomics-entries';
 import { mapTotals, pillarGroups, plural } from '../../data/satre/genomics-views';
@@ -56,46 +56,41 @@ const describe = (c: CapabilityGroup) => {
 
 	<div class="grid grid-cols-2 items-start gap-x-5 gap-y-4 md:grid-cols-4">
 		{
-			groups.map((pillar) => {
-				const rest = pillar.capabilities.filter((c) => c.differences.length === 0);
-				return (
-					<section class="break-inside-avoid">
-						<h3 class="mb-1 border-b border-gray-300 pb-1 text-xs font-semibold">
-							{pillar.index}. {pillar.name}
-						</h3>
-						{pillar.capabilities
-							.filter((c) => c.differences.length > 0)
-							.map((c) => (
-								<a
-									href={capabilityHref(c)}
-									title={describe(c)}
-									class="block rounded-md py-1 text-inherit no-underline hover:bg-gray-100"
-								>
-									<span class="mb-1 block text-xs">
-										{c.index} {c.name}
-									</span>
-									<span class="flex flex-wrap gap-[3px]">
-										{c.requirements.map((e) => (
-											<Mark status={e?.status} />
-										))}
-										{c.newRequirements.map((e) => (
-											<Mark status={e.status} round />
-										))}
-									</span>
-								</a>
-							))}
-						{rest.length > 0 && (
-							<div class="py-1 text-xs text-gray-500">
-								<span class="mb-1 block">{plural(rest.length, 'capability', 'capabilities')} as written</span>
-								<span class="mb-1 flex flex-wrap gap-[3px]">
-									{rest.flatMap((c) => c.requirements).map(() => <Mark />)}
+			groups.map((pillar) => (
+				<section class="break-inside-avoid">
+					<h3 class="mb-1 border-b border-gray-300 pb-1 text-xs font-semibold">
+						{pillar.index}. {pillar.name}
+					</h3>
+					{pillar.capabilities.map((c) => {
+						const row = (
+							<>
+								<span class="mb-1 block text-xs">
+									{c.index} {c.name}
 								</span>
-								{rest.map((c) => `${c.index} ${c.name}`).join(' · ')}
-							</div>
-						)}
-					</section>
-				);
-			})
+								<span class="flex flex-wrap gap-[3px]">
+									{c.requirements.map((e) => (
+										<Mark status={e?.status} />
+									))}
+									{c.newRequirements.map((e) => (
+										<Mark status={e.status} round />
+									))}
+								</span>
+							</>
+						);
+						return c.differences.length > 0 ? (
+							<a
+								href={capabilityHref(c)}
+								title={describe(c)}
+								class="block rounded-md py-1 text-inherit no-underline hover:bg-gray-100"
+							>
+								{row}
+							</a>
+						) : (
+							<div class="py-1 text-gray-500">{row}</div>
+						);
+					})}
+				</section>
+			))
 		}
 	</div>
 </figure>

@@ -1,5 +1,5 @@
-// Groups the genomics entries by SATRE capability for the SATRE map, and
-// counts them by topic and status for the lists and the table in the report.
+// Groups the genomics entries by SATRE pillar and capability for the SATRE map,
+// and counts them by status for the lists and the table in the report.
 
 import { satreRequirements } from './satre';
 import { EntryStatus, genomicsEntries, isDifference, isNew, statusLabels } from './genomics-entries';
@@ -8,7 +8,7 @@ import type { GenomicsEntry } from './genomics-entries';
 export const differences = genomicsEntries.filter(isDifference);
 
 /**
- * How many of the entries have each value of a field.
+ * How many of the entries have each status.
  */
 export function countByStatus(entries: GenomicsEntry[]) {
 	const counts = new Map<EntryStatus, number>();

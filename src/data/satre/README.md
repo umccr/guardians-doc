@@ -6,9 +6,9 @@ and the summary list on the [SATRE for Genomics](../../content/docs/requirements
 
 | File | What it is |
 |---|---|
-| `satre.ts` | Downloads the SATRE specification YAML for `SATRE_VERSION` from [sa-tre/satre-specification](https://github.com/sa-tre/satre-specification) when the site builds, and parses it into pillars, capabilities and requirements. |
+| `satre.ts` | Downloads the SATRE specification YAML for `SATRE_VERSION` from [sa-tre/satre-specification](https://github.com/sa-tre/satre-specification) when the site builds, and parses it into a list of requirements. |
 | `genomics-entries.ts` | Reads the working group's genomics entries from the `<Entry>` tags on the SATRE for Genomics page. |
-| `genomics-views.ts` | Groups those entries by SATRE capability, and counts them by topic and status, for the components that show them. |
+| `genomics-views.ts` | Groups the SATRE requirements and those entries by pillar and capability, and counts the entries by status, for the components that show them. |
 
 ## Updating the SATRE specification
 
