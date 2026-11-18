@@ -16,7 +16,7 @@ import remarkMdx from 'remark-mdx';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
-import { satreById, satrePillars, SATRE_VERSION } from './satre';
+import { satreRequirements, SATRE_VERSION } from './satre';
 import type { SatreRequirement } from './satre';
 
 export const EntryType = z.enum(['note', 'change', 'new', 'feedback', 'unchanged']);
@@ -78,7 +78,7 @@ export interface GenomicsEntry {
 	/**
 	 * The status text.
 	 */
-	statusText?: string;
+	statusText: string;
 	/**
 	 * The SATRE requirement.
 	 */
@@ -96,7 +96,7 @@ export interface GenomicsEntry {
 export const isNew = (entry: GenomicsEntry) => entry.type === 'new';
 export const isDifference = (entry: GenomicsEntry) => entry.type !== 'unchanged';
 
-const capabilityNames = new Map(satrePillars.flatMap((p) => p.capabilities.map((c) => [c.index, c.name] as const)));
+const capabilityIndexes = new Set(satreRequirements.map((r) => r.capabilityIndex));
 
 const tagFields = z.object({
 	id: z.string(),
@@ -107,10 +107,9 @@ const tagFields = z.object({
 	heading: z.string().optional(),
 	label: z.string().optional(),
 	level: HeadingLevel.optional(),
-	statusText: z.string().optional(),
-	satre: z.enum([...satreById.keys()], { error: `SATRE v${SATRE_VERSION} has no requirement with this ID` }).optional(),
+	statusText: z.string(),
 	capability: z
-		.enum([...capabilityNames.keys()], { error: `SATRE v${SATRE_VERSION} has no capability with this index` })
+		.enum([...capabilityIndexes], { error: `SATRE v${SATRE_VERSION} has no capability with this index` })
 		.optional(),
 }).refine((f) => f.type !== 'new' || f.capability !== undefined, {
 	path: ['capability'],
@@ -126,25 +125,15 @@ const fail = (id: unknown, problem: string) =>
 export function toEntry(attributes: Record<string, unknown>): GenomicsEntry {
 	const parsed = tagFields.safeParse(attributes);
 	if (!parsed.success) throw fail(attributes.id, z.prettifyError(parsed.error));
-	const { id, type, ...fields } = parsed.data;
-
-	const requirement = satreById.get(fields.satre ?? id);
-	const capabilityName =
-		!requirement && type !== 'new' && fields.capability ? capabilityNames.get(fields.capability) : undefined;
+	const fields = parsed.data;
 
 	return {
-		id,
-		label: fields.label ?? id,
-		title: fields.title,
-		heading: fields.heading ?? capabilityName ?? fields.title,
-		level: fields.level ?? (capabilityName ? 3 : 4),
-		topic: fields.topic,
-		type,
-		status: fields.status,
-		statusText: fields.statusText,
-		requirement,
-		capability: fields.capability,
-		anchor: id.toLowerCase().replaceAll('.', '-'),
+		...fields,
+		label: fields.label ?? fields.id,
+		heading: fields.heading ?? fields.title,
+		level: fields.level ?? 4,
+		requirement: satreRequirements.find((r) => r.id === fields.id),
+		anchor: fields.id.toLowerCase().replaceAll('.', '-'),
 	};
 }
 
@@ -153,13 +142,11 @@ if (!page?.body) throw new Error('cannot read the source of the SATRE for Genomi
 
 export const genomicsEntries: GenomicsEntry[] = [];
 const ids = new Set<string>();
-visit(unified().use(remarkParse).use(remarkMdx).parse(page.body), (node) => {
-	if ((node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') || node.name !== 'Entry') return;
+visit(unified().use(remarkParse).use(remarkMdx).parse(page.body), 'mdxJsxFlowElement', (node) => {
+	if (node.name !== 'Entry') return;
 
 	const attributes = Object.fromEntries(
-		node.attributes.flatMap((a) =>
-			a.type === 'mdxJsxAttribute' ? [[a.name, typeof a.value === 'object' && a.value ? a.value.value : a.value]] : [],
-		),
+		node.attributes.flatMap((a) => (a.type === 'mdxJsxAttribute' ? [[a.name, a.value]] : [])),
 	);
 
 	const entry = toEntry(attributes);
@@ -177,23 +164,16 @@ export const topicsOf = (entries: GenomicsEntry[]) => [...new Set(entries.map((e
 const PAGE = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/requirements/satre-genomics/`;
 
 /**
- * Link to a heading on the SATRE for Genomics page.
- */
-export function pageHref(anchor: string): string {
-	return `${PAGE}#${anchor}`;
-}
-
-/**
  * Link to the full entry on the SATRE for Genomics page.
  */
 export function fullEntryHref(entry: GenomicsEntry): string {
-	return pageHref(entry.anchor);
+	return `${PAGE}#${entry.anchor}`;
 }
 
 /**
  * Link to the summary list on the SATRE for Genomics page.
  */
-export function summaryHref(filter: { topic?: string; status?: EntryStatus } = {}): string {
+export function summaryHref(filter: { topic?: string; status?: EntryStatus }): string {
 	const set = Object.entries(filter).filter((pair): pair is [string, string] => !!pair[1]);
 	return `${PAGE}${set.length ? `?${new URLSearchParams(set)}` : ''}#summary`;
 }

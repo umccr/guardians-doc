@@ -1,7 +1,7 @@
 // Groups the genomics entries by SATRE capability for the SATRE map, and
 // counts them by topic and status for the lists and the table in the report.
 
-import { satrePillars } from './satre';
+import { satreRequirements } from './satre';
 import { EntryStatus, genomicsEntries, isDifference, isNew, statusLabels } from './genomics-entries';
 import type { GenomicsEntry } from './genomics-entries';
 
@@ -10,9 +10,9 @@ export const differences = genomicsEntries.filter(isDifference);
 /**
  * How many of the entries have each value of a field.
  */
-export function countBy<F extends 'topic' | 'status'>(entries: GenomicsEntry[], field: F) {
-	const counts = new Map<GenomicsEntry[F], number>();
-	for (const e of entries) counts.set(e[field], (counts.get(e[field]) ?? 0) + 1);
+export function countByStatus(entries: GenomicsEntry[]) {
+	const counts = new Map<EntryStatus, number>();
+	for (const e of entries) counts.set(e.status, (counts.get(e.status) ?? 0) + 1);
 	return counts;
 }
 
@@ -20,7 +20,7 @@ export function countBy<F extends 'topic' | 'status'>(entries: GenomicsEntry[], 
  * The status phrase, e.g. "2 open · 4 proposed".
  */
 export function statusPhrase(entries: GenomicsEntry[]): string {
-	const counts = countBy(entries, 'status');
+	const counts = countByStatus(entries);
 	return EntryStatus.options
 		.flatMap((s) => (counts.has(s) ? [`${counts.get(s)} ${statusLabels[s].toLowerCase()}`] : []))
 		.join(' · ');
@@ -53,25 +53,24 @@ const entryForRequirement = new Map(differences.flatMap((e) => (e.requirement ? 
 /**
  * The pillars of the map.
  */
-export function pillarGroups(pillars?: string[]): PillarGroup[] {
-	return satrePillars
-		.filter((pillar) => !pillars || pillars.includes(pillar.index))
-		.map((pillar) => ({
-			index: pillar.index,
-			name: pillar.name,
-			capabilities: pillar.capabilities.map((capability) => {
-				const requirements = capability.requirements.map((r) => entryForRequirement.get(r.id));
-				const newRequirements = differences.filter((e) => isNew(e) && e.capability === capability.index);
-				return {
-					index: capability.index,
-					name: capability.name,
-					requirements,
-					newRequirements,
-					differences: [...requirements.filter((e) => e !== undefined), ...newRequirements],
-					overview: differences.find((e) => !isNew(e) && !e.requirement && e.capability === capability.index),
-				};
-			}),
-		}));
+export function pillarGroups(pillars: string[]): PillarGroup[] {
+	const shown = satreRequirements.filter((r) => pillars.includes(r.pillarIndex));
+	return [...Map.groupBy(shown, (r) => r.pillarIndex)].map(([index, inPillar]) => ({
+		index,
+		name: inPillar[0].pillar,
+		capabilities: [...Map.groupBy(inPillar, (r) => r.capabilityIndex)].map(([index, inCapability]) => {
+			const requirements = inCapability.map((r) => entryForRequirement.get(r.id));
+			const newRequirements = differences.filter((e) => isNew(e) && e.capability === index);
+			return {
+				index,
+				name: inCapability[0].capability,
+				requirements,
+				newRequirements,
+				differences: [...requirements.filter((e) => e !== undefined), ...newRequirements],
+				overview: differences.find((e) => !isNew(e) && e.capability === index),
+			};
+		}),
+	}));
 }
 
 /**
@@ -87,6 +86,6 @@ export function mapTotals(pillars: PillarGroup[]) {
 		asWritten,
 		changed: requirements.length - asWritten,
 		newRequirements: capabilities.flatMap((c) => c.newRequirements).length,
-		byStatus: countBy(capabilities.flatMap((c) => c.differences), 'status'),
+		byStatus: countByStatus(capabilities.flatMap((c) => c.differences)),
 	};
 }

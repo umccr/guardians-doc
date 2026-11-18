@@ -13,9 +13,9 @@ import type { CapabilityGroup } from '../../data/satre/genomics-views';
 import Mark from './Mark.astro';
 
 interface Props {
-	pillars?: string;
+	pillars: string;
 }
-const groups = pillarGroups(Astro.props.pillars?.split(' '));
+const groups = pillarGroups(Astro.props.pillars.split(' '));
 const totals = mapTotals(groups);
 
 const capabilityHref = (c: CapabilityGroup) => fullEntryHref(c.overview ?? c.differences[0]);

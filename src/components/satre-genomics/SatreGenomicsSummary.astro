@@ -14,9 +14,7 @@ const menus = [
 	{
 		name: 'type',
 		all: 'All types',
-		options: EntryType.options
-			.filter((t) => entries.some((e) => e.type === t))
-			.map((t) => ({ value: t, label: typeLabels[t] })),
+		options: EntryType.exclude(['unchanged']).options.map((t) => ({ value: t, label: typeLabels[t] })),
 	},
 	{ name: 'status', all: 'All statuses', options: EntryStatus.options.map((s) => ({ value: s, label: statusLabels[s] })) },
 ];

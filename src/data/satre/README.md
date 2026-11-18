@@ -6,23 +6,18 @@ and the summary list on the [SATRE for Genomics](../../content/docs/requirements
 
 | File | What it is |
 |---|---|
-| `specification-v2.0.1.yaml` | The SATRE specification, copied unchanged from `docs/source/spec/specification.yaml` at tag `v2.0.1` of [sa-tre/satre-specification](https://github.com/sa-tre/satre-specification). |
-| `satre.ts` | Parses the YAML at build time into pillars, capabilities and requirements. |
+| `satre.ts` | Downloads the SATRE specification YAML for `SATRE_VERSION` from [sa-tre/satre-specification](https://github.com/sa-tre/satre-specification) when the site builds, and parses it into pillars, capabilities and requirements. |
 | `genomics-entries.ts` | Reads the working group's genomics entries from the `<Entry>` tags on the SATRE for Genomics page. |
 | `genomics-views.ts` | Groups those entries by SATRE capability, and counts them by topic and status, for the components that show them. |
 
 ## Updating the SATRE specification
 
-1. Download the YAML for the new tag:
+Every build, and the dev server, downloads the specification, so they need access to `raw.githubusercontent.com`.
 
-   ```bash
-   node scripts/satre/fetch-specification.mjs v2.1.0
-   ```
-
-   The script writes `specification-v2.1.0.yaml` and prints its checksum.
-2. Compare the new file with the old one, and check whether any requirement that an entry on the SATRE for Genomics page is about has changed or moved.
-3. Change the import, `SATRE_VERSION` and `SATRE_SPEC_URL` in `satre.ts`.
-4. Run `bun run build`.
+1. Compare the two releases on GitHub, at `https://github.com/sa-tre/satre-specification/compare/v2.0.1...<new tag>`,
+   and check whether any requirement that an entry on the SATRE for Genomics page is about has changed or moved.
+2. Change `SATRE_VERSION` in `satre.ts`.
+3. Run `bun run build`.
 
 ## The genomics entries
 
