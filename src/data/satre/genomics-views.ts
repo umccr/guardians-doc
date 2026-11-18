@@ -1,9 +1,5 @@
-// Groups the genomics entries in the two ways that the site shows them: by
-// SATRE capability for the SATRE map, and by topic for the lists in the report.
-//
-// A "difference" is an entry that annotates or changes SATRE. An entry of type
-// "unchanged" is not a difference. It records a draft change that the working
-// group reviewed and decided against.
+// Groups the genomics entries by SATRE capability for the SATRE map,
+// or by topic for the lists in the report.
 
 import { satrePillars } from './satre';
 import type { SatreRequirement } from './satre';
@@ -13,9 +9,7 @@ import type { GenomicsEntry, EntryStatus, Topic } from './genomics-entries';
 export const isDifference = (entry: GenomicsEntry) => entry.type !== 'unchanged';
 
 /**
- * The statuses from the most settled to the least. Tables and counts list
- * them in this order. The colour ramp runs the other way, so the most
- * settled status gets the darkest colour.
+ * The statuses supported.
  */
 export const STATUS_ORDER: EntryStatus[] = ['agreed', 'open', 'proposed'];
 
@@ -29,52 +23,65 @@ export function countByStatus(entries: GenomicsEntry[]): StatusCounts {
 	};
 }
 
-/** For example "2 open · 4 proposed". It leaves out a status that has no entries. */
+/**
+ * The status phrase, e.g. "2 open · 4 proposed".
+ */
 export function statusPhrase(counts: StatusCounts): string {
 	return STATUS_ORDER.filter((s) => counts[s] > 0)
 		.map((s) => `${counts[s]} ${statusLabel(s).toLowerCase()}`)
 		.join(' · ');
 }
 
-/** For example plural(1, 'entry', 'entries') gives "1 entry". */
+/**
+ * The plurality amount, e.g. plural(1, 'entry', 'entries') gives "1 entry".
+ */
 export function plural(n: number, one: string, many = `${one}s`): string {
 	return `${n} ${n === 1 ? one : many}`;
 }
 
-// Pillar 5 covers federation between TREs. The working group left it out of
-// its review, so the map and the counts leave it out too.
 const OUT_OF_SCOPE_PILLARS = new Set(['5']);
-
 const entryForLine = new Map<string, GenomicsEntry>();
-for (const e of genomicsEntries) for (const id of e.satre ?? []) entryForLine.set(id, e);
+for (const e of genomicsEntries) for (const id of e.satre) entryForLine.set(id, e);
 
 /**
- * One square on the SATRE map. It is either a SATRE requirement, with the
+ * The square on the SATRE map. It is either a SATRE requirement, with the
  * genomics entry on it if there is one, or a new genomics requirement, which
  * has an entry but no SATRE requirement.
  */
 export interface MapCell {
-	key: string;
 	requirement?: SatreRequirement;
 	entry?: GenomicsEntry;
 }
 
 export interface CapabilityGroup {
-	/** For example "2.1". */
+	/**
+	 * The index, e.g. "2.1".
+	 */
 	index: string;
+	/**
+	 * The name.
+	 */
 	name: string;
-	/** The SATRE requirements in order, then the new genomics requirements. */
+	/**
+	 * The SATRE requirements.
+	 */
 	cells: MapCell[];
-	/** How many SATRE requirements the capability has. */
+	/**
+	 * How many SATRE requirements the capability has.
+	 */
 	lineCount: number;
-	/** The entries on this capability's requirements, then its new requirements. */
+	/**
+	 * The entries of these requirements.
+	 */
 	differences: GenomicsEntry[];
-	/** How many of the SATRE requirements have a genomics note, change or feedback. */
+	/**
+	 * The amount of the SATRE requirements that have a difference.
+	 */
 	lineDifferences: number;
-	/** How many new genomics requirements belong to this capability. */
+	/**
+	 * The amount of new genomics requirements.
+	 */
 	newCount: number;
-	/** Draft changes to this capability that the group reviewed and decided against. */
-	reviewed: GenomicsEntry[];
 }
 
 export interface PillarGroup {
@@ -90,22 +97,20 @@ export const pillarGroups: PillarGroup[] = satrePillars
 		name: pillar.name,
 		capabilities: pillar.capabilities.map((capability) => {
 			const lineCells: MapCell[] = capability.requirements.map((r) => ({
-				key: r.id,
 				requirement: r,
 				entry: entryForLine.get(r.id),
 			}));
 			const fresh = genomicsEntries.filter((e) => e.type === 'new' && e.capability === capability.index);
-			// One entry can sit on more than one requirement, so list each entry once.
 			const onLines = [...new Set(lineCells.flatMap((cell) => (cell.entry ? [cell.entry] : [])))];
+
 			return {
 				index: capability.index,
 				name: capability.name,
-				cells: [...lineCells, ...fresh.map((e) => ({ key: e.id, entry: e }))],
+				cells: [...lineCells, ...fresh.map((e) => ({ entry: e }))],
 				lineCount: capability.requirements.length,
 				differences: [...onLines.filter(isDifference), ...fresh],
 				lineDifferences: lineCells.filter((cell) => cell.entry && isDifference(cell.entry)).length,
 				newCount: fresh.length,
-				reviewed: onLines.filter((e) => !isDifference(e)),
 			};
 		}),
 	}));
@@ -116,7 +121,6 @@ export interface TopicGroup {
 	id: Topic;
 	label: string;
 	differences: GenomicsEntry[];
-	/** Draft changes on this topic that the group reviewed and decided against. */
 	reviewed: GenomicsEntry[];
 	byStatus: StatusCounts;
 }
@@ -137,21 +141,44 @@ const lineCells = capabilityGroups.flatMap((capability) => capability.cells.filt
 const linesOfType = (type: GenomicsEntry['type']) => lineCells.filter((cell) => cell.entry?.type === type).length;
 const differences = genomicsEntries.filter(isDifference);
 
-/** Counts for captions and keys, worked out from the data so that they stay right when an entry changes. */
+/**
+ * Counts for captions and keys.
+ */
 export const totals = {
-	/** SATRE requirements in the pillars that the group reviewed. */
+	/**
+	 * SATRE requirements in the pillars that the group reviewed.
+	 */
 	lines: lineCells.length,
-	/** SATRE requirements with no genomics note, change or feedback. */
+	/**
+	 * SATRE requirements with no genomics note, change or feedback.
+	 */
 	asWritten: lineCells.filter((cell) => !cell.entry || !isDifference(cell.entry)).length,
-	/** How many of those the group looked at: it reviewed a draft change to each and decided against it. */
-	reviewedLines: lineCells.filter((cell) => cell.entry && !isDifference(cell.entry)).length,
+	/**
+	 * The notes.
+	 */
 	notes: linesOfType('note'),
+	/**
+	 * The changes.
+	 */
 	changes: linesOfType('change'),
+	/**
+	 * The feedback.
+	 */
 	feedback: linesOfType('feedback'),
+	/**
+	 * The new requirements.
+	 */
 	newRequirements: genomicsEntries.filter((e) => e.type === 'new').length,
-	/** Every difference, including the general notes that belong to no SATRE requirement. */
+	/**
+	 * The differences, including general notes that belong to no SATRE requirement.
+	 */
 	differences: differences.length,
+	/**
+	 * The status grouping.
+	 */
 	byStatus: countByStatus(differences),
-	/** Only the differences that have a square on the map. The general notes have none. */
+	/**
+	 * The differences that have a square on the map.
+	 */
 	onMapByStatus: countByStatus(capabilityGroups.flatMap((capability) => capability.differences)),
 };

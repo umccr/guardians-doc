@@ -1,676 +1,101 @@
 ---
 // A map of SATRE, with one square for each requirement, grouped by pillar and
-// capability. A square is coloured if the working group has a genomics note or
-// change on that requirement. A new genomics requirement is a round mark at
-// the end of the capability that it belongs to.
+// capability. A square is coloured by the status of the genomics entry on that
+// requirement, and grey if there is none. A new genomics requirement is a
+// round mark at the end of the capability that it belongs to.
 //
 // Only the capabilities that have a genomics difference get a row of their
-// own. The others share one row at the end of their pillar, because they are
-// most of SATRE and have nothing to say. That row still shows a square for
-// each of their requirements, so the map keeps its true proportion of grey.
-//
-// The reader selects a row, and the panel beside the map lists what is in it.
-// For a capability that is its differences, and each one opens to show the
-// SATRE wording and the short summary of the genomics position. For the shared
-// row it is the names of the capabilities inside it.
-//
-// The page builds every part of the figure. So the map still shows, without
-// its panel, when the page is printed or when JavaScript is off.
+// own. The other capabilities share one row at the end of their
+// pillar.
+import { getEntry, render } from 'astro:content';
 import { SATRE_VERSION, SATRE_SPEC_URL } from '../../data/satre/satre';
-import { typeLabel, statusLabel, typeMeaning, statusMeaning } from '../../data/satre/genomics-entries';
-import type { EntryType, EntryStatus } from '../../data/satre/genomics-entries';
+import { fullEntryHref, genomicsEntries, pageHref, statusLabel } from '../../data/satre/genomics-entries';
 import { pillarGroups, totals, isDifference, plural, STATUS_ORDER } from '../../data/satre/genomics-views';
-import type { MapCell, CapabilityGroup } from '../../data/satre/genomics-views';
-import EntryList from './EntryList.astro';
-import './satre-shared.css';
+import type { CapabilityGroup } from '../../data/satre/genomics-views';
+import Mark from './Mark.astro';
 
-interface Props {
-	/** Starts the ids and control names inside the map. Set it if a page has two maps. */
-	id?: string;
-}
-const { id = 'satre-map' } = Astro.props;
+// Each row of the map links to its capability on the SATRE for Genomics page.
+const page = await getEntry('docs', 'requirements/satre-genomics');
+if (!page) throw new Error('SatreMap: the SATRE for Genomics page is missing');
+const { headings } = await render(page);
+const capabilityHref = (c: CapabilityGroup) => {
+	const entry = genomicsEntries.find((e) => e.id === c.index);
+	if (entry) return fullEntryHref(entry);
+	const heading = headings.find((h) => h.text === `${c.index} ${c.name}`);
+	if (!heading) throw new Error(`SatreMap: the SATRE for Genomics page has no heading "${c.index} ${c.name}"`);
+	return pageHref(heading.slug);
+};
 
-// The text for the tooltip of a square that has a genomics difference. The
-// first line names the square and the second line describes it. A square
-// with no difference has no tooltip, because it has nothing to add.
-function describe(cell: MapCell): string | undefined {
-	const e = cell.entry;
-	if (!e || !isDifference(e)) return undefined;
-	return `${cell.requirement ? cell.requirement.id : e.label} ${e.title}\n${typeLabel(e)} · ${statusLabel(e.status)}`;
-}
-
-const summarise = (c: CapabilityGroup) =>
+const describe = (c: CapabilityGroup) =>
 	[
 		plural(c.lineCount, 'SATRE requirement'),
 		c.lineDifferences > 0 && `${c.lineDifferences} with a genomics position`,
 		c.newCount > 0 && plural(c.newCount, 'new genomics requirement'),
 	]
 		.filter(Boolean)
-		.join(' · ');
-
-// Each pillar as the map lays it out: a row for each capability that has a
-// difference, then one row, called the rest, for the capabilities that have none.
-const pillars = pillarGroups.map((pillar) => {
-	const rows = pillar.capabilities.filter((c) => c.differences.length > 0);
-	const rest = pillar.capabilities.filter((c) => c.differences.length === 0);
-	return {
-		index: pillar.index,
-		name: pillar.name,
-		rows,
-		rest,
-		restKey: `rest-${pillar.index}`,
-		restLines: rest.reduce((n, c) => n + c.lineCount, 0),
-		// "4 other capabilities", or "4 capabilities" if the pillar has no other row.
-		restLabel: plural(rest.length, rows.length > 0 ? 'other capability' : 'capability', rows.length > 0 ? 'other capabilities' : 'capabilities'),
-		// Draft changes that the group rejected in the capabilities of the rest.
-		restReviewed: rest.flatMap((c) => c.reviewed),
-	};
-});
-const rowCapabilities = pillars.flatMap((pillar) => pillar.rows);
-
-// The map opens on the capability with the most differences, so that the
-// panel shows the reader what a selection does.
-const initial = rowCapabilities.reduce((most, c) => (c.differences.length > most.differences.length ? c : most)).index;
-
-const headingId = (key: string) => `${id}-cap-${key.replace('.', '-')}`;
-
-// One item of the key: a mark, a name, how many squares have it, and the
-// sentence that explains it in the item's tooltip.
-interface KeyItem {
-	key: string;
-	label: string;
-	count: number;
-	meaning: string;
-	type?: EntryType;
-	status?: EntryStatus;
-}
-
-// "As written" is not a type or a status. It is every SATRE requirement that
-// has no genomics entry, so it is in both keys and is explained here.
-const asWritten: KeyItem = {
-	key: 'plain',
-	label: 'As written',
-	count: totals.asWritten,
-	meaning:
-		'No genomics note or change, so the requirement applies to genomics as SATRE wrote it. ' +
-		`The group reviewed a draft change to ${totals.reviewedLines} of these and decided against it. ` +
-		'The review documents proposed no change to the others.',
-};
-
-// Feedback to SATRE leaves the requirement as it is, like a note, and there is
-// very little of it. So the two share the palest blue and one item of the key.
-const noteItem: KeyItem =
-	totals.feedback === 0
-		? { key: 'type-note', type: 'note', label: 'Note', count: totals.notes, meaning: typeMeaning('note') }
-		: {
-				key: 'type-note',
-				type: 'note',
-				label: 'Note or feedback',
-				count: totals.notes + totals.feedback,
-				meaning:
-					`${typeMeaning('note')} ` +
-					`${totals.feedback} of these ${totals.feedback === 1 ? 'is' : 'are'} feedback to SATRE: ` +
-					'a concern with the requirement that is not specific to genomics.',
-			};
-
-const keys: { lens: 'type' | 'status'; items: KeyItem[] }[] = [
-	{
-		lens: 'type',
-		items: [
-			noteItem,
-			{ key: 'type-change', type: 'change', label: 'Change', count: totals.changes, meaning: typeMeaning('change') },
-			{
-				key: 'type-new',
-				type: 'new',
-				label: 'New requirement',
-				count: totals.newRequirements,
-				meaning: typeMeaning('new'),
-			},
-			asWritten,
-		],
-	},
-	{
-		lens: 'status',
-		items: [
-			...STATUS_ORDER.map((s) => ({
-				key: `status-${s}`,
-				status: s,
-				label: statusLabel(s),
-				count: totals.onMapByStatus[s],
-				meaning: statusMeaning(s),
-			})),
-			asWritten,
-		],
-	},
-];
+		.join(', ');
 ---
 
-<figure class="satre-tokens satre-map not-content" data-satre-map>
-	<figcaption class="satre-map__caption">
-		<strong>
-			{totals.asWritten} of the {totals.lines} requirements
-		</strong>{' '}
-		in pillars 1 to 4 of <a href={SATRE_SPEC_URL}>SATRE v{SATRE_VERSION}</a> apply to genomics as written. Each square
-		is one requirement. The coloured squares are the {totals.notes + totals.changes + totals.feedback} with a genomics
-		note or change, and the round marks are {totals.newRequirements} new requirements.
+<figure class="not-content my-6 text-sm">
+	<figcaption class="mb-3 text-base text-gray-700">
+		<strong class="text-gray-900">{totals.asWritten} of the {totals.lines} requirements</strong> in pillars 1 to 4 of{' '}
+		<a href={SATRE_SPEC_URL} class="text-accent-600 underline">SATRE v{SATRE_VERSION}</a> apply to genomics as written.
+		Each square is one requirement. The coloured squares are the {totals.notes + totals.changes + totals.feedback} with
+		a genomics note or change, and the round marks are {totals.newRequirements} new requirements.
 	</figcaption>
 
-	<div class="satre-map__bar">
-		<fieldset class="satre-map__lens">
-			<legend class="sr-only">Colour the squares by</legend>
-			<label>
-				<input type="radio" name={`${id}-lens`} value="type" checked />
-				<span>Kind of difference</span>
-			</label>
-			<label>
-				<input type="radio" name={`${id}-lens`} value="status" />
-				<span>Status</span>
-			</label>
-		</fieldset>
+	<ul class="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-gray-700">
 		{
-			keys.map(({ lens, items }) => (
-				<ul class="satre-legend" data-legend={lens} aria-label="Key">
-					{items.map((item) => (
-						<li data-key={item.key} title={`${item.label}\n${item.meaning}`}>
-							<i class="satre-mark" data-type={item.type} data-status={item.status} />
-							<span class="satre-map__term">{item.label}</span>
-							<b>{item.count}</b>
-							<span class="sr-only">. {item.meaning}</span>
-						</li>
-					))}
-					{lens === 'status' && (
-						<li class="satre-map__round" title={`New requirement\n${typeMeaning('new')}`}>
-							<i class="satre-mark" data-type="new" />
-							<span class="satre-map__term">A round mark is a new requirement</span>
-							<span class="sr-only">. {typeMeaning('new')}</span>
-						</li>
-					)}
-				</ul>
+			STATUS_ORDER.map((s) => (
+				<li class="flex items-center gap-1.5">
+					<Mark status={s} /> {statusLabel(s)} <span class="text-gray-500">{totals.onMapByStatus[s]}</span>
+				</li>
 			))
 		}
-	</div>
+		<li class="flex items-center gap-1.5">
+			<Mark /> As written <span class="text-gray-500">{totals.asWritten}</span>
+		</li>
+	</ul>
 
-	<div class="satre-map__body">
-		<div class="satre-map__grid">
-			{
-				pillars.map((pillar) => (
-					<section class="satre-map__pillar">
-						<h3 class="satre-map__pillar-title">
+	<div class="grid grid-cols-2 items-start gap-x-5 gap-y-4 md:grid-cols-4">
+		{
+			pillarGroups.map((pillar) => {
+				const rest = pillar.capabilities.filter((c) => c.differences.length === 0);
+				return (
+					<section class="break-inside-avoid">
+						<h3 class="mb-1 border-b border-gray-300 pb-1 text-xs font-semibold">
 							{pillar.index}. {pillar.name}
 						</h3>
-						{pillar.rows.map((cap) => (
-							<button
-								type="button"
-								class="satre-map__cap"
-								data-cap={cap.index}
-								aria-label={`${cap.index} ${cap.name}: ${summarise(cap)}`}
-								aria-controls={`${id}-panel`}
-								aria-current={cap.index === initial ? 'true' : undefined}
-							>
-								<span class="satre-map__cap-name">
-									{cap.index} {cap.name}
-								</span>
-								<span class="satre-map__cells">
-									{cap.cells.map((cell) => {
-										const differs = cell.entry !== undefined && isDifference(cell.entry);
-										return (
-											<i
-												class="satre-mark"
-												data-type={differs ? cell.entry?.type : undefined}
-												data-status={differs ? cell.entry?.status : undefined}
-												data-entry={differs ? cell.entry?.id : undefined}
-												title={describe(cell)}
-											/>
-										);
-									})}
-								</span>
-							</button>
-						))}
-						{pillar.rest.length > 0 && (
-							<button
-								type="button"
-								class="satre-map__cap is-quiet"
-								data-cap={pillar.restKey}
-								aria-label={`${pillar.restLabel} in pillar ${pillar.index}, all as written: ${plural(pillar.restLines, 'SATRE requirement')}`}
-								aria-controls={`${id}-panel`}
-							>
-								<span class="satre-map__cap-name">{pillar.restLabel}, all as written</span>
-								<span class="satre-map__cells">
-									{pillar.rest
-										.flatMap((c) => c.cells)
-										.map(() => (
-											<i class="satre-mark" />
+						{pillar.capabilities
+							.filter((c) => c.differences.length > 0)
+							.map((c) => (
+								<a
+									href={capabilityHref(c)}
+									title={describe(c)}
+									class="block rounded-md py-1 text-inherit no-underline hover:bg-gray-100"
+								>
+									<span class="mb-1 block text-xs">
+										{c.index} {c.name}
+									</span>
+									<span class="flex flex-wrap gap-[3px]">
+										{c.cells.map(({ entry }) => (
+											<Mark status={entry && isDifference(entry) ? entry.status : undefined} round={entry?.type === 'new'} />
 										))}
+									</span>
+								</a>
+							))}
+						{rest.length > 0 && (
+							<div class="py-1 text-xs text-gray-500">
+								<span class="mb-1 block">{plural(rest.length, 'capability', 'capabilities')} as written</span>
+								<span class="mb-1 flex flex-wrap gap-[3px]">
+									{rest.flatMap((c) => c.cells).map(() => <Mark />)}
 								</span>
-								<span class="satre-map__rest-names">{pillar.rest.map((c) => `${c.index} ${c.name}`).join(' · ')}</span>
-							</button>
+								{rest.map((c) => `${c.index} ${c.name}`).join(' · ')}
+							</div>
 						)}
 					</section>
-				))
-			}
-		</div>
-
-		<div class="satre-map__panel" id={`${id}-panel`} data-panel>
-			{
-				rowCapabilities.map((cap) => (
-					<section data-cap-detail={cap.index} aria-labelledby={headingId(cap.index)} hidden={cap.index !== initial}>
-						<h4 id={headingId(cap.index)}>
-							{cap.index} {cap.name}
-						</h4>
-						<p class="satre-map__sum">{summarise(cap)}</p>
-						<EntryList entries={cap.differences} mode="open" group={`${id}-entry`} />
-						{cap.reviewed.length > 0 && (
-							<p class="satre-map__note">
-								The group reviewed a draft change to {cap.reviewed.map((e) => e.label).join(', ')} and left{' '}
-								{cap.reviewed.length === 1 ? 'it' : 'them'} as written.
-							</p>
-						)}
-					</section>
-				))
-			}
-			{
-				pillars
-					.filter((pillar) => pillar.rest.length > 0)
-					.map((pillar) => (
-						<section data-cap-detail={pillar.restKey} aria-labelledby={headingId(pillar.restKey)} hidden>
-							<h4 id={headingId(pillar.restKey)}>
-								{pillar.restLabel} in pillar {pillar.index}
-							</h4>
-							<p class="satre-map__sum">
-								{pillar.restLines === 1
-									? 'The one requirement here applies to genomics as written.'
-									: `All ${pillar.restLines} of ${pillar.rest.length === 1 ? 'its' : 'their'} requirements apply to genomics as written.`}
-							</p>
-							<ul class="satre-map__rest">
-								{pillar.rest.map((c) => (
-									<li>
-										<span>
-											{c.index} {c.name}
-										</span>
-										<span>
-											{c.lineCount}
-											<span class="sr-only"> {c.lineCount === 1 ? 'requirement' : 'requirements'}</span>
-										</span>
-									</li>
-								))}
-							</ul>
-							{pillar.restReviewed.length > 0 && (
-								<p class="satre-map__note">
-									The group reviewed a draft change to {pillar.restReviewed.map((e) => e.label).join(', ')} and left{' '}
-									{pillar.restReviewed.length === 1 ? 'it' : 'them'} as written.
-								</p>
-							)}
-						</section>
-					))
-			}
-		</div>
+				);
+			})
+		}
 	</div>
 </figure>
-
-<script>
-	for (const root of document.querySelectorAll<HTMLElement>('[data-satre-map]')) {
-		const caps = [...root.querySelectorAll<HTMLButtonElement>('.satre-map__cap')];
-		const details = [...root.querySelectorAll<HTMLElement>('[data-cap-detail]')];
-
-		// Selecting a row of the map shows its section of the panel. If the
-		// click landed on a coloured square, that entry also opens.
-		const select = (cap: HTMLButtonElement, entryId?: string) => {
-			for (const c of caps) {
-				if (c === cap) c.setAttribute('aria-current', 'true');
-				else c.removeAttribute('aria-current');
-			}
-			for (const d of details) d.hidden = d.dataset.capDetail !== cap.dataset.cap;
-			if (!entryId) return;
-			const row = root.querySelector<HTMLDetailsElement>(`[data-entry-id="${CSS.escape(entryId)}"] details`);
-			if (!row) return;
-			row.open = true;
-			// "nearest" moves the page only if the opened entry would be cut off.
-			row.scrollIntoView({ block: 'nearest' });
-		};
-
-		root.addEventListener('click', (event) => {
-			const target = event.target as Element;
-			const cap = target.closest<HTMLButtonElement>('.satre-map__cap');
-			if (cap) select(cap, target.closest<HTMLElement>('[data-entry]')?.dataset.entry);
-		});
-	}
-</script>
-
-<style is:global>
-	/* The marks, their colours and the rows of the panel come from satre-shared.css. */
-	.satre-map {
-		/* The layout below depends on the width of the map, not of the window,
-		   because Starlight's sidebar takes a varying share of the window. */
-		container-type: inline-size;
-		margin: 1.5rem 0;
-		font-size: var(--sl-text-sm);
-		line-height: 1.45;
-		color: var(--sl-color-white);
-	}
-	.satre-map__caption {
-		margin-bottom: 0.75rem;
-		color: var(--sl-color-gray-2);
-		line-height: var(--sl-line-height);
-	}
-	.satre-map__caption strong {
-		color: var(--sl-color-white);
-	}
-	.satre-map__bar {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 1.25rem;
-		margin-bottom: 0.9rem;
-	}
-
-	/* The two radio buttons that choose what the colours show. They look like
-	   one switch. The real inputs stay in the page, hidden from sight only,
-	   so the keyboard and screen readers treat them as radio buttons. */
-	.satre-map__lens {
-		display: inline-flex;
-		margin: 0;
-		padding: 2px;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.5rem;
-		background: var(--sl-color-gray-7);
-	}
-	.satre-map__lens label {
-		display: block;
-		cursor: pointer;
-	}
-	.satre-map__lens input {
-		position: absolute;
-		opacity: 0;
-		pointer-events: none;
-	}
-	.satre-map__lens span {
-		display: block;
-		padding: 0.2rem 0.7rem;
-		border-radius: 0.375rem;
-		color: var(--sl-color-gray-2);
-	}
-	.satre-map__lens input:checked + span {
-		background: var(--sl-color-black);
-		color: var(--sl-color-white);
-		font-weight: 600;
-		box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
-	}
-	.satre-map__lens input:focus-visible + span {
-		outline: 2px solid var(--sl-color-text-accent);
-		outline-offset: 1px;
-	}
-	/* Each lens has its own key. Only the key of the chosen lens shows. */
-	.satre-map:has(.satre-map__lens [value='type']:checked) [data-legend='status'],
-	.satre-map:has(.satre-map__lens [value='status']:checked) [data-legend='type'] {
-		display: none;
-	}
-	.satre-map__round {
-		color: var(--sl-color-gray-3);
-	}
-	/* Each item of the key has a tooltip that says what it means. The dotted
-	   line under the name and the question-mark pointer are the usual signs
-	   that a word has an explanation. */
-	.satre-map .satre-legend li[title] {
-		cursor: help;
-	}
-	.satre-map__term {
-		text-decoration: underline dotted var(--sl-color-gray-4);
-		text-underline-offset: 0.25em;
-	}
-	/* The last item of the status key is a whole sentence. A dotted line under
-	   all of it would be heavy, so it keeps only the pointer and the tooltip. */
-	.satre-map__round .satre-map__term {
-		text-decoration: none;
-	}
-	.satre-map .satre-map__round .satre-mark {
-		background: transparent;
-		box-shadow: inset 0 0 0 1.5px var(--sl-color-gray-3);
-	}
-
-	/* The map is on the left and the panel on the right. The panel follows the
-	   window down the page, so it stays beside whatever part of the map the
-	   reader is looking at. */
-	.satre-map__body {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 18.5rem;
-		gap: 1.5rem;
-		align-items: start;
-	}
-	/* Three columns hold the four pillars. Pillars 3 and 4 share the last
-	   column, because together they are about as tall as pillar 2 alone. */
-	.satre-map__grid {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.9rem 1.25rem;
-		align-items: start;
-	}
-	.satre-map__pillar:nth-child(1) {
-		grid-area: 1 / 1 / span 2;
-	}
-	.satre-map__pillar:nth-child(2) {
-		grid-area: 1 / 2 / span 2;
-	}
-	.satre-map__pillar:nth-child(3) {
-		grid-area: 1 / 3;
-	}
-	.satre-map__pillar:nth-child(4) {
-		grid-area: 2 / 3;
-	}
-	/* A long pillar name takes two lines. Every title is two lines tall and
-	   sits on its bottom edge, so the first capabilities line up across the columns. */
-	.satre-map__pillar-title {
-		display: flex;
-		align-items: flex-end;
-		min-height: 2.5rem;
-		margin: 0 0 0.3rem;
-		padding-bottom: 0.3rem;
-		border-bottom: 1px solid var(--sl-color-gray-5);
-		font-size: var(--sl-text-xs);
-		font-weight: 600;
-		line-height: 1.25;
-		color: var(--sl-color-white);
-	}
-
-	/* A capability is one button: its name, then its squares. The negative
-	   margin lets the highlight reach a little past the squares on each side
-	   while the squares stay in line with the pillar title. */
-	.satre-map__cap {
-		display: block;
-		width: calc(100% + 0.8rem);
-		margin: 0 -0.4rem;
-		padding: 0.3rem 0.4rem 0.35rem;
-		border: 0;
-		border-radius: 0.375rem;
-		background: transparent;
-		color: inherit;
-		font: inherit;
-		text-align: left;
-		cursor: pointer;
-	}
-	.satre-map__cap:hover {
-		background: var(--sl-color-gray-7);
-	}
-	.satre-map__cap:focus-visible {
-		outline: 2px solid var(--sl-color-text-accent);
-		outline-offset: -2px;
-	}
-	/* The selected row is marked in grey. Blue is the colour of the data, and
-	   a blue mark of selection could be taken for part of it. */
-	.satre-map__cap[aria-current='true'] {
-		background: var(--sl-color-gray-7);
-		box-shadow: inset 2px 0 0 var(--sl-color-gray-2);
-	}
-	.satre-map__cap-name {
-		display: block;
-		margin-bottom: 0.25rem;
-		font-size: var(--sl-text-xs);
-		line-height: 1.25;
-	}
-	/* The row for the capabilities with no difference has a paler name, so the eye goes to the others. */
-	.satre-map__cap.is-quiet .satre-map__cap-name {
-		color: var(--sl-color-gray-3);
-	}
-	/* The names of the capabilities in that row. On screen the panel lists
-	   them when the row is selected, so they only show where there is no
-	   panel: on paper and with JavaScript off. */
-	.satre-map__rest-names {
-		display: none;
-		margin-top: 0.3rem;
-		font-size: 0.6875rem;
-		line-height: 1.35;
-		color: var(--sl-color-gray-3);
-	}
-	.satre-map__cap[aria-current='true'] .satre-map__cap-name {
-		font-weight: 600;
-		color: var(--sl-color-white);
-	}
-	.satre-map__cells {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 3px;
-	}
-	.satre-map__cells .satre-mark:hover {
-		outline: 2px solid var(--sl-color-white);
-		outline-offset: 1px;
-	}
-
-	/* Pointing at an item of the key fades every square of another kind, so
-	   the reader can see where one kind sits on the map. */
-	.satre-map:has([data-key='type-note']:hover) .satre-map__cells .satre-mark:not([data-type='note'], [data-type='feedback']),
-	.satre-map:has([data-key='type-change']:hover) .satre-map__cells .satre-mark:not([data-type='change']),
-	.satre-map:has([data-key='type-new']:hover) .satre-map__cells .satre-mark:not([data-type='new']),
-	.satre-map:has([data-key='status-agreed']:hover) .satre-map__cells .satre-mark:not([data-status='agreed']),
-	.satre-map:has([data-key='status-open']:hover) .satre-map__cells .satre-mark:not([data-status='open']),
-	.satre-map:has([data-key='status-proposed']:hover) .satre-map__cells .satre-mark:not([data-status='proposed']),
-	.satre-map:has([data-key='plain']:hover) .satre-map__cells .satre-mark[data-type] {
-		opacity: 0.2;
-	}
-
-	.satre-map__panel {
-		position: sticky;
-		top: calc(var(--sl-nav-height) + 1rem);
-		z-index: 1;
-		max-height: calc(100vh - var(--sl-nav-height) - 2rem);
-		padding: 0.8rem 0.9rem;
-		overflow: auto;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.6rem;
-		background: var(--sl-color-black);
-	}
-	.satre-map__panel h4 {
-		margin: 0;
-		font-size: var(--sl-text-base);
-		font-weight: 600;
-		line-height: 1.3;
-		color: var(--sl-color-white);
-	}
-	.satre-map__panel p {
-		margin: 0;
-	}
-	.satre-map__sum {
-		padding: 0.1rem 0 0.6rem;
-		font-size: var(--sl-text-xs);
-		color: var(--sl-color-gray-3);
-	}
-	.satre-map__note {
-		padding: 0.5rem 0 0;
-		border-top: 1px solid var(--sl-color-hairline-light);
-		font-size: var(--sl-text-xs);
-		color: var(--sl-color-gray-3);
-	}
-	/* The capabilities inside the shared row, each with its number of requirements. */
-	.satre-map__rest {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.satre-map__rest li {
-		display: flex;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.35rem 0.3rem;
-		border-top: 1px solid var(--sl-color-hairline-light);
-	}
-	.satre-map__rest li > span:last-child {
-		color: var(--sl-color-gray-3);
-		font-variant-numeric: tabular-nums;
-	}
-
-	/* A narrower map has no room for a panel beside it. The panel goes under
-	   the map and holds to the bottom of the window while the map is on
-	   screen, so the result of a selection is still in view. */
-	@container (max-width: 52rem) {
-		.satre-map__body {
-			display: block;
-		}
-		.satre-map__grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-		.satre-map__grid > .satre-map__pillar {
-			grid-area: auto;
-		}
-		.satre-map__pillar-title {
-			min-height: 0;
-		}
-		.satre-map__panel {
-			top: auto;
-			bottom: 0.5rem;
-			max-height: 45vh;
-			margin-top: 1rem;
-			box-shadow: 0 -8px 18px -14px rgb(0 0 0 / 0.35);
-		}
-	}
-	@container (max-width: 20rem) {
-		.satre-map__grid {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	/* On paper, and with JavaScript off, nothing can be selected. So the
-	   panel goes, the map takes the whole width with one column for each
-	   pillar, and no capability looks selected or clickable.
-	   A browser that does not know the "scripting" test still applies these
-	   rules when it prints, and ignores them otherwise. */
-	@media print, (scripting: none) {
-		.satre-map__panel {
-			display: none;
-		}
-		.satre-map__body {
-			display: block;
-		}
-		.satre-map__grid {
-			grid-template-columns: repeat(4, minmax(0, 1fr));
-		}
-		.satre-map__grid > .satre-map__pillar {
-			grid-area: auto;
-		}
-		.satre-map__cap,
-		.satre-map__cap[aria-current='true'] {
-			background: transparent;
-			box-shadow: none;
-			cursor: default;
-		}
-		.satre-map__cap[aria-current='true'] .satre-map__cap-name {
-			font-weight: 400;
-		}
-		.satre-map__rest-names {
-			display: block;
-		}
-	}
-	@media print {
-		/* The switch cannot be used on paper. The key of the chosen lens still prints. */
-		.satre-map__lens {
-			display: none;
-		}
-		.satre-map__pillar {
-			break-inside: avoid;
-		}
-		.satre-map__caption a {
-			color: inherit;
-		}
-		/* Paper has no tooltips, so the names need no dotted line. */
-		.satre-map__term {
-			text-decoration: none;
-		}
-	}
-</style>

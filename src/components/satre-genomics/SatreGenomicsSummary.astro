@@ -1,38 +1,37 @@
 ---
-// The summary on the SATRE for Genomics page: a table with one row for each
+// The summary on the SATRE for Genomics page: a list with one row for each
 // genomics entry, which the reader can search and filter. A row links to the
 // full entry further down the same page.
 //
-// It is built from src/data/satre/genomics-entries.ts, the same data as the
-// SATRE map and the lists in the report, so the statuses on the two pages
-// cannot drift apart.
-//
-// The page builds the whole table, so without JavaScript it is a plain table
-// of links. The script adds the search box and the three menus above it.
-//
-// The script keeps the filters in the page address, for example
-// ?topic=cost&status=open. So a link can open the table already filtered.
-// The table of counts at the end of the report does that.
-import { genomicsEntries, typeLabel, topicLabel, TOPICS, TYPES, STATUSES } from '../../data/satre/genomics-entries';
-import './satre-shared.css';
+// The filters are a <form>, and the script keeps the form's values in the
+// page address, for example `?topic=cost&status=open`.
+import { genomicsEntries, TOPICS, TYPES, STATUSES } from '../../data/satre/genomics-entries';
+import { isDifference } from '../../data/satre/genomics-views';
+import EntryList from './EntryList.astro';
 
-// The page lists the draft changes that the group rejected in its own
-// section, "Reviewed without change". So the summary leaves them out.
-const rows = genomicsEntries.filter((e) => e.listed);
-
+const entries = genomicsEntries.filter(isDifference);
 const menus = [
-	{ key: 'topic', all: 'All topics', options: TOPICS },
-	{ key: 'type', all: 'All types', options: TYPES.filter((t) => rows.some((e) => e.type === t.id)) },
-	{ key: 'status', all: 'All statuses', options: STATUSES },
-] as const;
+	{ name: 'topic', all: 'All topics', options: TOPICS },
+	{ name: 'type', all: 'All types', options: TYPES.filter((t) => entries.some((e) => e.type === t.id)) },
+	{ name: 'status', all: 'All statuses', options: STATUSES },
+];
+const control = 'rounded-md border border-gray-400 bg-white px-2 py-1.5';
 ---
 
-<div class="satre-tokens satre-summary" data-lens="status" data-satre-summary>
-	<div class="satre-summary__bar not-content" data-bar hidden>
-		<input type="search" placeholder="Find an ID or a title" aria-label="Find an ID or a title" data-q />
+<div data-satre-summary>
+	<form
+		class="not-content z-10 flex flex-wrap items-center gap-2 bg-white py-2 text-sm sm:sticky sm:top-(--sl-nav-height) print:hidden noscript:hidden"
+	>
+		<input
+			type="search"
+			name="q"
+			placeholder="Find an ID or a title"
+			aria-label="Find an ID or a title"
+			class:list={[control, 'min-w-36 flex-1']}
+		/>
 		{
 			menus.map((menu) => (
-				<select aria-label={`Filter by ${menu.key}`} data-menu={menu.key}>
+				<select name={menu.name} aria-label={`Filter by ${menu.name}`} class={control}>
 					<option value="">{menu.all}</option>
 					{menu.options.map((o) => (
 						<option value={o.id}>{o.label}</option>
@@ -40,274 +39,42 @@ const menus = [
 				</select>
 			))
 		}
-		<span class="satre-summary__count" data-count aria-live="polite">{rows.length} entries</span>
-		<button type="button" class="satre-summary__clear" data-clear hidden>Clear</button>
-	</div>
-
-	<table>
-		<thead>
-			<tr>
-				<th scope="col">ID</th>
-				<th scope="col">Entry</th>
-				<th scope="col" class="satre-summary__topic">Topic</th>
-				<th scope="col">Type</th>
-				<th scope="col">Status</th>
-			</tr>
-		</thead>
-		<tbody>
-			{
-				rows.map((e) => (
-					<tr
-						data-row
-						data-topic={e.topic}
-						data-type={e.type}
-						data-status={e.status}
-						data-text={`${e.label} ${e.title}`.toLowerCase()}
-					>
-						<td class="satre-summary__id">{e.label}</td>
-						<td class="satre-summary__entry">
-							<a href={`#${e.anchor}`}>{e.title}</a>
-						</td>
-						<td class="satre-summary__topic">{topicLabel(e.topic)}</td>
-						<td
-							class:list={['satre-summary__type', { 'is-strong': e.type === 'change' || e.type === 'new' }]}
-						>
-							{typeLabel(e)}
-						</td>
-						<td class="satre-summary__state">
-							<span class="satre-summary__status">
-								<i class="satre-mark" data-status={e.status} aria-hidden="true" />
-								<span>{e.statusText}</span>
-							</span>
-						</td>
-					</tr>
-				))
-			}
-		</tbody>
-	</table>
-
-	<p class="satre-summary__empty not-content" data-empty hidden>
-		No entry matches these filters.{' '}
-		<button type="button" class="satre-summary__clear" data-clear>Clear the filters</button>
-	</p>
+		<output class="ml-auto text-gray-500 tabular-nums" />
+		<button type="reset" class="cursor-pointer border-0 bg-transparent p-0 text-accent-600 underline">Clear</button>
+	</form>
+	<EntryList entries={entries} />
 </div>
 
 <script>
-	type Key = 'topic' | 'type' | 'status';
-	const KEYS: Key[] = ['topic', 'type', 'status'];
-	type Filters = Record<Key, string>;
-
 	for (const root of document.querySelectorAll<HTMLElement>('[data-satre-summary]')) {
-		const bar = root.querySelector<HTMLElement>('[data-bar]');
-		const search = root.querySelector<HTMLInputElement>('[data-q]');
-		const count = root.querySelector<HTMLElement>('[data-count]');
-		const empty = root.querySelector<HTMLElement>('[data-empty]');
-		const table = root.querySelector<HTMLTableElement>('table');
-		const clear = bar?.querySelector<HTMLButtonElement>('[data-clear]');
-		const selects = KEYS.map((k) => root.querySelector<HTMLSelectElement>(`[data-menu="${k}"]`));
-		if (!bar || !search || !count || !empty || !table || !clear || selects.some((s) => !s)) continue;
-		const menus = Object.fromEntries(KEYS.map((k, i) => [k, selects[i]])) as Record<Key, HTMLSelectElement>;
-		const rows = [...root.querySelectorAll<HTMLTableRowElement>('tr[data-row]')];
+		const form = root.querySelector('form')!;
+		const count = root.querySelector('output')!;
+		const rows = [...root.querySelectorAll<HTMLElement>('li')];
 
-		const matches = (row: HTMLElement, filters: Filters, text: string) =>
-			KEYS.every((k) => !filters[k] || row.dataset[k] === filters[k]) && (!text || row.dataset.text!.includes(text));
-
-		const update = (writeAddress = true) => {
-			const filters = Object.fromEntries(KEYS.map((k) => [k, menus[k].value])) as Filters;
-			const text = search.value.trim().toLowerCase();
-			let shown = 0;
+		const apply = () => {
+			const filters = [...new FormData(form)].filter(([, value]) => value) as [string, string][];
 			for (const row of rows) {
-				row.hidden = !matches(row, filters, text);
-				if (!row.hidden) shown++;
+				row.hidden = !filters.every(([name, value]) =>
+					name === 'q' ? row.dataset.q!.includes(value.trim().toLowerCase()) : row.dataset[name] === value,
+				);
 			}
-
-			for (const k of KEYS) menus[k].classList.toggle('is-set', menus[k].value !== '');
-
-			const any = KEYS.some((k) => filters[k]) || text !== '';
-			count.textContent = any ? `${shown} of ${rows.length} entries` : `${rows.length} entries`;
-			clear.hidden = !any;
-			empty.hidden = shown > 0;
-			table.hidden = shown === 0;
-
-			if (writeAddress) {
-				const url = new URL(location.href);
-				for (const k of KEYS) {
-					if (filters[k]) url.searchParams.set(k, filters[k]);
-					else url.searchParams.delete(k);
-				}
-				if (text) url.searchParams.set('q', search.value.trim());
-				else url.searchParams.delete('q');
-				// replaceState keeps the Back button for leaving the page. It
-				// would otherwise step back through every filter change.
-				history.replaceState(history.state, '', url);
-			}
+			const shown = rows.filter((row) => !row.hidden).length;
+			count.textContent = shown === rows.length ? `${shown} entries` : `${shown} of ${rows.length} entries`;
+			// replaceState keeps the Back button for leaving the page. It would
+			// otherwise step back through every filter change.
+			const query = new URLSearchParams(filters).toString();
+			history.replaceState(history.state, '', `${location.pathname}${query && `?${query}`}${location.hash}`);
 		};
-
-		const set = (values: Partial<Filters & { q: string }>) => {
-			for (const k of KEYS) {
-				const wanted = values[k] ?? '';
-				// Ignore a value that is not in the menu, such as a mistyped address.
-				menus[k].value = [...menus[k].options].some((o) => o.value === wanted) ? wanted : '';
-			}
-			search.value = values.q ?? '';
-		};
-
-		bar.hidden = false;
-		bar.addEventListener('input', () => update());
-		root.addEventListener('click', (event) => {
-			if (!(event.target as Element).closest('[data-clear]')) return;
-			set({});
-			update();
-			search.focus();
-		});
 
 		// Start from the filters in the page address, if it has any.
-		const params = new URLSearchParams(location.search);
-		set({
-			topic: params.get('topic') ?? '',
-			type: params.get('type') ?? '',
-			status: params.get('status') ?? '',
-			q: params.get('q') ?? '',
-		});
-		update(false);
+		for (const [name, value] of new URLSearchParams(location.search)) {
+			const field = form.elements.namedItem(name);
+			if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) field.value = value;
+			if (field instanceof HTMLSelectElement && field.selectedIndex < 0) field.value = '';
+		}
+
+		form.addEventListener('input', apply);
+		form.addEventListener('reset', () => setTimeout(apply));
+		apply();
 	}
 </script>
-
-<style is:global>
-	/* The table itself uses Starlight's table styles, like the other tables on
-	   the site. These rules cover the filters and the parts of a row. */
-	.satre-summary__bar {
-		/* The filters stay under the site header while the reader scrolls the table. */
-		position: sticky;
-		top: var(--sl-nav-height);
-		z-index: 2;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.6rem 0;
-		background: var(--sl-color-black);
-		font-size: var(--sl-text-sm);
-	}
-	.satre-summary__bar[hidden] {
-		display: none;
-	}
-	.satre-summary__bar input,
-	.satre-summary__bar select {
-		height: 2.1rem;
-		padding: 0 0.6rem;
-		border: 1px solid var(--sl-color-gray-4);
-		border-radius: 0.4rem;
-		background: var(--sl-color-black);
-		color: var(--sl-color-white);
-		font: inherit;
-	}
-	.satre-summary__bar input {
-		flex: 1 1 12rem;
-		min-width: 9rem;
-	}
-	/* A menu with a filter set is outlined, so the reader can see why rows are missing. */
-	.satre-summary__bar select.is-set {
-		border-color: var(--satre-step-2);
-		box-shadow: 0 0 0 1px var(--satre-step-2);
-		font-weight: 600;
-	}
-	.satre-summary__bar :is(input, select):focus-visible,
-	.satre-summary__clear:focus-visible {
-		outline: 2px solid var(--sl-color-text-accent);
-		outline-offset: 1px;
-	}
-	.satre-summary__count {
-		margin-left: auto;
-		color: var(--sl-color-gray-3);
-		font-variant-numeric: tabular-nums;
-		white-space: nowrap;
-	}
-	.satre-summary__clear {
-		padding: 0;
-		border: 0;
-		background: none;
-		color: var(--sl-color-text-accent);
-		font: inherit;
-		text-decoration: underline;
-		cursor: pointer;
-	}
-
-	/* The table has a row for every entry, so it is long. Smaller text and
-	   tighter rows than Starlight's default keep most rows to one line, which
-	   makes the table quicker to scan. */
-	.satre-summary table {
-		font-size: var(--sl-text-sm);
-		line-height: 1.5;
-	}
-	.satre-summary :is(th, td) {
-		padding: 0.45rem 0.75rem;
-	}
-	/* The first and last columns sit flush with the text around the table,
-	   as they do in Starlight's own tables. */
-	.satre-summary :is(th, td):first-child {
-		padding-inline-start: 0;
-	}
-	.satre-summary :is(th, td):last-child {
-		padding-inline-end: 0;
-	}
-	.satre-summary tr[hidden],
-	.satre-summary table[hidden] {
-		display: none;
-	}
-	.satre-summary__id {
-		white-space: nowrap;
-		font-variant-numeric: tabular-nums;
-	}
-	/* The title is the link to the full entry. A whole column of underlined
-	   links would be hard to read, so the underline shows only when the
-	   reader points at a link or moves the focus to it. */
-	.satre-summary td a {
-		font-weight: 600;
-		text-decoration: none;
-	}
-	.satre-summary td a:is(:hover, :focus-visible) {
-		text-decoration: underline;
-	}
-	.satre-summary__topic,
-	.satre-summary__type {
-		white-space: nowrap;
-	}
-	/* Changes and new requirements ask a TRE for more than SATRE does. Their
-	   type is in bold, so they stand out from the notes around them. */
-	.satre-summary__type.is-strong {
-		font-weight: 600;
-		color: var(--sl-color-white);
-	}
-	/* The mark keeps to the first line when the status text wraps. */
-	.satre-summary__status {
-		display: grid;
-		grid-template-columns: 0.8125rem minmax(0, 1fr);
-		gap: 0.5rem;
-	}
-	.satre-summary__status .satre-mark {
-		margin-top: 0.3em;
-	}
-	.satre-summary__empty {
-		margin: 0;
-		padding: 1.25rem 0;
-		border-top: 1px solid var(--sl-color-gray-5);
-		color: var(--sl-color-gray-2);
-	}
-
-	/* A narrow page has no room for five columns. The Topic column goes, and
-	   the topic menu still filters by it. Starlight lets a table that is still
-	   too wide scroll sideways. */
-	@media (max-width: 50rem) {
-		.satre-summary__topic {
-			display: none;
-		}
-	}
-
-	@media print {
-		.satre-summary__bar,
-		.satre-summary__empty {
-			display: none !important;
-		}
-	}
-</style>

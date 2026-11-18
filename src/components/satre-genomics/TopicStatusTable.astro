@@ -1,103 +1,53 @@
 ---
-// A table that counts the genomics differences by topic and by status.
-//
-// The report ends with it in place of a full list of the entries. The full
-// list is the summary on the SATRE for Genomics page, and each number here
-// links to that summary with the matching filter set.
-//
-// The table is left to Starlight's own table styles, so it looks like the
-// other tables in the report.
+// A table that counts the genomics differences by topic and by status. Each
+// number links to the summary list on the SATRE for Genomics page, with the
+// matching filter set.
 import { summaryHref, statusLabel } from '../../data/satre/genomics-entries';
+import type { EntryStatus, Topic } from '../../data/satre/genomics-entries';
 import { topicGroups, totals, STATUS_ORDER } from '../../data/satre/genomics-views';
-import './satre-shared.css';
+import Mark from './Mark.astro';
+
+const rows: { label: string; topic?: Topic; counts: Record<EntryStatus, number>; all: number }[] = [
+	...topicGroups.map((t) => ({ label: t.label, topic: t.id, counts: t.byStatus, all: t.differences.length })),
+	{ label: 'All topics', counts: totals.byStatus, all: totals.differences },
+];
 ---
 
-<div class="satre-tokens satre-counts" data-lens="status">
-	<table>
-		<thead>
-			<tr>
-				<th scope="col">Topic</th>
-				{
-					STATUS_ORDER.map((s) => (
-						<th scope="col" class="satre-counts__num">
-							<i class="satre-mark" data-status={s} aria-hidden="true" /> {statusLabel(s)}
-						</th>
-					))
-				}
-				<th scope="col" class="satre-counts__num">All</th>
-			</tr>
-		</thead>
-		<tbody>
+<table class="tabular-nums max-sm:text-sm max-sm:[&_:is(th,td)]:px-1.5">
+	<thead>
+		<tr>
+			<th scope="col">Topic</th>
 			{
-				topicGroups.map((topic) => (
-					<tr>
-						<th scope="row">{topic.label}</th>
-						{STATUS_ORDER.map((s) => (
-							<td class="satre-counts__num">
-								{topic.byStatus[s] > 0 ? (
-									<a href={summaryHref({ topic: topic.id, status: s })}>{topic.byStatus[s]}</a>
-								) : (
-									<span class="satre-counts__zero">0</span>
-								)}
-							</td>
-						))}
-						<td class="satre-counts__num">
-							<a href={summaryHref({ topic: topic.id })}>{topic.differences.length}</a>
-						</td>
-					</tr>
+				STATUS_ORDER.map((s) => (
+					<th scope="col" class="text-right whitespace-nowrap">
+						<Mark status={s} class="max-sm:hidden" /> {statusLabel(s)}
+					</th>
 				))
 			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<th scope="row">All topics</th>
-				{
-					STATUS_ORDER.map((s) => (
-						<td class="satre-counts__num">
-							<a href={summaryHref({ status: s })}>{totals.byStatus[s]}</a>
+			<th scope="col" class="text-right">All</th>
+		</tr>
+	</thead>
+	<tbody>
+		{
+			rows.map((row) => (
+				<tr class:list={{ 'font-semibold': !row.topic }}>
+					<th scope="row" class:list={{ 'font-normal': !!row.topic }}>
+						{row.label}
+					</th>
+					{STATUS_ORDER.map((s) => (
+						<td class="text-right">
+							{row.counts[s] > 0 ? (
+								<a href={summaryHref({ topic: row.topic, status: s })}>{row.counts[s]}</a>
+							) : (
+								<span class="text-gray-400">0</span>
+							)}
 						</td>
-					))
-				}
-				<td class="satre-counts__num">
-					<a href={summaryHref()}>{totals.differences}</a>
-				</td>
-			</tr>
-		</tfoot>
-	</table>
-</div>
-
-<style is:global>
-	.satre-counts table {
-		font-variant-numeric: tabular-nums;
-	}
-	.satre-counts tbody th {
-		font-weight: 400;
-	}
-	.satre-counts .satre-counts__num {
-		text-align: right;
-		white-space: nowrap;
-	}
-	.satre-counts thead .satre-mark {
-		margin-right: 0.15rem;
-		vertical-align: -0.1em;
-	}
-	/* A zero is not a link, and is paler, so the cells with entries stand out. */
-	.satre-counts__zero {
-		color: var(--sl-color-gray-4);
-	}
-	.satre-counts tfoot :is(th, td) {
-		border-bottom: 0;
-		font-weight: 600;
-	}
-	/* On a phone the five columns only fit with less space between them and
-	   without the marks in the headings. Otherwise the last columns are cut
-	   off, and the reader has to scroll the table sideways to see them. */
-	@media (max-width: 40rem) {
-		.satre-counts :is(th, td) {
-			padding-inline: 0.35rem;
+					))}
+					<td class="text-right">
+						<a href={summaryHref({ topic: row.topic })}>{row.all}</a>
+					</td>
+				</tr>
+			))
 		}
-		.satre-counts thead .satre-mark {
-			display: none;
-		}
-	}
-</style>
+	</tbody>
+</table>
