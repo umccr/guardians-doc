@@ -77,6 +77,7 @@ export default defineConfig({
                         label: "Data Sharing",
                         items: [
                             "technology/htsget-rs",
+                            "technology/data-releaser",
                         ]
                     },
                     {
