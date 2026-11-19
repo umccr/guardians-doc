@@ -1,8 +1,6 @@
 ---
-// A small square that stands for one SATRE requirement or one genomics entry.
-// Its colour is the status of the entry, and it is light grey if there is no
-// genomics difference. A new genomics requirement is round, because it is not
-// one of SATRE's own requirements.
+// The small square that represents a SATRE requirement or genomics entry.
+// Its colour is the status of the entry. A new genomics requirement is round.
 import type { EntryStatus } from '../../data/satre/genomics-entries';
 
 interface Props {
@@ -12,17 +10,12 @@ interface Props {
 }
 const { status, round = false, class: className } = Astro.props;
 
-// The colours are defined in src/styles/global.css. Tailwind only generates a
-// class that appears in full in the source, so the class names are written
-// out here instead of being built from the status.
 const colour = {
 	agreed: 'bg-status-agreed',
 	open: 'bg-status-open',
 	proposed: 'bg-status-proposed',
 } satisfies Record<EntryStatus, string>;
 
-// Browsers leave out background colours when they print, unless a rule asks
-// for them. print-color-adjust does that, so the marks keep their colour on paper.
 const base = 'inline-block size-3.5 flex-none [print-color-adjust:exact]';
 ---
 

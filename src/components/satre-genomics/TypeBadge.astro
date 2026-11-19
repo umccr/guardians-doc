@@ -1,6 +1,5 @@
 ---
-// The type of a genomics entry as a Starlight badge. Every place that shows a
-// type uses this, so a type has the same name and colour across the site.
+// The type of the genomics entry as a badge.
 import { Badge } from '@astrojs/starlight/components';
 import { z } from 'astro/zod';
 import { EntryType, typeLabels } from '../../data/satre/genomics-entries';
@@ -9,14 +8,10 @@ interface Props {
 	type: EntryType;
 }
 
-// The SATRE for Genomics page uses this badge directly, for example
-// <TypeBadge type="change" />. TypeScript does not check the attributes of a
-// tag in an .mdx file, so the type is checked here when the site builds.
 const parsed = EntryType.safeParse(Astro.props.type);
 if (!parsed.success) throw new Error(`<TypeBadge type="${Astro.props.type}">: ${z.prettifyError(parsed.error)}`);
 const type = parsed.data;
 
-// The colour of each type, as one of the variants of Starlight's badge.
 const variant = {
 	note: 'note',
 	change: 'caution',
