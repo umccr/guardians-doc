@@ -1,0 +1,36 @@
+---
+// A list of genomics entries with one row for each entry: its mark, ID, title,
+// type and status. A row is a link to the full entry on the SATRE for
+// Genomics page. Each row also has a topic, type and status as data attributes,
+// so that the summary on the SATRE for Genomics page can filter the rows.
+import { fullEntryHref, isNew, statusLabels } from '../../data/satre/genomics-entries';
+import type { GenomicsEntry } from '../../data/satre/genomics-entries';
+import Mark from './Mark.astro';
+import TypeBadge from './TypeBadge.astro';
+
+interface Props {
+	entries: GenomicsEntry[];
+}
+const { entries } = Astro.props;
+---
+
+<ul class="not-content list-none divide-y divide-gray-200 p-0 text-sm">
+	{
+		entries.map((e) => (
+			<li data-topic={e.topic} data-type={e.type} data-status={e.status} data-q={`${e.label} ${e.title}`.toLowerCase()}>
+				<a
+					href={fullEntryHref(e)}
+					class="grid grid-cols-[auto_3.75rem_1fr] items-center gap-x-2.5 rounded-sm px-1 py-1.5 text-inherit no-underline hover:bg-gray-100 sm:grid-cols-[auto_3.75rem_1fr_auto]"
+				>
+					<Mark status={e.status} round={isNew(e)} />
+					<span class="tabular-nums text-gray-600">{e.label}</span>
+					<span class="font-semibold">{e.title}</span>
+					<span class="col-start-3 flex items-center gap-2 text-xs text-gray-500 sm:col-start-auto">
+						<span class="w-[4.75rem]"><TypeBadge type={e.type} /></span>
+						<span class="w-16">{statusLabels[e.status]}</span>
+					</span>
+				</a>
+			</li>
+		))
+	}
+</ul>

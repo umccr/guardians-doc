@@ -95,7 +95,7 @@ Secure data sharing requires identity and access control infrastructure:
 
 - **Identity Provider (IdP) integration** ([AWS IAM Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html) or [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-cognito.html)) enables user authentication. Integration with an existing organisational IdP typically has minimal standing cost, while managed services like AWS Cognito incur per-user or per-authentication charges.
 
-- **AWS IAM roles and policies** ([AWS Identity and Access Management](https://docs.aws.amazon.com/iam/latest/userguide/introduction.html)) define who can access what. While defining roles and policies is free, the infrastructure that evaluates them contributes to the platform's operational cost.
+- **AWS IAM roles and policies** ([AWS Identity and Access Management](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)) define who can access what. While defining roles and policies is free, the infrastructure that evaluates them contributes to the platform's operational cost.
 
 - **AWS KMS (Key Management Service)** ([AWS Key Management Service](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)) manages encryption keys for data at rest. Each customer‑managed key incurs a small monthly fee, plus charges per cryptographic operation.
 
@@ -262,7 +262,7 @@ AWS pricing references:
 - 2 external identity providers federated through cross-account roles
 
 AWS pricing references:  
-[CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [IAM Identity Center](https://aws.amazon.com/iam/identity-center/pricing/).
+[CloudTrail](https://aws.amazon.com/cloudtrail/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [IAM Identity Center](https://aws.amazon.com/iam/identity-center/faqs/) (no extra charge).
 
 
 #### Monitoring and audit

@@ -36,7 +36,8 @@ export default defineConfig({
                     "requirements/data-release",
                     "requirements/data-control",
                     "requirements/researcher-environments-raw",
-                    "requirements/researcher-environments"
+                    "requirements/researcher-environments",
+                    "requirements/satre-genomics"
                 ]
             },
             {
@@ -102,6 +103,7 @@ export default defineConfig({
                 "reports/costing-data-sharing-platform/costing-scrollytell",
                 "reports/sustainability/sustainability-report",
                 "reports/seqera-ux-report",
+                "reports/genomics-tre",
             ],
             },
         ],
