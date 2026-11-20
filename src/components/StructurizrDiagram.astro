@@ -1,0 +1,54 @@
+---
+/**
+ * StructurizrDiagram.astro
+ *
+ * Shows a view rendered from the Structurizr workspace(s) in
+ * not-for-publishing/architecture (see scripts/architecture/render.sh).
+ *
+ * Usage:
+ *   <StructurizrDiagram view="gdn-context" />
+ *   <StructurizrDiagram view="gdn-containers" legend caption="Inside a node" />
+ *
+ * Props:
+ *   view     – the view key from the DSL (also the SVG filename)
+ *   legend   – also show the view's generated key/legend
+ *   caption  – optional caption rendered below the diagram
+ *   class    – CSS class(es) applied to the wrapping <figure>
+ */
+
+interface Props {
+  view: string;
+  legend?: boolean;
+  caption?: string;
+  class?: string;
+}
+
+const { view, legend = false, caption, class: className } = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const src = `${base}/diagrams/architecture/${view}.svg`;
+const legendSrc = `${base}/diagrams/architecture/${view}-key.svg`;
+---
+
+<figure class:list={['structurizr-diagram', className]}>
+  <a href={src} target="_blank" rel="noopener" title="Open full size">
+    <img src={src} alt={caption ?? `Architecture diagram: ${view}`} loading="lazy" />
+  </a>
+  {legend && <img class="structurizr-legend" src={legendSrc} alt={`Legend for ${view}`} loading="lazy" />}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .structurizr-diagram img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* Structurizr renders on white; keep it readable in dark mode too. */
+    background: #ffffff;
+    border-radius: 0.25rem;
+  }
+  .structurizr-diagram .structurizr-legend {
+    width: 50%;
+    margin-top: 0.75rem;
+  }
+</style>
