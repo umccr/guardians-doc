@@ -12,13 +12,14 @@ import DrawioDiagram from "../../../components/DrawioDiagram.astro";
 <article className="prose dark:prose-invert">
   <ArchitectureFloat showLayers={["Base", "SYNCING", "CLOUD-NATIVE"]} />
   <Badge text="Proof of Concept" size="large" variant="note" />
-  <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/htsget-rs-data-releaser" />
+  <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/data-releaser" />
   <p>
-    This is a command line tool, written in Go, that centre administrators use to give external researchers access to
-    genomic data, either for a set period or with no end date. It primarily runs in a dedicated data account that covers
-    the whole life of a release, including granting access, extending it, revoking it and cleaning up afterwards. It
-    addresses the [data release](../../requirements/data-release) user stories, where data has to leave the organisation
-    to reach another organisation or researcher.
+    This is a command line tool, written in Go, that centre administrators use to give researchers access to genomic
+    data, either for a set period or with no end date. It primarily runs in a dedicated data account that covers the
+    whole life of a release, including granting access, extending it, revoking it and cleaning up afterwards. It
+    addresses the [data release](../../requirements/data-release) user stories, which cover sharing data with
+    researchers inside the organisation, such as into a Seqera workspace, as well as releasing it to another
+    organisation or researcher.
   </p>
   <p>The tool releases data in one of two ways, either by using S3 policies or by using htsget with VPC lattice.</p>
   <ul>
@@ -66,7 +67,10 @@ import DrawioDiagram from "../../../components/DrawioDiagram.astro";
         htsget-rs's cached authorisation decisions expire, which can take up to one hour.
       </li>
       <li>
-        `purge` withdraws an S3 dataset by scheduling deletion of its encryption key, which stops all reads at once.
+        `purge` stops all reads of an S3 dataset immediately. It removes every grant from the policies and schedules
+        deletion of the dataset's encryption key, and a key waiting to be deleted can't decrypt anything.
+      </li>
+      <li>
         `restore` can recover the copy during the KMS waiting period of 7 to 30 days, but every grant on it has to be
         made again.
       </li>
