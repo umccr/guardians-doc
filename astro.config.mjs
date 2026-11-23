@@ -52,11 +52,11 @@ export default defineConfig({
                     "solution-architecture/2-system-context",
                     "solution-architecture/3-building-blocks",
                     "solution-architecture/4-runtime-scenarios",
-                    "solution-architecture/5-deployment",
-                    "solution-architecture/6-data-architecture",
-                    "solution-architecture/7-security",
-                    "solution-architecture/8-operations",
-                    "solution-architecture/9-risks-and-technical-debt",
+                    // "solution-architecture/5-deployment", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/6-data-architecture", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/7-security", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/8-operations", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/9-risks-and-technical-debt", // TODO: uncommitted - restore once added to git
                     {
                         label: 'Detailed Designs',
                         items: [
