@@ -1,0 +1,341 @@
+---
+title: What makes a genomics TRE different
+---
+
+import PrintButton from '../../../components/PrintButton.astro';
+import SatreMap from '../../../components/satre-genomics/SatreMap.astro';
+import TopicEntries from '../../../components/satre-genomics/TopicEntries.astro';
+import TopicStatusTable from '../../../components/satre-genomics/TopicStatusTable.astro';
+
+**v 0.1**
+
+GUARDIANS TRE Working Group
+
+<PrintButton />
+
+## Document History
+
+| Version | Date     | Who               | Change Summary  |
+| ------- | -------- | ----------------- | --------------- |
+| 0.1     | Nov 2026 | TRE Working Group | Initial version |
+
+## Summary
+
+The GUARDIANS TRE Working Group has spent 2026 investigating trusted research environments (TRE) for genomics. During
+this time, it reviewed the UK [SATRE specification](https://satre-specification.readthedocs.io/en/v2.0.1/) requirements,
+asking whether genomics needs something different. This report outlines the findings and compares SATRE requirements in
+the [SATRE for Genomics](../../requirements/satre-genomics/) page.
+
+The group's main finding is that SATRE is a good base for a genomics TRE. SATRE leaves each implementor to decide how to
+meet the spec, and has been written with multiple use-cases in mind. This means that the majority of its requirements
+apply unchanged. Genomic data does however sharpen familiar risks, some of which are considerations about identifiable,
+large scale data, and how compute and storage influences that. The working group noted that other health data carries
+similar risks, and is already used by implementors of SATRE. SATRE itself is therefore deemed generally fit for genomics
+data. However, there are still some key differences, and this report contains recommendations for applying SATRE to
+genomics, some of which could be fed back to SATRE.
+
+Where genomics differs, the reason is usually scale or how quickly demand changes. SATRE grew out of TREs for health
+records, where a project is typically a virtual desktop at a known price point, holding small amounts of tabular data. A
+genomics project may read hundreds of terabytes, start and stop hundreds of machines, and spend thousands of dollars
+within days. This can all happen for a burst period of a few days, and then stop for months. That puts a few topics at
+the centre of a genomics TRE: scalable compute, workflow management, storage and data lifecycle, cost, and egress.
+
+Throughout meetings, the group used the following tests:
+
+- A **note** keeps the SATRE line. In this case genomics makes it harder to meet or has a particular edge case that
+  isn't well considered in other fields. The majority of points are notes.
+- A **change or new requirement** applies where genomics needs the TRE to build or run something it otherwise would not.
+- **Feedback** covers concerns with SATRE lines that are not specific to genomics, recorded so they can be raised with
+  SATRE.
+
+Some of these needs are shared with medical imaging and AI research, and genomics is not wholly unique in its
+requirements. It was decided to record what genomics needs, even though that may be a common need in another field too.
+The needs that are truly unique to genomics would be the ones that need extra emphasis to vendors or TRE operators, as
+they may not have been considered in other fields. Needs that aren't covered by SATRE but do appear in other fields that
+aren't just genomics also deserve a mention, and more work needs to be done to communicate with other fields and learn
+from their TRE usecases.
+
+## SATRE at a glance
+
+The following map shows every SATRE requirement, coloured by the group's position on it. Most of SATRE stays grey,
+because it applies to genomics as written or has not been reviewed in detail yet. Most of the agreed and open
+differences sit in end-user computing ([2.1]), data lifecycle ([3.1]) and financial management ([4.4]). The proposals
+that the group has not discussed yet add more in infrastructure, capacity and output checking. Select a capability on
+the map to read its entries on the SATRE for Genomics page. Each topic section of this report ends with the entries for
+that topic.
+
+<SatreMap pillars="1 2 3 4" />
+
+## Group methodology
+
+The group has met monthly since April 2026. Early meetings covered definitions of a TRE as members understood it and the
+platforms they had used. From August, the group began reviewing pillars 1 to 4 of SATRE v2.0.1, setting aside [pillar 5
+on federation](https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#federation) for now. The chair
+prepared a review document for each pillar, which proposed possible genomics changes from earlier discussions. Members
+then decided in the meeting whether each draft was a note, a change, or not needed. Decisions were made by consensus of
+the members present, and attendance ranged from about seven to twenty people.
+
+This report uses three terms for the status of a point:
+
+- **Agreed** means a meeting decided it.
+- **Open** means a meeting discussed it but did not decide.
+- **Proposed** means it comes from a review document, and the group has not discussed it yet.
+
+The review is not finished, and this report is a working draft for members to comment on.
+
+## Operators provide tools, custodians decide
+
+A common principle was established by the group which shaped answers. Generally speaking, the group operated under the
+principle that the TRE operator provides the tools that carry out governance decisions, and the data custodian, or the
+institutions accountable for the research, make decisions. In data protection terms, the operator is a data processor,
+not a data controller. The principle is not unique to genomics, but it comes up often, because consent can differ for
+each participant.
+
+The group applied it to:
+
+- **Publishing project details.** This should be the custodian's decision, because some custodians cannot publish, for
+  example for Indigenous data. The group plans to raise this with SATRE.
+- **Consent.** The custodian resolves differences in consent before data reaches a project. Withdrawal belongs to cohort
+  construction, and usually takes effect at the next data release.
+- **Ethics.** SATRE's data lifecycle lines mention legal and regulatory implications, but not ethics. Members did not
+  want the operator to judge whether research is ethical. But the TRE must carry out the conditions that ethics
+  approvals set, such as when data must be deleted.
+- **How strict to be.** The custodian chooses how open access to outside software is, and the custodian or operator
+  chooses what happens at a budget limit.
+
+The group also agreed to add notes where SATRE refers to UK law and UK bodies. Data sovereignty matters too, because
+some data must stay in Australia.
+
+<TopicEntries topic="Governance and consent" />
+
+## Scalable compute
+
+**What SATRE assumes.** SATRE [2.1.15] recommends access to HPC or other scalable compute if users need it.
+
+**What differs for genomics.** A pipeline run requires differing compute as it changes needs while running. It might use
+16 CPUs with little memory for some time, then one CPU with 128 GiB of memory, or many small machines. Across a cohort,
+hundreds of machines can be busy at once, and they shouldn't cost anything while idle. The group also calls this
+[dynamic compute](../../requirements/researcher-environments/#taxonomy-of-compute-types-provided-in-tres). Members saw
+it as one of the main things that separates a genomics TRE from an ordinary one. Experience also confirmed this, where
+for example some commercial TREs can start many machines at once, but not scale automatically, and some TREs do not
+support Spark clusters.
+
+Three forms of dynamic compute were discussed:
+
+- **Automatic scaling.** A workflow engine creates machines for each stage and removes them afterwards.
+- **A cluster on demand.** A researcher starts a cluster, such as a Spark cluster, and shuts it down afterwards.
+- **A machine by the hour.** A researcher hires a GPU or a large machine for a few hours.
+
+Researchers care less about how the compute is provided than about getting it easily from inside the TRE. A TRE must
+also allow the ability to remove compute and data after finishing, as this can be an easy step to forget. All these
+factors in relation to scalable compute were a common theme in the group on what constitutes a difference between a
+genomics TRE and other fields.
+
+**What was decided.**
+
+- Agreed: the requirements must describe dynamic compute as a capability, give the three forms as examples, and include
+  clean-up.
+- Open: The review document proposes a new Mandatory requirement, however it's not clear whether the existing [2.1.15]
+  could be made Mandatory instead, or whether recommended would be enough. Either way, clear description is important
+  for this requirement.
+
+<TopicEntries topic="Scalable compute" />
+
+## Workflow management
+
+**What SATRE assumes.** SATRE requires a TRE to provide the software its users need ([2.1.10]), and mentions pipelines
+only as a reproducibility practice ([2.1.11]). Access to container registries is optional ([2.1.12]), and outbound
+internet access is blocked by default ([2.2.11]). A request for SATRE to add guidance on containerised workflows was
+closed until an established pattern exists ([#344](https://github.com/sa-tre/satre-specification/issues/344)).
+
+**What differs for genomics.** Genomics adds to this requirement because a workflow engine, such as Nextflow or CWL,
+requires compute created for each stage to function properly. This is how a lot of genomics work happens, and it depends
+on containers, genomics-specific tools and community pipelines. Often an out-of-date engine cannot run newer pipelines
+and distributed analysis, such as a Spark cluster for Hail, needs infrastructure beyond a single workspace. The group
+agreed that a researcher should not have to set up this kind of infrastructure themselves, and that the TRE operators
+should do so.
+
+Additionally, since a lot of genomics software comes from GitHub, Bioconda and container registries, provisions should
+be in place to handle these for researchers in terms of ingress. The group discussed multiple options for this,
+including internal mirrors of trusted sources, with data custodians choosing how open this access is, because reviewing
+packages manually one by one does not keep up with genomics work.
+
+Almost every analysis also reads public reference data, such as a reference genome and annotation databases. Most
+pipelines download it on every run, which a TRE would block by default. The group discussed a few different approaches
+to allow this, including just downloading reference files every time, or using a shared store. Downloading every time is
+relatively cheap compared to the analysis, but needs an exception to the TRE's network controls, whereas shared stores
+can be difficult to implement as workflows are sensitive to specific reference versions. Any genomics TRE would need to
+account for this in some way, whether that's a general infrastructure problem or a TRE problem, and give custodians
+enough levers to control this. The group decided that alongside workflow engines and software sources, this was distinct
+enough to call-out in relation to a genomics TRE.
+
+**What was decided.**
+
+- Agreed: the requirements should call out software that changes the infrastructure, such as workflow engines and Spark
+  clusters, although which line this sits under is still open. SATRE's reproducibility line ([2.1.11]) is unchanged.
+- Agreed: a genomics TRE must solve access to reference data, with an open question on how, and at what level.
+- Open: whether access to container registries should become Recommended, or stay Optional with a note.
+- Open: a new requirement that the TRE provides a workflow engine, so that projects do not each run their own.
+
+<TopicEntries topic="Workflow management" />
+
+## Storage and data lifecycle
+
+**What SATRE assumes.** SATRE expects the TRE to bring data into a project and keep it to the minimum ([3.1.13]). It
+also expects the TRE to back data up ([2.6.01]), and to archive or delete it at the end of a project ([1.4.04],
+[3.1.09]).
+
+**What differs for genomics.** Genomics doesn't fundamentally conflict with the existing SATRE requirements, however at
+genomics scale, each of these steps could be expensive. Objects can sometimes reach hundreds of gigabytes, with many
+small files in-between, and if using cloud services, restoring data from archive tiers can take hours to days. The group
+judged the genomics points on classification, ingress, egress and deletion to be notes about this scale.
+
+The bigger difference is the model of who holds the data. The group discussed the following models:
+
+- **Core datasets** exist before and after any TRE project, and the custodian holds them.
+- **A TRE project** is a time-limited period of analysis. Its input is defined when it starts. It owns only its working
+  data and derived data, and no data is kept when it ends.
+
+Both of these have relevance to a genomics TRE, and this implies that the TRE is where data is used, not where it is
+kept. There are possible exceptions, such as curated findings or variant classifications that may stay in the TRE as a
+shared resource.
+
+The model does not fix how data reaches a project. Views differed on whether reading data in place is essential to a
+TRE, however at genomics scale, avoiding a copy in each project saves storage and reduces risk. At the end of a project,
+there could be terabytes of data remaining which requires adequate deletion. Generally the group assumed that deletion
+or withdrawal requests mid-project affect the next data release, not the current project, although this sits uneasily
+with participants' right to have their data deleted.
+
+All these factors represent a difference from other fields that simply copy data into their TRE in lower volumes, or
+with lesser deletion requirements. Noting that health data could have similar participant requirements for consent or
+deletion.
+
+Additionally to this document, the review documents propose shared read-only storage, or API access such as GA4GH
+htsget. [Costing a data-sharing platform](../costing-data-sharing-platform/costing-scrollytell/) models what different
+storage choices cost.
+
+**What was decided.**
+
+- Agreed: the genomics points on the data lifecycle are notes about scale.
+- Open: a TRE project as a time-limited view of datasets that the custodian holds, and how the requirements should state
+  this model.
+- Open: keeping curated findings in the TRE, the tools needed to carry out a deletion policy, and what happens to
+  derived data at the end of a project.
+- Proposed: a new requirement to avoid copies of large datasets, ingress from archive storage, API access to genomic
+  data, and backups by type of data.
+
+<TopicEntries topic="Storage and data lifecycle" />
+
+## Financial and cost management
+
+**What SATRE assumes.** SATRE requires projects to know their costs and be able to pay them ([4.4.01]). It recommends
+tracking costs for each project ([4.4.02]), and requires the TRE not to overspend ([2.3.04]). These lines suit a project
+that rents a desktop for a known period.
+
+**What differs for genomics.** Genomics costs depend on usage, which can be large, bursty and hard to estimate. A
+misconfigured workflow can use a large share of a budget within hours, and misconfigured HPC clusters that are left on
+can cost a lot. This represents a key difference in genomics from desktop-based TREs.
+
+In addition to configuration, the custodian, the operator and the project may also be separate organisations, each
+paying for different things. Other large-scale genomics platforms already handle usage-based costs. For example, the UK
+Biobank platform blocks new work when an account passes its spending limit ([UKB-RAP
+billing](https://dnanexus.gitbook.io/uk-biobank-rap/administrator/billing-and-costs)). This means that any TRE
+definition should account for cost controls.
+
+A [draft](../../requirements/satre-genomics/#4-4) of requirements for SATRE in this space covers cost attribution,
+estimates, budget limits, and payment models, and represents the area where the group feels SATRE needs more. Estimates
+may be inaccurate, and hard caps that stop jobs automatically were not favoured, but configurable budget limits are
+likely a good addition to SATRE. These requirements aren't entirely unique to genomics, and are shared with fields like
+AI too, although genomics feels them sharply.
+
+**What was decided.**
+
+- Agreed: genomics cost management needs more than notes, and will be written up as a separate section. Its focus is
+  transparency, with an estimate before a job and the actual cost afterwards.
+- Open: whether that section sets requirements, or describes approaches with their pros and cons.
+- Open: budget limits with configurable action once hit, with Recommended favoured over Mandatory.
+- Open: the wording on payment models and who pays.
+- Proposed: raising cost tracking ([4.4.02]) to Mandatory.
+
+<TopicEntries topic="Financial and cost management" />
+
+## Egress and output checking
+
+This topic was only partially discussed by the group, so a summary of current findings is presented.
+
+**What SATRE requires.** SATRE requires an egress process ([3.1.05]) and disclosure control of outputs ([3.3]). It also
+bans copying data out through the system clipboard ([2.1.01]).
+
+**What was discussed.**
+
+The group discussed preventing accidental leaks by trusted researchers as a TRE's core job, with views on deliberate
+leaks differing. It was doubted whether a TRE could stop a determined attacker, and the focus of SATRE on clipboard
+rules was argued as less relevant to genomics, which tends to lose data through bulk copying of files. The clipboard
+rule may also present usability concerns for researchers. For now, the rule is kept, but flagged for a threat analysis
+later. Despite this, controls such as blocking large downloads still give valuable protection, with organisations
+deciding the balance between technical controls and signed agreements.
+
+**What was decided.**
+
+- Agreed: genomic egress is a note about scale.
+- Open: the clipboard rule is kept, flagged for a threat analysis.
+- Proposed: notes on checking genomic outputs.
+
+<TopicEntries topic="Egress and output checking" />
+
+## All genomics differences
+
+[SATRE for Genomics](../../requirements/satre-genomics/#summary) lists every genomics difference from SATRE, with the
+full discussion of each one. Its summary list can be filtered by topic, type and status. The same page lists the [draft
+changes that the group reviewed and rejected](../../requirements/satre-genomics/#rejected-proposals). Any SATRE line
+that it does not list applies to genomics as written, or has not been reviewed yet.
+
+The table below counts the differences by topic and status. Each number opens the summary list with that filter set.
+
+<TopicStatusTable />
+
+## Open questions and next steps
+
+**The rest of the review.** The group has not yet discussed the proposals on infrastructure, capacity, backups, access
+control, output checking and data discovery. It still has to write up the cost section, and sort its list into needs
+that are unique to genomics and needs shared with other fields.
+
+**Where to start building.** Members' informal accounts of platforms they had used showed few that combine TRE controls
+with genomics compute. Platforms had some required components of a genomics TRE, such as workflow management or scalable
+compute, but lacked others, such as proper airlock controls, native workflow management or automatic scaling.
+
+It was left open whether to start from a genomics platform and add TRE controls, or start from a TRE and add genomics
+features.
+
+**Choosing a platform.** Drawing on these findings, this report suggests checking five things first if choosing a
+platform:
+
+- dynamic compute that workflow engines and researchers can start and stop, with deletion afterwards;
+- a workflow engine, with a supply of containers, software and reference data that does not need open internet access;
+- access to custodian-held datasets without a full copy in each project, where data volumes make copies impractical;
+- cost visibility and configurable limits that work with usage-based billing;
+- an egress process that can handle large binary files and genomic outputs.
+
+**Feeding back to SATRE.** SATRE's authors prefer to keep the specification general. The group plans to publish its
+notes as the view of the Australian genomics community, and ask the SATRE team how they would like to receive them.
+
+The working group will continue in 2027 as part of GUARDIANS Phase 2.
+
+[2.1]: ../../requirements/satre-genomics/#21-end-user-computing
+[3.1]: ../../requirements/satre-genomics/#31-data-lifecycle-management
+[3.3]: ../../requirements/satre-genomics/#33-output-management
+[4.4]: ../../requirements/satre-genomics/#4-4
+[1.4.04]: ../../requirements/satre-genomics/#1-4-04
+[2.1.01]: ../../requirements/satre-genomics/#2-1-01
+[2.1.10]: ../../requirements/satre-genomics/#2-1-10
+[2.1.11]: ../../requirements/satre-genomics/#2-1-11
+[2.1.12]: ../../requirements/satre-genomics/#2-1-12
+[2.2.11]: ../../requirements/satre-genomics/#2-2-11
+[2.3.04]: ../../requirements/satre-genomics/#2-3-04
+[2.6.01]: ../../requirements/satre-genomics/#2-6-01
+[3.1.05]: ../../requirements/satre-genomics/#3-1-05
+[3.1.09]: ../../requirements/satre-genomics/#3-1-09
+[3.1.13]: ../../requirements/satre-genomics/#3-1-13
+[4.4.01]: ../../requirements/satre-genomics/#4-4-01
+[4.4.02]: ../../requirements/satre-genomics/#4-4-02
+[2.1.15]: https://satre-specification.readthedocs.io/en/v2.0.1/specification.html#satre-2-1-15

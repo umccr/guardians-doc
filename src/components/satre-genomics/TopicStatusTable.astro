@@ -1,0 +1,52 @@
+---
+// A table that counts the genomics differences by topic and by status. Each
+// number links to the summary list on the SATRE for Genomics page, with the
+// matching filter set.
+import { EntryStatus, statusLabels, summaryHref, topicsOf } from '../../data/satre/genomics-entries';
+import { countByStatus, differences } from '../../data/satre/genomics-views';
+import Mark from './Mark.astro';
+
+const rows = [
+	...topicsOf(differences).map((topic) => ({ topic, entries: differences.filter((e) => e.topic === topic) })),
+	{ topic: undefined, entries: differences },
+].map((row) => ({ ...row, counts: countByStatus(row.entries) }));
+---
+
+<table class="tabular-nums max-sm:text-sm max-sm:[&_:is(th,td)]:px-1.5">
+	<thead>
+		<tr>
+			<th scope="col">Topic</th>
+			{
+				EntryStatus.options.map((s) => (
+					<th scope="col" class="text-right whitespace-nowrap">
+						<Mark status={s} class="max-sm:hidden" /> {statusLabels[s]}
+					</th>
+				))
+			}
+			<th scope="col" class="text-right">All</th>
+		</tr>
+	</thead>
+	<tbody>
+		{
+			rows.map((row) => (
+				<tr class:list={{ 'font-semibold': !row.topic }}>
+					<th scope="row" class:list={{ 'font-normal': !!row.topic }}>
+						{row.topic ?? 'All topics'}
+					</th>
+					{EntryStatus.options.map((s) => (
+						<td class="text-right">
+							{row.counts.get(s) ? (
+								<a href={summaryHref({ topic: row.topic, status: s })}>{row.counts.get(s)}</a>
+							) : (
+								<span class="text-gray-400">0</span>
+							)}
+						</td>
+					))}
+					<td class="text-right">
+						<a href={summaryHref({ topic: row.topic })}>{row.entries.length}</a>
+					</td>
+				</tr>
+			))
+		}
+	</tbody>
+</table>

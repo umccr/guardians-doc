@@ -1,0 +1,24 @@
+---
+// The type of the genomics entry as a badge.
+import { Badge } from '@astrojs/starlight/components';
+import { z } from 'astro/zod';
+import { EntryType, typeLabels } from '../../data/satre/genomics-entries';
+
+interface Props {
+	type: EntryType;
+}
+
+const parsed = EntryType.safeParse(Astro.props.type);
+if (!parsed.success) throw new Error(`<TypeBadge type="${Astro.props.type}">: ${z.prettifyError(parsed.error)}`);
+const type = parsed.data;
+
+const variant = {
+	note: 'note',
+	change: 'caution',
+	new: 'tip',
+	feedback: 'success',
+	unchanged: 'default',
+} as const satisfies Record<EntryType, string>;
+---
+
+<Badge text={typeLabels[type]} variant={variant[type]} />

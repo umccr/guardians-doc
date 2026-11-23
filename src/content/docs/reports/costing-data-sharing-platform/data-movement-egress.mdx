@@ -21,8 +21,7 @@ We can consider data movement as two main contributions:
 within a region, across regions, or out to the internet.
 
 In general, there is a key asymmetry: **uploading data into AWS is free; moving data out costs money.** This asymmetry applies not just 
-to external egress, but also to movement between storage tiers, where moving data out of a lower-tier storage class can incur significant charges 
-(see [Looking after data](../data-lifecycle/) for details).
+to external egress, but also to movement between storage tiers, where moving data out of a lower-tier storage class can incur significant charges.
 
 Unlike storage cost (which grows gradually with data volume), data movement cost is **event-driven**: sudden spikes occur when datasets are 
 shared with new partners, replicated to additional regions, moved between storage tiers, or accessed at scale.
@@ -79,7 +78,7 @@ incur no data transfer charges—only S3 request charges. Note that moving data 
 These internal movements rarely dominate the bill.
 
 
-- **Cross-account transfers (same AWS region)**: Cross-account transfers can bse implemented via bucket policies or VPC endpoints at negligible egress cost. 
+- **Cross-account transfers (same AWS region)**: Cross-account transfers can be implemented via bucket policies or VPC endpoints at negligible egress cost. 
 This is significantly cheaper than moving data across regions.
 
 - **Cross-region transfers**: Cross-region transfers incur per-GB charges (typically of the order of ~$0.02/GB, varying by region pair). These costs 
@@ -88,7 +87,7 @@ non-trivial data movement cost.
 
 - **External egress (out of AWS)**: External egress is the most expensive pathway. Data leaving AWS to the public internet, on-premises environments 
 (via VPN or Direct Connect), or other cloud providers all incur per-GB charges. Internet egress typically costs $0.09–0.12/GB depending on region. 
-External egress can easily becomes the dominant movement cost.
+External egress can easily become the dominant movement cost.
 
 
 
@@ -133,7 +132,7 @@ A CSP regularly shares data with **external partners**, often across regions and
 - Partners regularly request copies of datasets (100 GB to 1 TB per request), either downloaded to their systems or replicated into 
 their AWS accounts in different regions.
 - Some partners access data via APIs for federated queries.
-- Replication to 2–3 regions is routine for compliance and resilience.
+- This cost model assumes replication to one additional region; real platforms may use more depending on partner, compliance, and resilience requirements.
 
 **Data movement cost shape**:
 
@@ -204,7 +203,7 @@ Where you store data and where your partners access it from determines both late
 
 **Multi-region reference data** – replicate reference datasets to a second region where partners operate. 
 - Pros: fast local access, avoids repeated egress. 
--Cons: higher transfer cost.
+- Cons: higher transfer cost.
 
 **On-demand replication** – replicate project outputs only when partners request them.
 - Pros: balances cost and flexibility. 
@@ -218,7 +217,7 @@ Data movement cost is event-driven, not gradual. Unlike storage, which grows ste
  data movement spikes when you make architectural choices—replicate to a new region, let partners download freely, or scale to new collaborators. 
  This makes data movement both easier to control and easier to get wrong.
  
- The table below summarises indicative monthly data movement cost ranges for an ISP and a CSP. The assumptions behind these ranges are described in the [Assumptions](#assumptions) section. Costs are shown in USD.
+ The table below summarises modeled monthly data movement costs for the ISP and CSP scenarios. The assumptions behind these estimates are described in the [Assumptions](#assumptions) section. Costs are shown in USD.
 
 <CostTable table="data-movement" />
 

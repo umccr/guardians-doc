@@ -1,0 +1,16 @@
+---
+// A button that opens the browser's print dialog, where readers can print
+// the page or save it as a PDF.
+interface Props {
+	label?: string;
+}
+const { label = 'Print or save as PDF' } = Astro.props;
+---
+
+<button
+	type="button"
+	onclick="window.print()"
+	class="not-content cursor-pointer rounded-full border border-gray-400 bg-transparent px-4 py-1 text-sm hover:border-accent-600 print:hidden noscript:hidden"
+>
+	{label}
+</button>

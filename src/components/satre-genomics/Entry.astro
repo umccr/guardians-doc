@@ -1,0 +1,36 @@
+---
+// The entry on the SATRE for Genomics page, i.e. the heading, type and status,
+// and the SATRE requirement. The discussion of the entry follows the tag on the page.
+//
+//   <Entry id="2.1.G1" capability="2.1" title="Dynamic compute"
+//     topic="Scalable compute" type="new" status="open"
+//     statusText="Open (Meeting #7)." />
+//
+// genomics-entries.ts reads the tags from the source of the page for the
+// lists and the map.
+import AnchorHeading from '@astrojs/starlight/components/AnchorHeading.astro';
+import { toEntry } from '../../data/satre/genomics-entries';
+import TypeBadge from './TypeBadge.astro';
+
+const entry = toEntry(Astro.props);
+const r = entry.requirement;
+const numbered = entry.label === entry.id;
+---
+
+<AnchorHeading level={entry.level} id={entry.anchor}>
+	{numbered && `${entry.id} `}
+	{entry.heading}
+</AnchorHeading>
+<p>
+	<TypeBadge type={entry.type} />{' '}
+	<em>{entry.statusText}</em>
+</p>
+{
+	r && (
+		<blockquote>
+			<p>
+				<strong>SATRE ({r.importance}):</strong> {r.statement}
+			</p>
+		</blockquote>
+	)
+}

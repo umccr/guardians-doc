@@ -1,0 +1,25 @@
+---
+// The small square that represents a SATRE requirement or genomics entry.
+// Its colour is the status of the entry. A new genomics requirement is round.
+import type { EntryStatus } from '../../data/satre/genomics-entries';
+
+interface Props {
+	status?: EntryStatus;
+	round?: boolean;
+	class?: string;
+}
+const { status, round = false, class: className } = Astro.props;
+
+const colour = {
+	agreed: 'bg-status-agreed',
+	open: 'bg-status-open',
+	proposed: 'bg-status-proposed',
+} satisfies Record<EntryStatus, string>;
+
+const base = 'inline-block size-3.5 flex-none [print-color-adjust:exact]';
+---
+
+<span
+	aria-hidden="true"
+	class:list={[base, round ? 'rounded-full' : 'rounded-xs', status ? colour[status] : 'bg-gray-200', className]}
+/>
