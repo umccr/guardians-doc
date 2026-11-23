@@ -1,0 +1,21 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+//
+// Runtime scenario: ported from Structurizr dynamic view "gdn-data-access".
+
+views {
+
+  dynamic view data-access {
+    title 'Data Access'
+    description 'An approved Data Consumer reads genomic data from their environment.'
+
+    dataConsumer -[control]-> seqera 'Runs an analysis'
+    // Data arrows point the way the data moves (see relationship kinds in specs.likec4).
+    gdn.cache -[data]-> gdn.htsget 'Indexes, used to work out byte ranges'
+    // gdn.cache -[data]-> seqera 'Byte ranges named in the tickets'
+
+    autoLayout LeftRight
+  }
+
+}

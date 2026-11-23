@@ -1,7 +1,5 @@
 # build output
 dist/
-# generated Structurizr diagrams (scripts/architecture/render.sh)
-public/diagrams/architecture/
 # generated types
 .astro/
 

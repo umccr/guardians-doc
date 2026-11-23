@@ -1,0 +1,51 @@
+---
+/**
+ * LikeC4Diagram.astro
+ *
+ * Renders a LikeC4 diagram view by its view ID.
+ *
+ * Usage:
+ *   <LikeC4Diagram viewId="index" />
+ *   <LikeC4Diagram viewId="guardians" caption="Internal components" />
+ *   <LikeC4Diagram viewId="index" interactive />
+ *
+ * Props:
+ *   viewId      – the LikeC4 view key defined in your .c4 views block (required)
+ *   caption     – optional caption rendered below the diagram
+ *   interactive – enable inline pan/zoom (default: false). Clicking a diagram
+ *                 always opens it full-screen in the LikeC4 browser.
+ *   class       – CSS class(es) applied to the wrapping <figure>
+ */
+
+import LikeC4ViewReact from './LikeC4ViewReact.tsx';
+
+interface Props {
+  viewId: string;
+  caption?: string;
+  interactive?: boolean;
+  class?: string;
+}
+
+const { viewId, caption, interactive = false, class: className } = Astro.props;
+---
+
+<figure class:list={['likec4-diagram', className]}>
+  <LikeC4ViewReact
+    viewId={viewId}
+    interactive={interactive}
+    client:only="react"
+  />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .likec4-diagram {
+    margin: 1.5rem 0;
+  }
+  .likec4-diagram figcaption {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--sl-color-gray-3);
+    margin-top: 0.5rem;
+  }
+</style>

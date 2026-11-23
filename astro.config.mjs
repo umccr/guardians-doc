@@ -1,15 +1,17 @@
 // @ts-check
 import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
+import react from '@astrojs/react';
 
 import tailwindcss from '@tailwindcss/vite';
+import { LikeC4VitePlugin } from 'likec4/vite-plugin';
 
 // https://astro.build/config
 export default defineConfig({
     site: 'https://umccr.github.io',
     base: '/guardians-doc',
 
-    integrations: [starlight({
+    integrations: [react(), starlight({
         title: 'GUARDIANS (CCGCM)',
         customCss: [
             './src/styles/global.css',
@@ -31,6 +33,8 @@ export default defineConfig({
                 label: 'Requirements',
                 items: [
                     "requirements/overall",
+                    "requirements/roles",
+                    "requirements/glossary",
                     "requirements/dataset-formatting",
                     "requirements/data-copying",
                     "requirements/data-release",
@@ -42,16 +46,16 @@ export default defineConfig({
             {
                 label: 'Solution Architecture',
                 items: [
-                    "solution-architecture/overview",
-                    "solution-architecture/context-and-scope",
-                    "solution-architecture/c4-overview",
-                    "solution-architecture/building-blocks",
-                    "solution-architecture/runtime-scenarios",
-                    "solution-architecture/deployment",
-                    "solution-architecture/data-architecture",
-                    "solution-architecture/security",
-                    "solution-architecture/operations",
-                    "solution-architecture/risks-and-technical-debt",
+                    "solution-architecture/0-overview",
+                    "solution-architecture/1-landscape-and-scope",
+                    "solution-architecture/2-system-context",
+                    "solution-architecture/3-building-blocks",
+                    "solution-architecture/4-runtime-scenarios",
+                    "solution-architecture/5-deployment",
+                    "solution-architecture/6-data-architecture",
+                    "solution-architecture/7-security",
+                    "solution-architecture/8-operations",
+                    "solution-architecture/9-risks-and-technical-debt",
                     {
                         label: 'Detailed Designs',
                         items: [
@@ -61,17 +65,9 @@ export default defineConfig({
                 ]
             },
             {
-                label: 'Genomic Data Nodes',
-                items: [
-                    // "genomic-data-nodes/vision",
-                    "genomic-data-nodes/architecture",
-                    "genomic-data-nodes/work-packages",
-                    "genomic-data-nodes/legal-trust-concepts"
-                ]
-            },
-            {
                 label: 'Technology',
                 items: [
+                    "technology/work-packages",
                     {
                         label: 'Data Copying',
                         items: [
@@ -121,6 +117,9 @@ export default defineConfig({
         ],
     })],
     vite: {
-        plugins: [/** @type {any} */ (tailwindcss())],
+        plugins: [
+            /** @type {any} */ (tailwindcss()),
+            LikeC4VitePlugin({ workspace: './not-for-publishing/architecture' })
+        ],
     },
 });

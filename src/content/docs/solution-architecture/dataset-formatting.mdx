@@ -28,7 +28,7 @@ to FAIR principles. The applications of an RO-Crate include containing a set of 
 annotations, linking to other datasets or recording analysis, tools or outputs used for the dataset. In
 the context of dataset sharing and importing, the RO-Crate standard is well-adopted across disciplines
 and has characteristics that fit data sharing requirements here, as it enables dataset producers,
-consumers and custodians to interact with datasets using a common tool.
+consumers and Information Asset Owners to interact with datasets using a common tool.
 
 ### DCAT 3.0
 
@@ -102,7 +102,7 @@ Batches have an inherent ordering — how best to maintain that? We could insist
 
 ### Output is Not Necessarily Input
 
-> **IMPORTANT NOTE:** The submission batches are an important detail for the submitter and custodian — but probably have no relevance to the consumer. So from the consumer perspective — there may only be a dataset namespace. Because manifests/metadata is generally _small_ compared to the actual BAMs — we can create them on demand or per user. Let's not get stuck in a mindset that everything that is submitted has to be necessarily passed through identically to the consumer, or that we can't (for instance) dynamically create other metadata _for_ the consumer that wasn't in the input (e.g. dynamically create a DCAT file).
+> **IMPORTANT NOTE:** The submission batches are an important detail for the submitter and Information Asset Owner — but probably have no relevance to the consumer. So from the consumer perspective — there may only be a dataset namespace. Because manifests/metadata is generally _small_ compared to the actual BAMs — we can create them on demand or per user. Let's not get stuck in a mindset that everything that is submitted has to be necessarily passed through identically to the consumer, or that we can't (for instance) dynamically create other metadata _for_ the consumer that wasn't in the input (e.g. dynamically create a DCAT file).
 
 Leaning toward RO-Crates as the fundamental standard. Because we are looking at people handing over data for custodianship, the data has to be complete — meaning the data must be Attached RO-Crates (it can't have external references).
 
@@ -136,7 +136,7 @@ Are checksums _in_ the dataset or external to the dataset? Options:
 
 - **Producer** — Owns the process of generating or obtaining sequencing/experimental data and any additional analysis that is considered part of the dataset.
 - **Consumer** — Wants to use the dataset for new research.
-- **Custodian** — Holds the data on behalf of the producer with an aim of facilitating controlled access for consumers.
+- **Information Asset Owner** — Holds the data on behalf of the producer with an aim of facilitating controlled access for consumers.
 
 **Main flow of the process:**
 
@@ -144,7 +144,7 @@ Are checksums _in_ the dataset or external to the dataset? Options:
 - Submits datasets in batches.
 - Can amend or delete previously submitted datasets at any time.
 - A single participant's data can be spread across multiple batches.
-- *Custodian Oversight*
+- *Information Asset Owner Oversight*
 - Maintains full visibility over all datasets.
 - Ensures data is accessible to approved consumers.
 - *Consumer Access*

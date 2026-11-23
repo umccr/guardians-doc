@@ -61,25 +61,20 @@ Tables and "Typical cost" lines update on the next `bun run build` / `dev`. The 
 ### Not generated from the calculator
 
 The assumptions written in the `.mdx` pages (quantities, request volumes, transfer sizes) and the general per-GB reference prices in `data-movement-egress.mdx` are prose.
-## 🏛️ Architecture diagrams (Structurizr)
+## 🏛️ Architecture diagrams (LikeC4)
 
 | What | Where |
 |:-----|:------|
-| C4 model (Structurizr DSL) | `not-for-publishing/architecture/*.dsl` |
-| Render script | `scripts/architecture/render.sh` (`bun run diagrams`) |
-| Generated SVGs (git-ignored) | `public/diagrams/architecture/<view-key>.svg` (+ `<view-key>-key.svg` legend) |
-| Component | `src/components/StructurizrDiagram.astro` |
+| C4 model (LikeC4 DSL) | `not-for-publishing/architecture/*.likec4` |
+| Vite plugin config | `astro.config.mjs` (`LikeC4VitePlugin({ workspace: ... })`) |
+| Components | `src/components/LikeC4Diagram.astro`, `src/components/LikeC4ViewReact.tsx` |
 
-Each top-level `.dsl` file is a workspace and each view in it becomes an SVG named after the view key, so give every view an explicit, stable key. Put files pulled in with `!include` in a sub-folder so they aren't rendered as workspaces.
-
-```bash
-bun run diagrams   # needs Docker; uses the structurizr/structurizr Playwright image
-```
+Every `.likec4` file in the workspace folder (and its sub-folders) is merged into one model, so split specs, model and views across files freely. View IDs must be unique across the whole workspace. Diagrams are laid out and rendered at build time by the Vite plugin, so there is no separate render step; edits to `.likec4` files reload live in `bun run dev` (restart if you change the workspace path).
 
 ```mdx
-import StructurizrDiagram from '../../../components/StructurizrDiagram.astro';
+import LikeC4Diagram from '../../../components/LikeC4Diagram.astro';
 
-<StructurizrDiagram view="gdn-context" legend caption="Optional caption" />
+<LikeC4Diagram viewId="landscape" caption="Optional caption" />
 ```
 
-The SVGs are git-ignored and rebuilt by the GitHub Pages workflow on every publish, so run the script locally before `bun run dev` to see them. To edit a diagram interactively, run `docker run -it --rm -p 8080:8080 -v "$PWD/not-for-publishing/architecture:/usr/local/structurizr" structurizr/structurizr:2026.10.26-playwright local` and open http://localhost:8080.
+Clicking a diagram opens it full-screen. Check the model with `bunx likec4 validate not-for-publishing/architecture`, or edit it interactively with `bunx likec4 start not-for-publishing/architecture`.

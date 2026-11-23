@@ -1,0 +1,48 @@
+---
+title: Overview
+sidebar:
+  order: 0
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+**v 0.9**
+
+Andrew Patterson
+
+## Document History
+
+Note this document history applies to the entire solution architecture, not just this single page.
+
+| Version | Date     | Who | Change Summary                                |
+|---------|----------|-----|-----------------------------------------------|
+| 0.1     | Sep 2026 | AP    | Initial skeleton of the solution architecture |
+| 0.9     | Nov 2026 | AP    | Version ready for review |
+
+## Purpose
+
+This section describes the solution architecture of a GUARDIANS **genomic data node** (GDN):
+the system that sits between Information Asset Owners and the researcher environments that need to
+use their data.
+
+Its structure is (very) loosely based on
+[arc42](https://arc42.org/overview) with diagrams
+following the [C4 model](https://c4model.com).
+
+**NOTE the rendered architecture diagrams can be quite small - click on them
+to view a zoomed version.**
+
+## Audience
+
+| Reader                              | Start with                                                                                             |
+|-------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Information Asset Owners and governance      | [Landscape and Scope](../1-landscape-and-scope), [Security and Privacy](../7-security)                         |
+| Developers and operators            | [System Context](../2-system-context), [Building Blocks](../3-building-blocks), [Deployment](../5-deployment)      |
+| Data Consumers and TRE providers       | [Runtime Scenarios](../4-runtime-scenarios)                                                              |
+
+## Related sections
+
+<CardGrid>
+    <LinkCard title="Requirements" href="../../requirements/overall" description="What the solution must do, plus roles and glossary." />
+    <LinkCard title="Technology" href="../../technology/steps-s3-copy" description="The individual tools the architecture is built from." />
+</CardGrid>

@@ -1,0 +1,40 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+
+specification {
+  // Desaturated colours for supporting elements: they keep their group's hue
+  // while letting the Genomic Data Node itself stand out.
+  color primary-muted #7f8fb8
+  color amber-muted #b09a72
+  color green-muted #7a9a82
+  color indigo-muted #8a86b8
+  color rose-muted #b07f8c
+
+  element person {
+    style {
+      shape person
+    }
+  }
+  element system
+  element externalSystem
+  element storage {
+    style {
+      shape storage
+    }
+  }
+  element container
+
+  // Relationship kinds: solid amber = data actually moving (arrow points the
+  // way the data goes); dotted grey = control, requests and configuration.
+  relationship data {
+    line solid
+    head normal
+    color amber
+  }
+  relationship control {
+    line dotted
+    head open
+    color gray
+  }
+}

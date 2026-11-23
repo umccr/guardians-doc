@@ -1,0 +1,20 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+//
+// Runtime scenario: ported from Structurizr dynamic view "gdn-dataset-ingest".
+
+views {
+
+  dynamic view dataset-ingest {
+    title 'Dataset Ingest'
+    description 'An Information Asset Owner brings a dataset into the node.'
+
+    // Data arrows point the way the data moves (see relationship kinds in specs.likec4).
+    infoAssetOwnerStore -[data]-> gdn.copy 'Reads (and thaws if needed) source objects'
+    gdn.copy -[data]-> gdn.cache 'Writes objects and verifies checksums'
+
+    autoLayout LeftRight
+  }
+
+}
