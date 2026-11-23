@@ -1,0 +1,93 @@
+---
+title: Data Releaser
+prev: false
+next: false
+---
+
+import { LinkCard } from "@astrojs/starlight/components";
+import { Badge } from "@astrojs/starlight/components";
+import ArchitectureFloat from "../../../components/ArchitectureFloat.astro";
+import DrawioDiagram from "../../../components/DrawioDiagram.astro";
+
+<article className="prose dark:prose-invert">
+  <ArchitectureFloat showLayers={["Base", "SYNCING", "CLOUD-NATIVE"]} />
+  <Badge text="Proof of Concept" size="large" variant="note" />
+  <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/data-releaser" />
+  <p>
+    This is a command line tool, written in Go, that centre administrators use to give researchers access to genomic
+    data, either for a set period or with no end date. It primarily runs in a dedicated data account that covers the
+    whole life of a release, including granting access, extending it, revoking it and cleaning up afterwards. It
+    addresses the [data release](../../requirements/data-release) user stories, which cover sharing data with
+    researchers inside the organisation, such as into a Seqera workspace, as well as releasing it to another
+    organisation or researcher.
+  </p>
+  <p>The tool releases data in one of two ways, either by using S3 policies or by using htsget with VPC lattice.</p>
+  <ul>
+    <li>
+      **htsget.** For a htsget release, the researcher streams regions of named sequencing libraries through
+      [htsget-rs](../htsget-rs) over a private AWS VPC Lattice connection, as described in [AWS-native data
+      sharing](../../guides/aws-native-data-sharing). The data releaser is a tool that implements the end-to-end
+      connection between these two. The tool looks up each library's BAM file in a data warehouse and records a share
+      for the researcher's AWS account. htsget-rs checks requests against that record through the tool's authorisation
+      service which htsget-rs enforces.
+    </li>
+  </ul>
+  <DrawioDiagram
+    src="diagrams/data-releaser-htsget.drawio.svg"
+    class="clear-both"
+    caption="The htsget mechanism. Blue lines are the path of a researcher request, which passes through the authorisation service and its share records."
+  />
+  <ul>
+    <li>
+      **s3.** For an S3 release, the tool first stages a whole dataset, which copies it from the external source store
+      into a cache bucket in the Data Control account using [steps-s3-copy](../steps-s3-copy). It then grants one
+      researcher AWS account read access from a nominated VPC, by writing the bucket policy and the policy of the KMS
+      key that encrypts the bucket. AWS checks both policies on every request, which enforces the access control.
+    </li>
+  </ul>
+  <DrawioDiagram
+    src="diagrams/data-releaser-s3.drawio.svg"
+    class="clear-both"
+    caption="The S3 mechanism. Blue lines are the dataset bytes. The researcher reads the cache bucket directly, and AWS checks the bucket and key policies on each read."
+  />
+  <p>
+    The design of the data releaser keeps each release step easy to change and audit:
+    <ul>
+      <li>
+        A copy of a dataset and a researcher's grant to read it are separate records. One copy can be shared with
+        several researchers, and access that is withdrawn and later given back needs a policy write instead of
+        additional transfers.
+      </li>
+      <li>
+        Each share publishes a JSON manifest that tells the researcher which data they can reach and where to find it.
+        The manifest only describes access so it can't be used to access data in an unintended way.
+      </li>
+      <li>
+        Revoking an S3 grant stops reads as soon as the policies are written. Revoking an htsget share takes effect once
+        htsget-rs's cached authorisation decisions expire, which can take up to one hour.
+      </li>
+      <li>
+        `purge` stops all reads of an S3 dataset immediately. It removes every grant from the policies and schedules
+        deletion of the dataset's encryption key, and a key waiting to be deleted can't decrypt anything.
+      </li>
+      <li>
+        `restore` can recover the copy during the KMS waiting period of 7 to 30 days, but every grant on it has to be
+        made again.
+      </li>
+      <li>
+        `validate` checks the deployed infrastructure to make testing grants simple. For the S3 mechanism it also
+        compares the deployed policies with the recorded grants, so it finds policy edits made outside the tool.
+      </li>
+    </ul>
+  </p>
+  <p>
+    The htsget mechanism can share precise reads level data, with plans to include variant level data. Which means that
+    the access control can be configured to share only certain regions of BAMs, unlike the S3 mechanism which shares
+    whole files.
+  </p>
+  <p>
+    Researchers never use the tool themselves. In the [CUP data guide](../../guides/apply-and-use-cup-data), centre
+    staff run `stage` and `share` after a data access committee approves an application in REMS. The researcher then
+    gets an email when the data is ready in their Seqera workspace.
+  </p>
+</article>
