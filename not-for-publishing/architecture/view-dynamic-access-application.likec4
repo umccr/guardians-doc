@@ -1,0 +1,20 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+//
+// Runtime scenario: ported from Structurizr dynamic view "gdn-access-application".
+
+views {
+
+  dynamic view access-application {
+    title 'Access Application'
+    description 'A Data Consumer applies for, and is granted, access to a dataset.'
+
+    dataConsumer -[control]-> rems 'Opens the catalogue and starts an application'
+    dataConsumer -[control]-> rems 'Completes the form and accepts licences'
+    infoAssetOwner -[control]-> rems 'Reviews and approves the application'
+
+    autoLayout LeftRight
+  }
+
+}

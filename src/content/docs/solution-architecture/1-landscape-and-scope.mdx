@@ -1,0 +1,53 @@
+---
+title: Landscape and Scope
+sidebar:
+  order: 1
+---
+
+import LikeC4Diagram from '../../../components/LikeC4Diagram.astro';
+
+## Problem statement
+
+Information Asset Owners want their genomic data used in research, but releasing copies of it to
+individual Data Consumers is hard to govern, and asking every Information Asset Owner to run their own
+trusted research environment re-creates data silos.
+
+A genomic data node is a **thin, neutral data layer**: Information Asset Owners trust it to cache their data and keep
+the authority to decide who may use it, and researcher environments connect to it to use
+the data under those decisions.
+
+## System landscape
+
+<LikeC4Diagram viewId="landscape" caption="System Landscape — research with a Genomic Data Node" />
+
+| Actor  | Interaction                                                                           |
+|--------------------------|---------------------------------------------------------------------------------------|
+| Information Asset Owner (a.k.a Data Custodian)          | Gives standing permission for data to be cached into a node; approves access applications per project                           |
+| Data Consumer (a.k.a. Researcher)             | Does science using data                       |
+| Operator  | Coordinates activity in the node for datasets / projects |
+
+| External System  | Interaction                                                                           |
+|--------------------------|---------------------------------------------------------------------------------------|
+| AAF                      | Australian Access Federation authenticates users with their home institution                                |
+| REMS  | Manages data access applications and entitlements  |
+| Long Term Data Storage        | Object storage holding the Information Asset Owner's source data     |
+| Seqera   | Analysis environment for data consumers                         |
+
+## Solution scope
+
+### In scope
+
+- Copying Information Asset Owner datasets into node storage with verified integrity
+- A consistent dataset structure
+- Serving authorised data to researcher environments (htsget, pre-signed URLs, VPC Lattice)
+- Configuring sharing into researcher environments
+- Cost estimation and reporting for data movement and storage
+- Logging and auditing
+- Setup of compatible researcher environments
+
+### Out of scope
+
+- Making access decisions, this decision-making is upstream and defined by information asset owners
+- Releasing copies of data to collaborators outside of genomic data nodes
+- Help desk and training
+- Access applications, approvals and entitlements (REMS) (except via air gap human processes)

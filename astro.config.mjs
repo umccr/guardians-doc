@@ -1,15 +1,17 @@
 // @ts-check
 import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
+import react from '@astrojs/react';
 
 import tailwindcss from '@tailwindcss/vite';
+import { LikeC4VitePlugin } from 'likec4/vite-plugin';
 
 // https://astro.build/config
 export default defineConfig({
     site: 'https://umccr.github.io',
     base: '/guardians-doc',
 
-    integrations: [starlight({
+    integrations: [react(), starlight({
         title: 'GUARDIANS (CCGCM)',
         customCss: [
             './src/styles/global.css',
@@ -31,6 +33,8 @@ export default defineConfig({
                 label: 'Requirements',
                 items: [
                     "requirements/overall",
+                    "requirements/roles",
+                    "requirements/glossary",
                     "requirements/dataset-formatting",
                     "requirements/data-copying",
                     "requirements/data-release",
@@ -43,21 +47,28 @@ export default defineConfig({
             {
                 label: 'Solution Architecture',
                 items: [
-                    "solution-architecture/dataset-formatting",
-                ]
-            },
-            {
-                label: 'Genomic Data Nodes',
-                items: [
-                    // "genomic-data-nodes/vision",
-                    "genomic-data-nodes/architecture",
-                    "genomic-data-nodes/work-packages",
-                    "genomic-data-nodes/legal-trust-concepts"
+                    "solution-architecture/0-overview",
+                    "solution-architecture/1-landscape-and-scope",
+                    "solution-architecture/2-system-context",
+                    "solution-architecture/3-building-blocks",
+                    "solution-architecture/4-runtime-scenarios",
+                    // "solution-architecture/5-deployment", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/6-data-architecture", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/7-security", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/8-operations", // TODO: uncommitted - restore once added to git
+                    // "solution-architecture/9-risks-and-technical-debt", // TODO: uncommitted - restore once added to git
+                    {
+                        label: 'Detailed Designs',
+                        items: [
+                            "solution-architecture/dataset-formatting",
+                        ]
+                    },
                 ]
             },
             {
                 label: 'Technology',
                 items: [
+                    "technology/work-packages",
                     {
                         label: 'Data Copying',
                         items: [
@@ -110,6 +121,9 @@ export default defineConfig({
         ],
     })],
     vite: {
-        plugins: [/** @type {any} */ (tailwindcss())],
+        plugins: [
+            /** @type {any} */ (tailwindcss()),
+            LikeC4VitePlugin({ workspace: './not-for-publishing/architecture' })
+        ],
     },
 });

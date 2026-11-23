@@ -1,0 +1,16 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+
+views {
+
+  view context of gdn {
+    title 'System Context — Genomic Data Node'
+    autoLayout TopBottom 80 60
+    include gdn, gdn.*
+    include infoAssetOwnerStore
+    include operator
+    include seqera
+  }
+
+}

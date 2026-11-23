@@ -1,0 +1,51 @@
+---
+title: Runtime Scenarios
+sidebar:
+  order: 4
+---
+
+import LikeC4Diagram from '../../../components/LikeC4Diagram.astro';
+
+The main flows through a genomic data node. The numbered arrows show the key interactions in order; the
+list under each diagram gives the full sequence.
+
+## 1. Access application
+
+A Data Consumer applies for access to a dataset and an Information Asset Owner (or delegation) approves it.
+
+<LikeC4Diagram viewId="access-application" />
+
+1. The Data Consumer opens the REMS catalogue and starts an application.
+2. REMS redirects them to AAF to log in with their home institution.
+3. The Data Consumer completes the application form and accepts the dataset's licences.
+4. The Information Asset Owner reviews the application and approves it, creating an entitlement with an end date.
+5. The Operator is instructed to set up a data share according to the details of the application.
+
+A worked example for the CUP cohort is in [Apply for and use CUP data](../../guides/apply-and-use-cup-data).
+
+## 2. Dataset ingest
+
+An Operator acting for a Information Asset Owner brings a dataset into the node.
+
+<LikeC4Diagram viewId="dataset-ingest" />
+
+1. The Application is read for details of how the sharing is to be performed (which account, which subset etc).
+2. The Operator starts a `steps-s3-copy` execution with a list of objects appropriate for the sharing and a cacheable destination.
+3. The copy reads source objects from Information Asset Owner storage, triggering and waiting for thaws where needed.
+4. Objects are written to the cache and their checksums are verified against the source.
+
+## 3. Data access from a researcher environment
+
+An approved Data Consumer uses the data from their environment (for example a Nextflow pipeline
+in Seqera Platform).
+
+<LikeC4Diagram viewId="data-access" />
+
+1. The Data Consumer runs an analysis in their environment.
+2. The environment asks htsget for a region of a sample, over the VPC Lattice service network.
+3. htsget checks the caller's entitlements.
+4. htsget reads the file index and works out the minimal byte ranges, returning them as pre-signed URLs.
+5. The environment fetches the byte ranges directly from dataset storage; the bucket policy only honours requests from the designated VPC.
+
+See [AWS-Native Data Sharing](../../guides/aws-native-data-sharing) for the network and
+bucket policy details.

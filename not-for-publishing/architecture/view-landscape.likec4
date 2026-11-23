@@ -1,0 +1,48 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+
+views {
+
+  view landscape {
+    autoLayout TopBottom 200 300 ortho
+
+    include aaf, rems
+    style aaf {
+      size small
+    }
+    style rems {
+      size small
+    }
+
+    group 'Information Asset Owner Organisation' {
+      color amber
+      include infoAssetOwner, infoAssetOwnerStore
+    }
+    style infoAssetOwner, infoAssetOwnerStore {
+      size small
+    }
+
+    group 'Node Organisation' {
+      color primary
+      include operator, gdn
+    }
+    style operator {
+      size small
+    }
+    style gdn {
+      color primary
+      border solid
+      size large
+      icon bootstrap:grid-3x3-gap-fill
+    }
+
+    group 'Data Consumer Organisation' {
+      color green
+      include dataConsumer, seqera
+    }
+    style dataConsumer, seqera {
+      size small
+    }
+  }
+}

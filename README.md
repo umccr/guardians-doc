@@ -61,3 +61,20 @@ Tables and "Typical cost" lines update on the next `bun run build` / `dev`. The 
 ### Not generated from the calculator
 
 The assumptions written in the `.mdx` pages (quantities, request volumes, transfer sizes) and the general per-GB reference prices in `data-movement-egress.mdx` are prose.
+## 🏛️ Architecture diagrams (LikeC4)
+
+| What | Where |
+|:-----|:------|
+| C4 model (LikeC4 DSL) | `not-for-publishing/architecture/*.likec4` |
+| Vite plugin config | `astro.config.mjs` (`LikeC4VitePlugin({ workspace: ... })`) |
+| Components | `src/components/LikeC4Diagram.astro`, `src/components/LikeC4ViewReact.tsx` |
+
+Every `.likec4` file in the workspace folder (and its sub-folders) is merged into one model, so split specs, model and views across files freely. View IDs must be unique across the whole workspace. Diagrams are laid out and rendered at build time by the Vite plugin, so there is no separate render step; edits to `.likec4` files reload live in `bun run dev` (restart if you change the workspace path).
+
+```mdx
+import LikeC4Diagram from '../../../components/LikeC4Diagram.astro';
+
+<LikeC4Diagram viewId="landscape" caption="Optional caption" />
+```
+
+Clicking a diagram opens it full-screen. Check the model with `bunx likec4 validate not-for-publishing/architecture`, or edit it interactively with `bunx likec4 start not-for-publishing/architecture`.

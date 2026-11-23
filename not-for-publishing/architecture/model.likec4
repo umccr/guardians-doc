@@ -1,0 +1,124 @@
+// GUARDIANS solution architecture — LikeC4 model
+//
+// Docs: https://likec4.dev/dsl/
+
+model {
+
+  // ── External systems ──────────────────────────────────────────────────────
+
+  aaf = externalSystem 'AAF' {
+    description 'Australian Access Federation authenticates users with their home institution.'
+    style {
+      color indigo-muted
+    }
+  }
+
+  rems = externalSystem 'REMS' {
+    description 'Manages data access applications and entitlements.'
+    style {
+      color rose-muted
+      shape browser
+    }
+  }
+
+  seqera = externalSystem 'Seqera' {
+    description 'Analysis environment for Data Consumers.'
+    style {
+      color green-muted
+      shape browser
+    }
+  }
+
+  infoAssetOwner = person 'Information Asset Owner' {
+    description 'Gives standing permission for data to be cached into a node; approves access applications per project.'
+    style {
+      color amber-muted
+    }
+  }
+
+  infoAssetOwnerStore = storage 'Long Term Data Storage' {
+    description "Object storage holding the Information Asset Owner's source data."
+    style {
+      color amber-muted
+    }
+  }
+
+  // ── Node organisation ─────────────────────────────────────────────────────
+
+  operator = person 'Operator' {
+    description 'Coordinates activity in the node for datasets / projects.'
+    style {
+      color primary-muted
+    }
+  }
+
+  gdn = system 'Genomic Data Node' {
+    // description 'Bridges Data Consumer environments and the data held by Information Asset Owners.'
+
+    copy = container 'Data Copy' {
+      description 'Copies datasets from Information Asset Owner storage into the node.'
+      technology 'AWS Step Functions'
+    }
+
+    cache = container 'Dataset Cache' {
+      description 'Holds cached datasets.'
+      technology 'Amazon S3'
+      style {
+        shape storage
+      }
+    }
+
+    htsget = container 'htsget' {
+      description 'Streams authorised slices of genomic data.'
+      technology 'htsget-rs'
+    }
+
+    dataReleaser = container 'Data Releaser' {
+      description 'Coordinates actual data release.'
+      technology 'data-releaser'
+    }
+
+    curtrail = container 'Bill and CloudTrail Processor' {
+      description 'Provides billing and audit data for operator analysis.'
+      technology 'curtrail'
+    }
+
+    copy -[data]-> cache 'caches datasets to'
+    cache -[data]-> htsget 'object data'
+    cache -[data]-> seqera 'object data'
+
+    dataReleaser -[control]-> htsget 'configures'
+    dataReleaser -[control]-> copy 'triggers'
+    dataReleaser -[control]-> cache 'configures'
+  }
+
+  // ── Data Consumer organisation ───────────────────────────────────────────
+
+  dataConsumer = person 'Data Consumer' {
+    description 'Does science using data.'
+    style {
+      color green-muted
+    }
+  }
+
+  // ── Relationships ─────────────────────────────────────────────────────────
+
+  infoAssetOwnerStore -[data]-> gdn.copy 'source datasets' {
+    // technology 'S3 API or other'
+  }
+
+  rems -[control]-> aaf 'provides login support'
+  seqera -[control]-> aaf 'provides login support'
+
+  infoAssetOwner -[control]-> rems 'approves access applications in'
+  dataConsumer -[control]-> rems 'applies for data access in'
+  dataConsumer -[control]-> seqera 'analyses data in'
+
+  operator -[control]-> rems 'gets permissions to share from'
+  operator -[control]-> gdn.dataReleaser 'controls data activity in'
+  operator -[control]-> gdn.curtrail 'queries'
+
+  gdn.htsget -[data]-> seqera 'genomic data' {
+     //technology 'S3 API / htsget API'
+  }
+}

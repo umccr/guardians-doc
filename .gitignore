@@ -21,3 +21,6 @@ pnpm-debug.log*
 .DS_Store
 
 .idea/
+
+# draw.io backups
+.*.svg.bkp
