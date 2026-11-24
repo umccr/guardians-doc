@@ -29,6 +29,17 @@ model {
     }
   }
 
+  globus = externalSystem 'Globus' {
+    #notInProduction
+    description 'External data transfer system (not in production).'
+    style {
+      color slate-muted
+      shape queue
+      border dashed
+      icon bootstrap:cone-striped
+    }
+  }
+
   infoAssetOwner = person 'Information Asset Owner' {
     description 'Gives standing permission for data to be cached into a node; approves access applications per project.'
     style {
@@ -58,29 +69,41 @@ model {
     copy = container 'Data Copy' {
       description 'Copies datasets from Information Asset Owner storage into the node.'
       technology 'AWS Step Functions'
+      style {
+        shape component
+      }
     }
 
-    cache = container 'Dataset Cache' {
+    cache = container 'Data Cache' {
       description 'Holds cached datasets.'
       technology 'Amazon S3'
       style {
-        shape storage
+        shape bucket
       }
     }
 
     htsget = container 'htsget' {
       description 'Streams authorised slices of genomic data.'
-      technology 'htsget-rs'
+      technology 'Rust'
+      style {
+              shape component
+      }
     }
 
     dataReleaser = container 'Data Releaser' {
       description 'Coordinates actual data release.'
-      technology 'data-releaser'
+      technology 'Go'
+      style {
+              shape component
+           }
     }
 
-    curtrail = container 'Bill and CloudTrail Processor' {
-      description 'Provides billing and audit data for operator analysis.'
-      technology 'curtrail'
+    curtrail = container 'Bill and Log Processor' {
+      description 'Provides billing and log data for operator analysis.'
+      technology 'Python'
+      style {
+              shape component
+            }
     }
 
     copy -[data]-> cache 'caches datasets to'
@@ -103,12 +126,13 @@ model {
 
   // ── Relationships ─────────────────────────────────────────────────────────
 
-  infoAssetOwnerStore -[data]-> gdn.copy 'source datasets' {
-    // technology 'S3 API or other'
-  }
+  infoAssetOwnerStore -[data]-> gdn.copy 'source datasets'
+  infoAssetOwnerStore -[plannedData]-> globus 'source datasets'
 
   rems -[control]-> aaf 'provides login support'
   seqera -[control]-> aaf 'provides login support'
+
+  globus -[plannedData]-> gdn.cache 'caches datasets to'
 
   infoAssetOwner -[control]-> rems 'approves access applications in'
   dataConsumer -[control]-> rems 'applies for data access in'

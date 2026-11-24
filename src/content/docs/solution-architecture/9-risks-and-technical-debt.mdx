@@ -1,0 +1,28 @@
+---
+title: Risks and Technical Debt
+sidebar:
+  order: 9
+---
+
+## Risk register
+
+Likelihood and impact are rated Low / Medium / High.
+
+| ID    | Risk                                                                                         | Likelihood | Impact | Mitigation                                                                  |
+|-------|----------------------------------------------------------------------------------------------|------------|--------|-----------------------------------------------------------------------------|
+| `R-1` | Sharing relies heavily on AWS-specific features (VPC Lattice, bucket VPC conditions), limiting non-AWS researcher environments | Medium | Medium | Keep htsget as the interface so other transports can be added; investigate [Globus](../../technology/globus) and pre-signed download scripts for HPC |
+| `R-2` | Egress and thaw costs grow faster than expected                                              | Medium     | High   | Cost estimates before copies; [costing model](../../reports/costing-data-sharing-platform/costing-scrollytell); budgets |
+| `R-3` | Entitlements in REMS and grants in AWS (Lattice associations, bucket policies) drift apart     | Medium     | High   | The REMS entitlement model is not as soph        |
+| `R-4` | Small team means key-person dependency for bespoke components                                 | High       | Medium | Open-source components, documentation, infrastructure as code                 |
+
+## Technical debt
+
+| ID    | Item                                                                     | Impact                                            | Plan     |
+|-------|--------------------------------------------------------------------------|---------------------------------------------------|----------|
+| `TD-1`| **TODO**                                                                 |                                                   |          |
+
+## Open questions
+
+- [ ] Will entitlements be conveyed as GA4GH Passport visas so other nodes can consume them?
+- [ ] Is a dataset catalogue / discovery service part of the node or a separate service?
+- [ ] How are multiple nodes federated, if at all?

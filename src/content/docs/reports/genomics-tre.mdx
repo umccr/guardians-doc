@@ -11,6 +11,28 @@ import TopicStatusTable from '../../../components/satre-genomics/TopicStatusTabl
 
 GUARDIANS TRE Working Group
 
+(alphabetical by surname)
+
+* Yassi Alavi
+* Katherine Champ
+* Brian Davis
+* Horatio Davis
+* Benjamin Goudey
+* Maxime Herbard
+* Tim Ho
+* Irene Hung
+* Anurag Katariya
+* Conrad Leonard
+* Peter Louka
+* Marko Malenic
+* Iggy Menzies
+* David Monro
+* Thanh Nguyen
+* Andrew Patterson
+* Kamile Taouk
+* Sarah Thomas
+* Marie Wong
+
 <PrintButton />
 
 ## Document History
@@ -23,8 +45,9 @@ GUARDIANS TRE Working Group
 
 The GUARDIANS TRE Working Group has spent 2026 investigating trusted research environments (TRE) for genomics. During
 this time, it reviewed the UK [SATRE specification](https://satre-specification.readthedocs.io/en/v2.0.1/) requirements,
-asking whether genomics needs something different. This report outlines the findings and compares SATRE requirements in
-the [SATRE for Genomics](../../requirements/satre-genomics/) page.
+asking whether genomics differentiates itself enough that TRE operators and builders will need to
+build in specific genomics functionality.
+This report outlines the findings and compares SATRE requirements in the [SATRE for Genomics](../../requirements/satre-genomics/) page.
 
 The group's main finding is that SATRE is a good base for a genomics TRE. SATRE leaves each implementor to decide how to
 meet the spec, and has been written with multiple use-cases in mind. This means that the majority of its requirements
@@ -115,7 +138,7 @@ some data must stay in Australia.
 **What differs for genomics.** A pipeline run requires differing compute as it changes needs while running. It might use
 16 CPUs with little memory for some time, then one CPU with 128 GiB of memory, or many small machines. Across a cohort,
 hundreds of machines can be busy at once, and they shouldn't cost anything while idle. The group also calls this
-[dynamic compute](../../requirements/researcher-environments/#taxonomy-of-compute-types-provided-in-tres). Members saw
+dynamic compute. Members saw
 it as one of the main things that separates a genomics TRE from an ordinary one. Experience also confirmed this, where
 for example some commercial TREs can start many machines at once, but not scale automatically, and some TREs do not
 support Spark clusters.

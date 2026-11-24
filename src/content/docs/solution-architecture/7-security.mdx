@@ -1,0 +1,56 @@
+---
+title: Security and Privacy
+sidebar:
+  order: 7
+---
+
+## Security objectives
+
+1. Controlled data is only readable by environments that an Information Asset Owner has approved.
+2. Every access decision and data access can be traced to a person and an approval.
+3. A compromise of a researcher environment cannot widen access beyond its entitlements.
+
+## Trust boundaries
+
+| Boundary                                   | Crossing                                       | Control                                                    |
+|--------------------------------------------|------------------------------------------------|------------------------------------------------------------|
+| Partner AWS account → htsget               | Ticket requests from researcher environments   | VPC Lattice; the requesting VPC id is checked              |
+| Partner AWS account → Dataset Storage      | Fetching byte ranges                           | Pre-signed URLs signed by the node's IAM principal; bucket policy restricted to designated VPCs |
+| Information Asset Owner storage → Node                   | Dataset ingest                                 | Scoped IAM roles or stored credentials (Secrets Manager); checksum verification |
+
+## Identity and authentication
+
+- **Users** authenticate with their home institution through [AAF](../../technology/aaf) using OIDC (see [Using AAF with OIDC](../../guides/using-aaf-with-oidc)). No local user accounts. Seqera users are controlled by the configuration
+             of the respective Seqera instance. This could be an email login flow (as per Australian BioCommons instances) or through AAF.
+- **Services** authenticate with AWS IAM roles.
+- **Partner environments** are identified by their VPC, as injected by VPC Lattice.
+
+## Authorisation
+
+- Access decisions are made in REMS by Information Asset Owners and recorded as entitlements with end dates.
+- htsget enforces entitlements on each request and only returns tickets for permitted data, optionally restricted to permitted genomic regions.
+- Bucket policies combine a VPC condition with signing by the node's own principal, so the only route to the data is a URL issued by htsget, used from inside the authorised VPC (see [AWS-Native Data Sharing](../../guides/aws-native-data-sharing)).
+
+## Data protection
+
+| Control                | Approach                                                                 |
+|------------------------|--------------------------------------------------------------------------|
+| Encryption in transit  | TLS on all endpoints                                                     |
+| Encryption at rest     | S3 server-side encryption; SSE-KMS for each cache bucket with key control delegable to Information Asset Owner |
+| Integrity              | Checksums verified on every copy (`copyrite`, `.sums` files)             |
+| Data minimisation      | Region-level slicing through htsget rather than whole-file release       |
+| Secrets                | AWS Secrets Manager for credentials to external S3-compatible stores     |
+
+## Audit and monitoring
+
+CloudTrail S3 data plane logs collected for all cache buckets. There is no current facility for Information Asset Owners
+to read these logs.
+
+## Threat model
+
+| Threat                                            | Boundary                     | Mitigation                                                    | Residual risk |
+|---------------------------------------------------|------------------------------|---------------------------------------------------------------|---------------|
+| Pre-signed URL copied out of the partner VPC      | Partner → Dataset Storage    | Bucket policy VPC condition; short URL lifetime               | Low           |
+| Partner bypasses htsget using their own AWS credentials | Partner → Dataset Storage | URLs signed by the node's principal; partner principals have no direct grant | Low |
+| Compromised researcher environment exfiltrates permitted data | Researcher Environment | Out of the node's control | Medium |
+| Stolen AAF credentials used to apply for access   | Internet → REMS              | Information Asset Owner approval step; institutional MFA                    | Medium      |

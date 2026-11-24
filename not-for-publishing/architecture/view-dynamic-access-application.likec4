@@ -1,8 +1,6 @@
 // GUARDIANS solution architecture — LikeC4 model
 //
 // Docs: https://likec4.dev/dsl/
-//
-// Runtime scenario: ported from Structurizr dynamic view "gdn-access-application".
 
 views {
 

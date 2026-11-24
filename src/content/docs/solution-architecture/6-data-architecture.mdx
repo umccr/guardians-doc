@@ -1,0 +1,53 @@
+---
+title: Data Architecture
+sidebar:
+  order: 6
+---
+
+## Data held by the node
+
+| Data                         | Examples                                  | Owner         | Sensitivity                       | Where                         |
+|------------------------------|-------------------------------------------|---------------|-----------------------------------|-------------------------------|
+| Genomic data objects         | BAM, CRAM, FASTQ, VCF, BCF and indexes    | Information Asset Owner     | Controlled (potentially identifying) | Dataset Storage (S3)        |
+| Clinical / phenotypic data   | FHIR resources, Phenopackets              | Information Asset Owner     | Controlled (identifying)          | Dataset Storage (S3)          |
+| Dataset metadata             | Manifests, RO-Crate / DCAT descriptions   | Information Asset Owner     | Usually open or low sensitivity   | Dataset Storage (S3)          |
+| Checksums                    | `.sums` files                             | Node          | Low                               | Next to each object           |
+| Access applications and entitlements | Forms, approvals, licences        | Node (on behalf of the Information Asset Owner) | Personal information (Data Consumers) | REMS database   |
+| Audit and access logs        | CloudTrail, S3 access logs, htsget logs   | Node          | Personal information              | **TODO**                      |
+| Cost and billing data        | Cost and usage reports                    | Node          | Internal                          | curtrail                      |
+
+## Dataset structure
+
+Datasets are structured according to the [Dataset Formatting solution](../dataset-formatting),
+which meets the [Dataset Formatting requirements](../../requirements/dataset-formatting). In
+short:
+
+- Data arrives in **submission batches**; a combined dataset namespace merges batches, with the latest object winning.
+- Each dataset carries machine-readable metadata built on existing standards (RO-Crate, DCAT, Phenopackets).
+
+## Identifiers
+
+| Identifier          | Meaning                                    | Exposed to Data Consumers? |
+|---------------------|--------------------------------------------|-------------------------|
+| S3 object key       | Physical location in storage               | No (hidden by htsget)   |
+| htsget id           | Meaningful sample / file identifier        | Yes                     |
+| REMS resource id    | The unit of access control                 | Yes                     |
+| Dataset id          | **TODO**: agree format (e.g. URN, DOI)     | Yes                     |
+
+**TODO.** Document the mapping between REMS resources, datasets and htsget ids.
+
+## Storage tiers and lifecycle
+
+| Stage           | Storage class                          | Notes                                                       |
+|-----------------|----------------------------------------|-------------------------------------------------------------|
+| Active          | S3 Standard / Intelligent-Tiering      | Data with live entitlements                                 |
+| Dormant         | S3 Glacier classes                     | Data retained but not in use; Data Copy can thaw it on demand |
+| Removed         | Deleted                                | When the Information Asset Owner withdraws data, or retention ends         |
+
+The [costing report](../../reports/costing-data-sharing-platform/costing-scrollytell) models
+the storage and egress costs of these choices.
+
+**TODO.**
+- [ ] Retention periods and who decides them
+- [ ] Process for an Information Asset Owner withdrawing a dataset or an individual participant's data
+- [ ] Versioning of datasets once released

@@ -11,9 +11,10 @@ views {
     description 'An approved Data Consumer reads genomic data from their environment.'
 
     dataConsumer -[control]-> seqera 'Runs an analysis'
-    // Data arrows point the way the data moves (see relationship kinds in specs.likec4).
+    seqera -[control]-> gdn.htsget 'Requests a genomic region'
     gdn.cache -[data]-> gdn.htsget 'Indexes, used to work out byte ranges'
-    // gdn.cache -[data]-> seqera 'Byte ranges named in the tickets'
+    gdn.htsget -[control]-> seqera 'Returns tickets'
+    gdn.cache -[data]-> seqera 'Byte ranges named in the tickets'
 
     autoLayout LeftRight
   }

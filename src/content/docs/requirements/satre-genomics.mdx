@@ -6,20 +6,28 @@ import Entry from '../../../components/satre-genomics/Entry.astro';
 import SatreGenomicsSummary from '../../../components/satre-genomics/SatreGenomicsSummary.astro';
 import TypeBadge from '../../../components/satre-genomics/TypeBadge.astro';
 
-**v 0.1**
+**v 0.2**
 
-GUARDIANS TRE Working Group
+GUARDIANS TRE Working Group:
+
 
 ## Document History
 
 | Version | Date     | Who               | Change Summary  |
 | ------- | -------- | ----------------- | --------------- |
-| 0.1     | Nov 2026 | TRE Working Group | Initial version |
+| 0.1     | Sep 2026 | TRE Working Group | Initial version |
+| 0.2 | Nov 2026 | MM | Most content - first draft for review |
 
 ## About this page
 
 This page lists the places where a genomics TRE differs from [SATRE
-v2.0.1](https://satre-specification.readthedocs.io/en/v2.0.1/). Any SATRE requirement that is not listed here applies to
+v2.0.1](https://satre-specification.readthedocs.io/en/v2.0.1/). It should probably be read in conjunction with
+[What makes a genomics TRE different](../../reports/genomics-tre) as that sets the overall
+
+
+
+
+Any SATRE requirement that is not listed here applies to
 genomics unchanged. For the reasoning behind the main differences, see [What makes a genomics TRE
 different](../../reports/genomics-tre/).
 
@@ -312,8 +320,8 @@ compute resources suited to each pipeline stage.**
 
 A single pipeline run can need a high-memory node for one step, GPUs for another, and hundreds of small nodes in
 parallel for per-sample work. Fixed desktops, or one large virtual machine, cannot run population-scale analyses in a
-reasonable time, and paying for that capacity while it sits idle is not affordable. The [taxonomy of compute
-types](../researcher-environments/#taxonomy-of-compute-types-provided-in-tres) calls this "dynamic compute".
+reasonable time, and paying for that capacity while it sits idle is not affordable. The taxonomy of compute
+types calls this "dynamic compute".
 
 The group asked for the statement above to be reworded in three ways:
 

@@ -1,0 +1,42 @@
+---
+title: Deployment
+sidebar:
+  order: 5
+---
+
+## Hosting
+
+| Concern       | Choice                                                                    |
+|---------------|---------------------------------------------------------------------------|
+| Cloud         | AWS                                                                       |
+| Region        | `ap-southeast-2` (Sydney)                                                 |
+| Compute       | Serverless where possible: AWS Lambda (htsget), AWS Step Functions (copy) |
+| Storage       | Amazon S3                       |
+| Networking    | Amazon VPC Lattice service network to expose htsget to other accounts     |
+| Identity      | AWS IAM (services)                                           |
+
+## AWS accounts
+
+| Account          | Purpose                                         | Holds                             |
+|------------------|-------------------------------------------------|-----------------------------------|
+| Data Control     | The node itself                                 | REMS, htsget, cache buckets, copy orchestration |
+| Data Consumer accounts (external) | Owned by TRE providers or partner organisations | VPCs associated with the Lattice service network |
+
+## Networking
+
+- htsget is published as a VPC Lattice service; partner VPCs are associated with the service network.
+- Partner VPC identity is used as an access-control primitive.
+- Cache data buckets restrict `s3:GetObject` to the designated VPCs.
+
+## Environments
+
+| Environment | Purpose                                     | Data                         |
+|-------------|---------------------------------------------|------------------------------|
+| data-control        | Production                                  | Real controlled-access data  |
+|  dev | Individual component development | Test only |
+
+## Deployment process
+
+Components are deployed via Terraform or CDK.
+
+
