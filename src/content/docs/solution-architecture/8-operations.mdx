@@ -1,0 +1,55 @@
+---
+title: Operations
+sidebar:
+  order: 8
+---
+
+## Infrastructure as code
+
+| What                                       | Tool                                                                              |
+|--------------------------------------------|-----------------------------------------------------------------------------------|
+| AWS infrastructure                         | Terraform (**TODO** confirm per component)                                        |
+| REMS content (forms, workflows, licences, resources) | [REMS Terraform provider](../../technology/rems-terraform-provider)     |
+| Architecture diagrams                      | LikeC4 model in `not-for-publishing/architecture`, rendered at build time        |
+
+## Monitoring and alerting
+
+**TODO.**
+
+| Signal                          | Source                    | Alert when                  | Who is notified |
+|---------------------------------|---------------------------|-----------------------------|-----------------|
+| Copy execution failures         | Step Functions            | Execution fails or times out | **TODO**       |
+| htsget errors and latency       | Lambda / CloudWatch       | **TODO**                    | **TODO**        |
+| REMS availability               | **TODO**                  | **TODO**                    | **TODO**        |
+
+## Cost management
+
+- Pre-run estimates for copies from the [steps-s3-copy cost report](../../technology/steps-s3-copy-costing).
+- Combined log and billing analysis with [curtrail](../../technology/curtrail).
+- Platform-level model in the [costing report](../../reports/costing-data-sharing-platform/costing-scrollytell).
+
+**TODO.** Budgets and alerts; how costs are attributed to Information Asset Owners or projects (tagging scheme).
+
+## Backup and recovery
+
+**TODO.**
+
+| Asset              | Backup approach                         | RPO      | RTO      |
+|--------------------|-----------------------------------------|----------|----------|
+| Dataset Storage    | **TODO** (versioning, replication, or rely on Information Asset Owner copy) | | |
+| REMS database      | **TODO** (automated snapshots)          |          |          |
+| Configuration      | In Git (infrastructure as code)         | n/a      | Redeploy |
+
+## Routine procedures
+
+**TODO.** Link runbooks as they are written:
+
+- [ ] Onboarding a new Information Asset Owner and dataset
+- [ ] Onboarding a new partner VPC / TRE provider
+- [ ] Revoking access in an emergency
+- [ ] Releasing a dataset to a collaborator
+- [ ] Rotating credentials for external S3-compatible stores
+
+## Support model
+
+**TODO.** Who operates the node, hours of support, and how TRE providers and Information Asset Owners raise issues.

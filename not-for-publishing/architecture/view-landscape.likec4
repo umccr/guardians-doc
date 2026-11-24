@@ -7,11 +7,14 @@ views {
   view landscape {
     autoLayout TopBottom 200 300 ortho
 
-    include aaf, rems
+    include aaf, rems, globus
     style aaf {
       size small
     }
     style rems {
+      size small
+    }
+    style globus {
       size small
     }
 

@@ -10,14 +10,14 @@ import ArchitectureFloat from "../../../components/ArchitectureFloat.astro";
 import DrawioDiagram from "../../../components/DrawioDiagram.astro";
 
 <article className="prose dark:prose-invert">
-  <ArchitectureFloat showLayers={["Base", "SYNCING", "CLOUD-NATIVE"]} />
-  <Badge text="Proof of Concept" size="large" variant="note" />
+  <ArchitectureFloat showLayers={["DATA-SHARING", "REAL-DATA", "DATA-COPYING"]} />
+  <Badge text="Release Candidate" size="large" variant="note" />
   <LinkCard className="w-1/2" title="GitHub" href="https://github.com/umccr/data-releaser" />
   <p>
     This is a command line tool, written in Go, that centre administrators use to give researchers access to genomic
     data, either for a set period or with no end date. It primarily runs in a dedicated data account that covers the
     whole life of a release, including granting access, extending it, revoking it and cleaning up afterwards. It
-    addresses the [data release](../../requirements/data-release) user stories, which cover sharing data with
+    addresses the data release user stories, which cover sharing data with
     researchers inside the organisation, such as into a Seqera workspace, as well as releasing it to another
     organisation or researcher.
   </p>

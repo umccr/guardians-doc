@@ -32,6 +32,7 @@ the data under those decisions.
 | REMS  | Manages data access applications and entitlements  |
 | Long Term Data Storage        | Object storage holding the Information Asset Owner's source data     |
 | Seqera   | Analysis environment for data consumers                         |
+| Globus   | External system that can copy objects from long term data storage to a node (not in production)                         |
 
 ## Solution scope
 
@@ -43,11 +44,14 @@ the data under those decisions.
 - Configuring sharing into researcher environments
 - Cost estimation and reporting for data movement and storage
 - Logging and auditing
-- Setup of compatible researcher environments
 
 ### Out of scope
 
 - Making access decisions, this decision-making is upstream and defined by information asset owners
-- Releasing copies of data to collaborators outside of genomic data nodes
+- The setup of access applications, approvals and entitlements (REMS) - except where humans consume data from these
+  systems in order to work
+- Releasing copies of data to collaborators outside of genomic data nodes - whilst this functionality is supported by
+  various components of the system (in particular we use steps-s3-copy to do this where appropriate) we do
+  not consider it part of this solution architecture
 - Help desk and training
-- Access applications, approvals and entitlements (REMS) (except via air gap human processes)
+- Setup of compatible researcher environments

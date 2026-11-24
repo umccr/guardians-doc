@@ -32,16 +32,12 @@ export default defineConfig({
             {
                 label: 'Requirements',
                 items: [
-                    "requirements/overall",
+                    "requirements/overview",
                     "requirements/roles",
                     "requirements/glossary",
+                    "requirements/satre-genomics",
                     "requirements/dataset-formatting",
-                    "requirements/data-copying",
-                    "requirements/data-release",
-                    "requirements/data-control",
-                    "requirements/researcher-environments-raw",
-                    "requirements/researcher-environments",
-                    "requirements/satre-genomics"
+                    "requirements/data-copying"
                 ]
             },
             {
@@ -52,11 +48,11 @@ export default defineConfig({
                     "solution-architecture/2-system-context",
                     "solution-architecture/3-building-blocks",
                     "solution-architecture/4-runtime-scenarios",
-                    // "solution-architecture/5-deployment", // TODO: uncommitted - restore once added to git
-                    // "solution-architecture/6-data-architecture", // TODO: uncommitted - restore once added to git
-                    // "solution-architecture/7-security", // TODO: uncommitted - restore once added to git
-                    // "solution-architecture/8-operations", // TODO: uncommitted - restore once added to git
-                    // "solution-architecture/9-risks-and-technical-debt", // TODO: uncommitted - restore once added to git
+                    "solution-architecture/5-deployment",
+                    // "solution-architecture/6-data-architecture", // hidden from sidebar for now (page still builds)
+                    "solution-architecture/7-security",
+                    // "solution-architecture/8-operations", // hidden from sidebar for now (page still builds)
+                    // "solution-architecture/9-risks-and-technical-debt", // hidden from sidebar for now (page still builds)
                     {
                         label: 'Detailed Designs',
                         items: [

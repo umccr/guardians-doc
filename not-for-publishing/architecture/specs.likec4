@@ -10,6 +10,10 @@ specification {
   color green-muted #7a9a82
   color indigo-muted #8a86b8
   color rose-muted #b07f8c
+  color slate-muted #9aa1ab
+
+  // Things that exist in the design but are not yet in production.
+  tag notInProduction
 
   element person {
     style {
@@ -36,5 +40,12 @@ specification {
     line dotted
     head open
     color gray
+  }
+  // Data flow through something not yet in production: same amber and filled
+  // head as data, but dotted so it reads as provisional.
+  relationship plannedData {
+    line dotted
+    head normal
+    color amber
   }
 }

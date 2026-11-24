@@ -4,43 +4,49 @@ sidebar:
   order: 3
 ---
 
-import LikeC4Diagram from '../../../components/LikeC4Diagram.astro';
-
-This page describes each container in a genomic data node: what it is responsible for,
-what it is built with and how other parts talk to it. The diagram is the same view as on
-the [System Context](../2-system-context) page.
+This page describes each container in a genomic data node: what it is responsible for
+and how it interfaces with other components.
 
 ## Summary
 
 | Service        | Responsibility                                    | Technology                                      | Status      | Details                                                                |
 |------------------|---------------------------------------------------|-------------------------------------------------|-------------|------------------------------------------------------------------------|
-| Data Releaser           | Control plane for other services         | `data-releaser` (Go application)          | Production  | [data-releaser](../../technology/data-releaser) |
+| Data Releaser           | Control plane for other services         | `data-releaser` (Go application)          | Release Candidate  | [data-releaser](../../technology/data-releaser) |
 | Data Copy        | Moving datasets into, and out of, the node        | `steps-s3-copy` (AWS Step Function), `copyrite` (Rust)           | Production  | [steps-s3-copy](../../technology/steps-s3-copy), [copyrite](../../technology/copyrite) |
-| htsget           | Serving authorised slices of genomic data         | `htsget-rs` on AWS Lambda, VPC Lattice          | Production  | [htsget-rs](../../technology/htsget-rs), [AWS-native sharing](../../guides/aws-native-data-sharing) |
+| htsget           | Serving authorised slices of genomic data         | `htsget-rs` (Rust) on AWS Lambda, VPC Lattice          | Production  | [htsget-rs](../../technology/htsget-rs), [AWS-native sharing](../../guides/aws-native-data-sharing) |
+| Bill and Log Processor           | Providers bill and log data for operator analysis         | `curtrail` (Python CLI and library)         | Production  | [curtrail](../../technology/curtrail) |
 
-## Data Copy
+## Data Releaser
 
-**Responsibility.** Long-running, resumable copying of large sets of objects between
-object stores, with checksums verified end to end. It is used both to bring Information Asset Owner data
-*into* the node and to *release* data to collaborators.
+**Responsibility.** Stores records of data share activity and controls policies and other configurations that enable
+the data sharing activities to actually happen.
 
 **Interfaces.**
 
 | Direction | Counterpart        | Protocol          | Purpose                                         |
 |-----------|--------------------|-------------------|-------------------------------------------------|
-| Inbound   | Operator / Information Asset Owner | AWS API (Step Functions `StartExecution`) | Start a copy with a list of objects and a destination |
+| Inbound   | Operator | None (CLI) | Issues commands via CLI |
+| Outbound  | Data Copy    | AWS API            | Start a copy with a list of objects and a destination        |
+| Outbound  | Data Cache    | AWS API            | Alters cache bucket policies to support sharing        |
+| Outbound  | htsget  | S3 API            | Writes configuration objects consumed by htsget      |
+
+## Data Copy
+
+**Responsibility.** Long-running, resumable copying of large sets of objects between
+object stores, with checksums verified end to end. It is used to bring Information Asset Owner data
+*into* the node.
+
+**Interfaces.**
+
+| Direction | Counterpart        | Protocol          | Purpose                                         |
+|-----------|--------------------|-------------------|-------------------------------------------------|
+| Inbound   | Data Releaser  | AWS API | Start a copy with a list of objects and a destination |
 | Outbound  | Long Term Data Storage  | S3 API            | Read source objects, trigger Glacier thaws      |
-| Outbound  | Dataset Storage    | S3 API            | Write objects and `.sums` checksum files        |
+| Outbound  | Data Cache    | S3 API            | Write objects        |
 
-**Notes.** Meets the [Data Copying requirements](../../requirements/data-copying), including
-thawing from cold storage (`DCREQ‑6`), idempotent re-runs (`DCREQ‑13`) and cost reports
-([steps-s3-copy costing](../../technology/steps-s3-copy-costing)).
+## Data Cache
 
-## Dataset Storage
-
-**Responsibility.** Durable storage of datasets in the agreed [dataset format](../dataset-formatting),
-and the "data block server" for htsget: the byte ranges in htsget tickets are pre-signed
-URLs into this storage.
+**Responsibility.** Temporary storage of datasets in the agreed format and the "data block server" for htsget.
 
 **Interfaces.**
 
@@ -62,16 +68,17 @@ only the byte ranges required.
 | Direction | Counterpart            | Protocol                     | Purpose                                 |
 |-----------|------------------------|------------------------------|-----------------------------------------|
 | Inbound   | Researcher Environment | HTTPS via VPC Lattice        | htsget ticket requests                  |
-| Outbound  | REMS                   | HTTPS                        | Check entitlements                      |
-| Outbound  | Dataset Storage        | S3 API                       | Read indexes; pre-sign URLs with the node's own IAM principal |
+| Outbound  | Data Releaser                   | S3 API                        | Read configuration for supporting dynamic sharing                      |
+| Outbound  | Data Cache        | S3 API                       | Read indexes; pre-sign URLs with the node's own IAM principal |
 
-## Supporting components
 
-These are not containers in the C4 model but are part of the solution.
+## Bill and Log Processor
 
-| Component                                                             | Purpose                                                   | Status            |
-|-----------------------------------------------------------------------|-----------------------------------------------------------|-------------------|
-| [AAF](../../technology/aaf)                                           | Federated identity for all user-facing services           | Production        |
-| [curtrail](../../technology/curtrail)                                 | Combining AWS logs and billing data for cost reporting    | Proof of concept  |
-| [Globus](../../technology/globus)                                     | Alternative release path to external collaborators        | Investigation     |
-| [Seqera Platform](../../guides/seqera-setup)                          | Example researcher environment (not part of the node)     | Example           |
+**Responsibility.** Processes native AWS bill and log artefacts and provides tools to construct CLI utilities that can
+consume them in Parquet form.
+
+**Interfaces.**
+
+| Direction | Counterpart            | Protocol                     | Purpose                                 |
+|-----------|------------------------|------------------------------|-----------------------------------------|
+| Inbound  | Operator                   | S3 API (Parquet)                        | Optmised loading of parquet files into local memory for analysis                      |

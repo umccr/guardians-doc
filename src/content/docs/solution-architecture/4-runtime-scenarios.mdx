@@ -43,9 +43,9 @@ in Seqera Platform).
 
 1. The Data Consumer runs an analysis in their environment.
 2. The environment asks htsget for a region of a sample, over the VPC Lattice service network.
-3. htsget checks the caller's entitlements.
-4. htsget reads the file index and works out the minimal byte ranges, returning them as pre-signed URLs.
-5. The environment fetches the byte ranges directly from dataset storage; the bucket policy only honours requests from the designated VPC.
+3. htsget checks the caller's entitlements and uses indexes to compute the right regions.
+4. htsget returns a ticket to the environment with details of the data including pre-signed URLs.
+5. The environment fetches the byte ranges directly from the data cache; the bucket policy only honours requests from the designated VPC.
 
 See [AWS-Native Data Sharing](../../guides/aws-native-data-sharing) for the network and
 bucket policy details.
