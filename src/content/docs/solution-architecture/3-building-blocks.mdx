@@ -13,6 +13,7 @@ and how it interfaces with other components.
 |------------------|---------------------------------------------------|-------------------------------------------------|-------------|------------------------------------------------------------------------|
 | Data Releaser           | Control plane for other services         | `data-releaser` (Go application)          | Release Candidate  | [data-releaser](../../technology/data-releaser) |
 | Data Copy        | Moving datasets into, and out of, the node        | `steps-s3-copy` (AWS Step Function), `copyrite` (Rust)           | Production  | [steps-s3-copy](../../technology/steps-s3-copy), [copyrite](../../technology/copyrite) |
+| Data Cache       | Temporary dataset storage and htsget data blocks | Amazon S3 | — | [Data Cache](#data-cache) |
 | htsget           | Serving authorised slices of genomic data         | `htsget-rs` (Rust) on AWS Lambda, VPC Lattice          | Production  | [htsget-rs](../../technology/htsget-rs), [AWS-native sharing](../../guides/aws-native-data-sharing) |
 | Bill and Log Processor           | Providers bill and log data for operator analysis         | `curtrail` (Python CLI and library)         | Production  | [curtrail](../../technology/curtrail) |
 
@@ -45,8 +46,6 @@ object stores, with checksums verified end to end. It is used to bring Informati
 | Outbound  | Data Cache    | S3 API            | Write objects        |
 
 ## Data Cache
-
-{/* Should Data Cache also be listed in the summary table, or is it intentionally excluded? */}
 
 **Responsibility.** Temporary storage of datasets in the agreed format and the "data block server" for htsget.
 
