@@ -25,7 +25,7 @@ import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
             <li>reorganise the folder structure of data as it copies</li>
             <li>utilise native checksums to give guarantees on data integrity and avoid
             unnecessary copying</li>
-            <li>used saved secret credentials for S3 compatible buckets outside of AWS</li>
+            <li>use saved secret credentials for S3 compatible buckets outside of AWS</li>
         </ul>
     </p>
     <p>
@@ -34,7 +34,7 @@ import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
         seamlessly pause for days at a time waiting for data to become available. This has been
         implemented with the ability to trigger the thawing of data in
         [AWS Glacier](https://aws.amazon.com/s3/storage-classes/glacier/) - waiting
-        for it to become available - and then proceeding with the copy. THe individual
+        for it to become available - and then proceeding with the copy. The individual
         thaw status of each object is independent.
     </p>
 

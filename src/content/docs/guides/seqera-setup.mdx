@@ -39,7 +39,7 @@ One of the researcher environments that we want to enable for researchers is
 [Seqera Enterprise](https://docs.seqera.io/platform-enterprise/).
 
 We have been assigned a Seqera organisation within the Australian BioCommons [instance](https://www.biocommons.org.au/seqera-service),
-and want to reliably setup workspaces and AWS accounts to enable reserachers to do their
+and want to reliably set up workspaces and AWS accounts to enable reserachers to do their
 work. The researchers span different projects and research groups - so we need to be
 flexible in the number of workspaces and AWS accounts we create (i.e. we do not just
 have one).
@@ -142,9 +142,9 @@ for EFS from the policy.
 Seqera will require a working bucket in order to maintain state between stages
 of running pipelines. Here we show an example of how we can set up a
 bucket that is restricted to *only* the specific user we created above, meaning
-the workspaces in the same AWS account cannot see each others work.
+the workspaces in the same AWS account cannot see each other's work.
 
-This may of course may be overkill for many research groups - in which case
+This may of course be overkill for many research groups - in which case
 just a plain S3 bucket with no policy statement would work fine.
 
 <Code code={seqeraWorkingBucketTf} lang="terraform" title="seqera-working-bucket.tf" />
