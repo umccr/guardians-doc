@@ -43,9 +43,9 @@ import ArchitectureFloat from '../../../components/ArchitectureFloat.astro';
         can compute only the minimal set of missing checksums needed to do so.
     </p>
     <p>
-        When copying, `copyrite` behaves like a sync, it only transfers an object if it is absent
+        When copying, `copyrite` behaves like a sync. It only transfers an object if it is absent
         or has mismatched checksums, and uses server-side `CopyObject` where possible to avoid
-        downloading and re-uploading. It avoid re-calculating ETags if possible, verifies the destination
+        downloading and re-uploading. It avoids re-calculating ETags if possible, verifies the destination
         against the source once. A statistics JSON block is outputted, which we plan to integrate into cost
         reporting with [`steps-s3-copy`](../steps-s3-copy) and [`curtrail`](../curtrail). This works towards our
         requirement to keep copy [costs controllable and minimised](../../requirements/data-copying).

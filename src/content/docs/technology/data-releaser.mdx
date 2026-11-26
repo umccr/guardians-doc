@@ -21,10 +21,10 @@ import DrawioDiagram from "../../../components/DrawioDiagram.astro";
     researchers inside the organisation, such as into a Seqera workspace, as well as releasing it to another
     organisation or researcher.
   </p>
-  <p>The tool releases data in one of two ways, either by using S3 policies or by using htsget with VPC lattice.</p>
+  <p>The tool releases data in one of two ways, either by using S3 policies or by using htsget with VPC Lattice.</p>
   <ul>
     <li>
-      **htsget.** For a htsget release, the researcher streams regions of named sequencing libraries through
+      **htsget.** For an htsget release, the researcher streams regions of named sequencing libraries through
       [htsget-rs](../htsget-rs) over a private AWS VPC Lattice connection, as described in [AWS-native data
       sharing](../../guides/aws-native-data-sharing). The data releaser is a tool that implements the end-to-end
       connection between these two. The tool looks up each library's BAM file in a data warehouse and records a share
@@ -39,7 +39,7 @@ import DrawioDiagram from "../../../components/DrawioDiagram.astro";
   />
   <ul>
     <li>
-      **s3.** For an S3 release, the tool first stages a whole dataset, which copies it from the external source store
+      **S3.** For an S3 release, the tool first stages a whole dataset, which copies it from the external source store
       into a cache bucket in the Data Control account using [steps-s3-copy](../steps-s3-copy). It then grants one
       researcher AWS account read access from a nominated VPC, by writing the bucket policy and the policy of the KMS
       key that encrypts the bucket. AWS checks both policies on every request, which enforces the access control.
@@ -81,7 +81,7 @@ import DrawioDiagram from "../../../components/DrawioDiagram.astro";
     </ul>
   </p>
   <p>
-    The htsget mechanism can share precise reads level data, with plans to include variant level data. Which means that
+    The htsget mechanism can share precise reads level data, with plans to include variant level data, which means that
     the access control can be configured to share only certain regions of BAMs, unlike the S3 mechanism which shares
     whole files.
   </p>

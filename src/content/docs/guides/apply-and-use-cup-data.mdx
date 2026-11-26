@@ -109,7 +109,7 @@ and the ability to subset data as it is copied to the cache. Cached data can be
 shared amongst multiple research recipients.
 
 ```
-➜ data-releaser stage s3 --dataset-uri s3://unimelb-ceph/cup/
+➜ data-releaser stage s3 --dataset-uri s3://unimelb-ceph/cup/ \
                          --instructions-from ../datasets/primary/2025-cup/instructions-small.jsonl
                          
 Dataset staging started:
@@ -134,8 +134,8 @@ to a specific AWS account and VPC (network). This account (and VPC) is one in wh
 Seqera is attached.
 
 ```
-➜ data-releaser share s3 --dataset-uri s3://unimelb-ceph/cup/
-                         --account <REDACTED-SEQERA>
+➜ data-releaser share s3 --dataset-uri s3://unimelb-ceph/cup/ \
+                         --account <REDACTED-SEQERA> \
                          --target-vpc-id vpc-<REDACTED> --expiry 30d
 
 Dataset released successfully:
@@ -189,7 +189,7 @@ The researcher starts by loading *all* the accompanying patient records in FHIR.
     />
 </figure>
 
-Depending on the researchers knowledge of FHIR - a variety of Python helpers can be provided
+Depending on the researcher's knowledge of FHIR - a variety of Python helpers can be provided
 to process the data. Here the data is transformed into a Pandas dataframe.
 
 <figure>

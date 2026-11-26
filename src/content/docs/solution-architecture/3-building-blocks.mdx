@@ -46,6 +46,8 @@ object stores, with checksums verified end to end. It is used to bring Informati
 
 ## Data Cache
 
+{/* Should Data Cache also be listed in the summary table, or is it intentionally excluded? */}
+
 **Responsibility.** Temporary storage of datasets in the agreed format and the "data block server" for htsget.
 
 **Interfaces.**
@@ -81,4 +83,4 @@ consume them in Parquet form.
 
 | Direction | Counterpart            | Protocol                     | Purpose                                 |
 |-----------|------------------------|------------------------------|-----------------------------------------|
-| Inbound  | Operator                   | S3 API (Parquet)                        | Optmised loading of parquet files into local memory for analysis                      |
+| Inbound  | Operator                   | S3 API (Parquet)                        | Optimised loading of parquet files into local memory for analysis                      |
