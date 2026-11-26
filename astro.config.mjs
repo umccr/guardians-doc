@@ -8,8 +8,11 @@ import { LikeC4VitePlugin } from 'likec4/vite-plugin';
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://umccr.github.io',
-    base: '/guardians-doc',
+    site: 'https://guardians.ccgcm.dev',
+
+    // if published without a custom domain in github then we need the project name in the URL base
+    // site: 'https://umccr.github.io',
+    // base: '/guardians-doc',
 
     integrations: [react(), starlight({
         title: 'GUARDIANS (CCGCM)',
